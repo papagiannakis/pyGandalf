@@ -1,4 +1,4 @@
-from src.scene.entity import Entity
+from scene.entity import Entity
 
 import numpy as np
 

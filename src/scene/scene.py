@@ -1,4 +1,4 @@
-from src.scene.entity import Entity
+from scene.entity import Entity
 
 class Scene():
     def __init__(self):
@@ -84,7 +84,7 @@ class Scene():
 
         system.filter(self)
 
-        from src.core.application import Application
+        from core.application import Application
 
         if (Application().is_running()):
             system.on_create_base()
@@ -98,7 +98,7 @@ class Scene():
                 return system
     
     def on_create(self):
-        from src.core.application import Application
+        from core.application import Application
 
         Application().set_is_running(True)
         

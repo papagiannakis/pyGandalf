@@ -1,4 +1,4 @@
-from src.scene.scene import Scene
+from scene.scene import Scene
 
 class SceneManager(object):
     def __new__(cls):

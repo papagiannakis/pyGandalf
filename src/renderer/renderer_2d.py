@@ -1,4 +1,4 @@
-from src.utilities.texture_lib import TextureLib
+from utilities.texture_lib import TextureLib
 
 import OpenGL.GL as gl
 

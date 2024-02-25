@@ -1,9 +1,9 @@
-from src.scene.entity import Entity
-from src.systems.system import System
-from src.renderer.renderer_2d import Renderer2D
-from src.utilities.material_lib import MaterialLib
+from scene.entity import Entity
+from systems.system import System
+from renderer.renderer_2d import Renderer2D
+from utilities.material_lib import MaterialLib
 
-import src.utilities.math as utils
+import utilities.math as utils
 
 import OpenGL.GL as gl
 

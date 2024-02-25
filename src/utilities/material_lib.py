@@ -1,4 +1,4 @@
-from src.utilities.shader_lib import ShaderLib
+from utilities.shader_lib import ShaderLib
 
 class MaterialInstance:
     def __init__(self, shader_program, textures, shader_params = []):

@@ -1,5 +1,5 @@
-from src.scene.scene_manager import SceneManager
-from src.renderer.renderer_2d import Renderer2D
+from scene.scene_manager import SceneManager
+from renderer.renderer_2d import Renderer2D
 
 import glfw
 

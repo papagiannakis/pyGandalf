@@ -1,20 +1,20 @@
-from src.core.application import Application
-from src.core.opengl_window import OpenGLWindow
-from src.systems.system import System
-from src.systems.link_system import LinkSystem
-from src.systems.transform_system import TransformSystem
-from src.systems.opengl_rendering_system import RenderingSystem
-from src.scene.entity import Entity
-from src.scene.scene import Scene
-from src.scene.scene_manager import SceneManager
+from core.application import Application
+from core.opengl_window import OpenGLWindow
+from systems.system import System
+from systems.link_system import LinkSystem
+from systems.transform_system import TransformSystem
+from systems.opengl_rendering_system import RenderingSystem
+from scene.entity import Entity
+from scene.scene import Scene
+from scene.scene_manager import SceneManager
 
-from src.scene.components import InfoComponent, TransformComponent, LinkComponent, RenderComponent, MaterialComponent
+from scene.components import InfoComponent, TransformComponent, LinkComponent, RenderComponent, MaterialComponent
 
-from src.utilities.material_lib import MaterialLib, MaterialData
-from src.utilities.texture_lib import TextureLib
-from src.utilities.shader_lib import ShaderLib
+from utilities.material_lib import MaterialLib, MaterialData
+from utilities.texture_lib import TextureLib
+from utilities.shader_lib import ShaderLib
 
-import src.utilities.math as utils
+import utilities.math as utils
 
 import glfw
 import numpy as np

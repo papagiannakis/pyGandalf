@@ -1,7 +1,7 @@
-from src.scene.entity import Entity
-from src.scene.components import LinkComponent, TransformComponent
-from src.scene.scene_manager import SceneManager
-from src.systems.system import System
+from scene.entity import Entity
+from scene.components import LinkComponent, TransformComponent
+from scene.scene_manager import SceneManager
+from systems.system import System
 
 import numpy as np
 

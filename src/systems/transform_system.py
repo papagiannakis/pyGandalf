@@ -1,7 +1,7 @@
-from src.scene.entity import Entity
-from src.systems.system import System
+from scene.entity import Entity
+from systems.system import System
 
-import src.utilities.math as utils
+import utilities.math as utils
 
 import numpy as np
 
