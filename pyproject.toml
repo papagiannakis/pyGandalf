@@ -3,11 +3,11 @@ name = "pyGandalf"
 version = "0.0.1"
 description = "Default template for PDM package"
 authors = [
-    {name = "George Papagiannakis", email = ""},
+    {name = "George Papagiannakis", email = "papagian@ics.forth.gr"},
     {name = "John Petropoulos", email = "johnaipeia@gmail.com"},
-    {name = "Stratos Geronikolakis", email = ""},
-    {name = "Manos Kamarianakis", email = ""},
-    {name = "Antonis Protopsaltis", email = ""},
+    {name = "Stratos Geronikolakis", email = "stratos@oramavr.com"},
+    {name = "Manos Kamarianakis", email = "m.kamarianakis@gmail.com"},
+    {name = "Antonis Protopsaltis", email = "aprotopsaltis@uowm.gr"},
 ]
 dependencies = [
     "numpy>=1.26.4",
@@ -21,4 +21,4 @@ license = {text = "Apache-2.0"}
 
 
 [tool.pdm]
-distribution = false
+distribution = true

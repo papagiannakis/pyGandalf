@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:0f3a28590fa7eca95327724a456466525ff261771f989190b0e35f226866ee2a"
+content_hash = "sha256:c050349db23ef5abaafcf5ad6c416ed0a111adf0dcca6d23e865f513f6d32e26"
 
 [[package]]
 name = "glfw"

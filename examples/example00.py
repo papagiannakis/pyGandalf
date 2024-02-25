@@ -1,6 +1,3 @@
-import sys
-sys.path.append('C:\\Dev\\MSc\\pyGandalf\\')
-
 from src.core.application import Application
 from src.core.opengl_window import OpenGLWindow
 from src.systems.system import System
