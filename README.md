@@ -25,9 +25,9 @@ pyGandalf is a Python-based framework for computer graphics, visual computing in
 
 ## Installation
 
-- Install [pdm](https://pdm-project.org/latest/)
+- Install [pdm](https://pdm-project.org/latest/): ```pip install -U pip pdm```
 - Install dependecies: ```pdm install```
-- Select the interpreter: ```pdm use -f .venv```
+- Select the interpreter: ```pdm use -f ./.venv```
 - Activate the environment:
     - Powershell: ```Invoke-Expression (pdm venv activate in-project)```
     - Bash/csh/zsh: ```eval $(pdm venv activate in-project)```
