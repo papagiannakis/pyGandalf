@@ -48,7 +48,7 @@ Apache 2.0 License (see LICENSE file)
 ## Contributors
 
 - [George Papagiannakis](https://george.papagiannakis.org)
-- [John Petropoulos](TBD)
-- [Stratos Geronikolakis](TBD)
-- [Manos Kamarianakis](TBD)
-- [Antonis Protopsaltis](TBD)
+- [John Petropoulos](https://github.com/johnoyo)
+- [Stratos Geronikolakis](https://github.com/stratosger)
+- [Manos Kamarianakis](https://github.com/kamarianakis)
+- [Antonis Protopsaltis](https://github.com/aprotopsaltis)

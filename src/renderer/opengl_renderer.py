@@ -1,3 +1,4 @@
+from renderer.base_renderer import BaseRenderer
 from utilities.texture_lib import TextureLib
 from utilities.logger import logger
 
@@ -6,19 +7,7 @@ import OpenGL.GL as gl
 import ctypes
 import numpy as np
 
-class OpenGLRenderer(object):
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(OpenGLRenderer, cls).__new__(cls)
-            cls.instance.initialized = False
-        return cls.instance
-    
-    def set_initialized(cls, initialised):
-        cls.instance.initialized = initialised
-
-    def is_initialized(cls):
-        return cls.instance.initialized
-    
+class OpenGLRenderer(BaseRenderer):    
     def initialize(cls):
         # Initialize OpenGL
         gl.glEnable(gl.GL_DEPTH_TEST)

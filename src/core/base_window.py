@@ -9,10 +9,10 @@ class BaseWindow:
         self.vertical_sync = vertical_sync
 
     def create(self):        
-        return NotImplementedError()
+        raise NotImplementedError()
 
     def dispatch_main_loop(self, main_loop):
-        return NotImplementedError()
+        raise NotImplementedError()
 
     def destroy(self):
         glfw.destroy_window(self.handle)
@@ -25,4 +25,8 @@ class BaseWindow:
         glfw.set_window_should_close(self.handle, True)
     
     def set_title(self, title):
+        self.title = title
         glfw.set_window_title(self.handle, title)
+
+    def get_title(self):
+        return self.title

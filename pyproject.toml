@@ -1,7 +1,7 @@
 [project]
 name = "pyGandalf"
 version = "0.0.1"
-description = "Default template for PDM package"
+description = "PyGandalf is a versatile Python framework for graphics and visual computing, employing an ECS approach, built on top modern graphics APIs like OpenGL and WebGPU, prioritizing flexibility, modularity, and education in core concepts."
 authors = [
     {name = "George Papagiannakis", email = "papagian@ics.forth.gr"},
     {name = "John Petropoulos", email = "johnaipeia@gmail.com"},

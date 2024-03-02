@@ -1,5 +1,6 @@
 from scene.scene_manager import SceneManager
-from renderer.opengl_renderer import OpenGLRenderer
+from renderer.base_renderer import BaseRenderer
+from core.base_window import BaseWindow
 
 import glfw
 
@@ -7,6 +8,7 @@ class Application(object):
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(Application, cls).__new__(cls)
+            cls.instance.renderer = None
             cls.instance.window = None
             cls.instance.is_application_running = False
             cls.instance.delta_time = 0.0
@@ -24,19 +26,20 @@ class Application(object):
     def set_is_running(cls, is_running):
         cls.instance.is_application_running = is_running
 
-    def create(cls, window):
+    def create(cls, window : BaseWindow, renderer : BaseRenderer):
         cls.instance.window = window
+        cls.instance.renderer = renderer
         cls.instance.window.create()
-        OpenGLRenderer().initialize()
+        renderer().initialize()
 
     def start(cls):
         SceneManager().on_create()
 
         def main_loop():
             cls.instance.begin_frame()
-            OpenGLRenderer().begin_frame()
+            cls.instance.renderer().begin_frame()
             SceneManager().on_update(cls.instance.delta_time)
-            OpenGLRenderer().end_frame()
+            cls.instance.renderer().end_frame()
             cls.instance.end_frame()
 
         cls.instance.window.dispatch_main_loop(main_loop)
@@ -63,4 +66,5 @@ class Application(object):
     def clean(cls):
         if (cls.instance.window is not None):
             cls.instance.window.destroy()
-        OpenGLRenderer().clean()
+        if (cls.instance.renderer is not None):
+            cls.instance.renderer().clean()

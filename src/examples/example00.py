@@ -4,6 +4,7 @@ from systems.system import System
 from systems.link_system import LinkSystem
 from systems.transform_system import TransformSystem
 from systems.opengl_rendering_system import OpenGLRenderingSystem
+from renderer.opengl_renderer import OpenGLRenderer
 from scene.entity import Entity
 from scene.scene import Scene
 from scene.scene_manager import SceneManager
@@ -83,7 +84,7 @@ def main():
     textured_fragment_shader_code_blue = ShaderLib().load_from_file('shaders/textured_fragment_shader_code_blue.glsl')
     textured_fragment_shader_code_red = ShaderLib().load_from_file('shaders/textured_fragment_shader_code_red.glsl')
 
-    Application().create(OpenGLWindow('Hello World', 1280, 720, True))
+    Application().create(OpenGLWindow('Hello World', 1280, 720, True), OpenGLRenderer)
 
     # Build textures
     TextureLib().build('dark_wood', 'textures/dark_wood_texture.jpg')
