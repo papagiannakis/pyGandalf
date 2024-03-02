@@ -1,5 +1,5 @@
 from scene.scene_manager import SceneManager
-from renderer.renderer_2d import Renderer2D
+from renderer.opengl_renderer import OpenGLRenderer
 
 import glfw
 
@@ -27,16 +27,16 @@ class Application(object):
     def create(cls, window):
         cls.instance.window = window
         cls.instance.window.create()
-        Renderer2D().initialize()
+        OpenGLRenderer().initialize()
 
     def start(cls):
         SceneManager().on_create()
 
         def main_loop():
             cls.instance.begin_frame()
-            Renderer2D().begin_frame()
+            OpenGLRenderer().begin_frame()
             SceneManager().on_update(cls.instance.delta_time)
-            Renderer2D().end_frame()
+            OpenGLRenderer().end_frame()
             cls.instance.end_frame()
 
         cls.instance.window.dispatch_main_loop(main_loop)
@@ -63,5 +63,4 @@ class Application(object):
     def clean(cls):
         if (cls.instance.window is not None):
             cls.instance.window.destroy()
-
-        Renderer2D().clean()
+        OpenGLRenderer().clean()

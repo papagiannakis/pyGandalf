@@ -1,4 +1,5 @@
 from scene.scene import Scene
+from utilities.logger import logger
 
 class SceneManager(object):
     def __new__(cls):
@@ -12,20 +13,29 @@ class SceneManager(object):
         return cls.instance
     
     def add_scene(cls, scene: Scene):
-        # TODO: null check
+        if scene is None:
+            logger.error('Scene is null, not appending it.')
+            return
+        
         cls.instance.scenes.append(scene)
 
         if len(cls.instance.scenes) == 1:
             cls.instance.active_scene = cls.instance.scenes[0]
 
     def on_create(cls):
-        # TODO: null check
+        if len(cls.instance.scenes) == 0:
+            logger.critical('No scenes added, exiting...')
+            exit(-1)
+
         cls.instance.active_scene_index = 0
         cls.instance.active_scene = cls.instance.scenes[cls.instance.active_scene_index]
         cls.instance.active_scene.on_create()
 
     def on_update(cls, ts):
-        # TODO: null check
+        if cls.instance.active_scene is None:
+            logger.critical('There is no active scene currenlty')
+            return
+        
         cls.instance.active_scene.on_update(ts)
 
         if cls.instance.scene_change_requested:
@@ -42,11 +52,9 @@ class SceneManager(object):
     def change_scene_deffered(cls):
         if cls.instance.new_scene_to_loaded is None:
             if len(cls.instance.scenes) <= cls.instance.active_scene_index:
-                print('Out of bounds scenes')
+                logger.error(f'Out of bounds scene index: {cls.instance.active_scene_index} for scene change')
                 cls.instance.scene_change_requested = False
                 return
-            
-            print(cls.instance.active_scene_index)
             
             cls.instance.active_scene = cls.instance.scenes[cls.instance.active_scene_index]
         else:

@@ -1,13 +1,13 @@
 from scene.entity import Entity
 from systems.system import System
-from renderer.renderer_2d import Renderer2D
+from renderer.opengl_renderer import OpenGLRenderer
 from utilities.material_lib import MaterialLib
 
 import utilities.math as utils
 
 import OpenGL.GL as gl
 
-class RenderingSystem(System):
+class OpenGLRenderingSystem(System):
     """
     The system responsible for rendering.
     """
@@ -20,7 +20,7 @@ class RenderingSystem(System):
 
         material.instance = MaterialLib().get(material.name)
 
-        render_data.batch = Renderer2D().add_batch(render_data, material)
+        render_data.batch = OpenGLRenderer().add_batch(render_data, material)
 
         # Set up matrices for projection and view
         projection = utils.perspective(45.0, 1920 / 1080, 0.1, 100.0)
@@ -38,6 +38,6 @@ class RenderingSystem(System):
         render_data, material, transform = components
         
         if (render_data.indices is None):
-            Renderer2D().draw(transform.world_matrix, render_data, material)
+            OpenGLRenderer().draw(transform.world_matrix, render_data, material)
         else:
-            Renderer2D().draw_indexed(transform.world_matrix, render_data, material)
+            OpenGLRenderer().draw_indexed(transform.world_matrix, render_data, material)

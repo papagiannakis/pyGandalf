@@ -1,3 +1,5 @@
+from utilities.logger import logger
+
 from enum import Enum
 
 class SystemState(Enum):
@@ -62,7 +64,7 @@ class System:
                     else:
                         self.on_create(entity, components)
         else:
-            print("on_update method not implemented")
+            logger.error("on_update method not implemented")
 
     def on_update_base(self, ts):
         # Check if the subclass has overridden the method
@@ -74,7 +76,7 @@ class System:
                     else:
                         self.on_update(ts, entity, components)
         else:
-            print("on_update method not implemented")
+            logger.error("on_update method not implemented")
 
     def filtered_data(self):
         return zip(self.filtered_entities, self.filtered_components)

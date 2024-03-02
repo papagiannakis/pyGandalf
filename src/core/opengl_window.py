@@ -1,18 +1,15 @@
+from core.base_window import BaseWindow
+
+from utilities.logger import logger
+
 import glfw
 import OpenGL.GL as gl
 
-class OpenGLWindow:
-    def __init__(self, title, width, height, vertical_sync):
-        self.handle = None
-        self.title = title
-        self.width = width
-        self.height = height
-        self.vertical_sync = vertical_sync
-
+class OpenGLWindow(BaseWindow):
     def create(self):
         # Initialize GLFW
         if not glfw.init():
-            print("GLFW could not be initialized!")
+            logger.info("GLFW could not be initialized!")
             exit(-1)
 
         # Set GLFW window hints
@@ -23,7 +20,7 @@ class OpenGLWindow:
         # Create a windowed mode window and its OpenGL context
         self.handle = glfw.create_window(self.width, self.height, self.title, None, None)
         if not self.handle:
-            print("Window could not be created!")
+            logger.critical("Window could not be created!")
             glfw.terminate()
             exit(-1)
 
@@ -35,23 +32,10 @@ class OpenGLWindow:
 
         # Obtain the GL versioning system info
         gVersionLabel = f'OpenGL {gl.glGetString(gl.GL_VERSION).decode()} GLSL {gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION).decode()} Renderer {gl.glGetString(gl.GL_RENDERER).decode()}'
-        print(gVersionLabel)
-
-    def destroy(self):
-        glfw.destroy_window(self.handle)
-        glfw.terminate()
+        logger.info(gVersionLabel)
 
     def dispatch_main_loop(self, main_loop):
         while not glfw.window_should_close(self.handle):
             main_loop()
             glfw.swap_buffers(self.handle)
             glfw.poll_events()
-
-    def get_handle(self):
-        return self.handle
-    
-    def close(self):
-        glfw.set_window_should_close(self.handle, True)
-    
-    def set_title(self, title):
-        glfw.set_window_title(self.handle, title)

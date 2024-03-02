@@ -3,16 +3,18 @@ from core.opengl_window import OpenGLWindow
 from systems.system import System
 from systems.link_system import LinkSystem
 from systems.transform_system import TransformSystem
-from systems.opengl_rendering_system import RenderingSystem
+from systems.opengl_rendering_system import OpenGLRenderingSystem
 from scene.entity import Entity
 from scene.scene import Scene
 from scene.scene_manager import SceneManager
 
-from scene.components import InfoComponent, TransformComponent, LinkComponent, RenderComponent, MaterialComponent
+from scene.components import InfoComponent, TransformComponent, LinkComponent, OpenGLRenderComponent, MaterialComponent
 
 from utilities.material_lib import MaterialLib, MaterialData
 from utilities.texture_lib import TextureLib
 from utilities.shader_lib import ShaderLib
+
+from utilities.logger import logger
 
 import utilities.math as utils
 
@@ -66,6 +68,8 @@ class MovementSystem(System):
 
 # Example Usage
 def main():
+    logger.setLevel(logger.DEBUG)
+
     scene = Scene()
 
     # Create Enroll entities to registry
@@ -118,7 +122,7 @@ def main():
     scene.add_component(entity1, InfoComponent("e1"))
     scene.add_component(entity1, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
     scene.add_component(entity1, LinkComponent(None))
-    scene.add_component(entity1, RenderComponent([vertices, texture_coords], None))
+    scene.add_component(entity1, OpenGLRenderComponent([vertices, texture_coords], None))
     scene.add_component(entity1, MaterialComponent('M_Red_Textured'))
     scene.add_component(entity1, MovementComponent())
 
@@ -126,7 +130,7 @@ def main():
     scene.add_component(entity2, InfoComponent("e2"))
     scene.add_component(entity2, TransformComponent(utils.vec(2, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
     scene.add_component(entity2, LinkComponent(entity1))
-    scene.add_component(entity2, RenderComponent([vertices], None))
+    scene.add_component(entity2, OpenGLRenderComponent([vertices], None))
     scene.add_component(entity2, MaterialComponent('M_Red_Simple'))
     scene.add_component(entity2, MovementComponent())
 
@@ -134,18 +138,18 @@ def main():
     scene.add_component(entity3, InfoComponent("e3"))
     scene.add_component(entity3, TransformComponent(utils.vec(-2, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
     scene.add_component(entity3, LinkComponent(entity1))
-    scene.add_component(entity3, RenderComponent([vertices, texture_coords], None))
+    scene.add_component(entity3, OpenGLRenderComponent([vertices, texture_coords], None))
     scene.add_component(entity3, MaterialComponent('M_Blue'))
     scene.add_component(entity3, MovementComponent())
-
-    # Add scene to manager
-    SceneManager().add_scene(scene)
 
     # Create Register systems
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
-    scene.register_system(RenderingSystem([RenderComponent, MaterialComponent, TransformComponent]))
+    scene.register_system(OpenGLRenderingSystem([OpenGLRenderComponent, MaterialComponent, TransformComponent]))
     scene.register_system(MovementSystem([MovementComponent, TransformComponent, InfoComponent]))
+
+    # Add scene to manager
+    SceneManager().add_scene(scene)
 
     # Start application
     Application().start()

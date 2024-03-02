@@ -1,17 +1,15 @@
 from utilities.texture_lib import TextureLib
+from utilities.logger import logger
 
 import OpenGL.GL as gl
 
 import ctypes
 import numpy as np
 
-class Renderer2D(object):
+class OpenGLRenderer(object):
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            cls.instance = super(Renderer2D, cls).__new__(cls)
-            cls.instance.vbo = []
-            cls.instance.ebo = 0
-            cls.instance.vao = 0
+            cls.instance = super(OpenGLRenderer, cls).__new__(cls)
             cls.instance.initialized = False
         return cls.instance
     
@@ -63,7 +61,7 @@ class Renderer2D(object):
 
             gl.glUniform1iv(texture_uniform_location, 32, np.array(samplers, dtype=np.int32))
         else:
-            print(f'Could find u_Textures uniform for material: {material.name}!')
+            logger.warning(f'Could find u_Textures uniform for material: {material.name}!')
 
         return 0
 
@@ -90,7 +88,7 @@ class Renderer2D(object):
             if texture_id_uniform_location != -1:
                 gl.glUniform1f(texture_id_uniform_location, TextureLib().get_slot(material.instance.textures[0]))
             else:
-                print(f'Could find u_TextureId uniform for material: {material.name}!')
+                logger.warning(f'Could find u_TextureId uniform for material: {material.name}!')
 
         # Bind vao
         gl.glBindVertexArray(render_data.vao)
@@ -131,7 +129,7 @@ class Renderer2D(object):
             if texture_id_uniform_location != -1:
                 gl.glUniform1f(texture_id_uniform_location, TextureLib().get_slot(material.instance.textures[0]))
             else:
-                print(f'Could find u_TextureId uniform for material: {material.name}!')
+                logger.warning(f'Could find u_TextureId uniform for material: {material.name}!')
 
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
 
@@ -160,8 +158,5 @@ class Renderer2D(object):
         gl.glUseProgram(0)
 
     def clean(cls):
-        #gl.glDeleteVertexArrays(1, (cls.instance.vao,))
-        #gl.glDeleteBuffers(len(cls.instance.vbo), cls.instance.vbo)
-        #gl.glDeleteBuffers(1, (cls.instance.ebo,))
         pass
 

@@ -23,7 +23,7 @@ class LinkComponent:
     def __init__(self, parent: Entity):
         self.parent: Entity = parent
 
-class RenderComponent:
+class OpenGLRenderComponent:
     def __init__(self, attributes, indices):
         self.attributes = attributes
         self.indices = indices
