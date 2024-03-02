@@ -47,21 +47,14 @@ class Scene():
     def remove_component(self, entity: Entity, component_type: type):
         if self.has_component(entity, component_type) is False:
             return
-        
-        is_component_maniplulated_by_system = False
-        unregister_component = False
 
         # Update existing systems that operate on this component. (Usefull in runtime deletion of components)
         for system in self.systems:
-            is_component_maniplulated_by_system = system.remove_entity_components(entity, component_type)
-
-            if is_component_maniplulated_by_system:
-                unregister_component = True
+            system.remove_entity_components(entity, component_type)
 
         # Update component arrays and entity components references
-        if unregister_component:
-            self.component_arrays[component_type].pop(self.entity_components[entity.id][component_type])
-            self.entity_components[entity.id].pop(component_type)
+        self.component_arrays[component_type].pop(self.entity_components[entity.id][component_type])
+        self.entity_components[entity.id].pop(component_type)
 
     def has_component(self, entity: Entity, component_type: type):
         return component_type in self.entity_components.get(entity.id)
@@ -96,6 +89,7 @@ class Scene():
         for system in self.systems:
             if type(system) is system_type:
                 return system
+        return None
     
     def on_create(self):
         from core.application import Application

@@ -27,8 +27,8 @@ class LinkSystem(System):
     def get_world_space_transform(self, entity, link):
         transform = np.identity(4)
 
-        if (link != None):
-            if (link.parent != None):
+        if link is not None:
+            if link.parent is not None:
                 parent_link = SceneManager().get_active_scene().get_component(link.parent, LinkComponent)
                 transform = self.get_world_space_transform(link.parent, parent_link)
 

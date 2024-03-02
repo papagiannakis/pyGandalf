@@ -80,3 +80,9 @@ class System:
 
     def filtered_data(self):
         return zip(self.filtered_entities, self.filtered_components)
+    
+    def get_filtered_entities(self):
+        return self.filtered_entities
+    
+    def get_filtered_components(self):
+        return self.filtered_entities
