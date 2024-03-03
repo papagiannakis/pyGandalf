@@ -1,10 +1,10 @@
 import OpenGL.GL as gl
 from PIL import Image
 
-class TextureLib(object):
+class OpenGLTextureLib(object):
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            cls.instance = super(TextureLib, cls).__new__(cls)
+            cls.instance = super(OpenGLTextureLib, cls).__new__(cls)
             cls.instance.textures = {}
             cls.instance.slots = {}
             cls.instance.current_slot = 0

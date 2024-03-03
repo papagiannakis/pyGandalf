@@ -11,9 +11,9 @@ from scene.scene_manager import SceneManager
 
 from scene.components import InfoComponent, TransformComponent, LinkComponent, OpenGLRenderComponent, MaterialComponent
 
-from utilities.material_lib import MaterialLib, MaterialData
-from utilities.texture_lib import TextureLib
-from utilities.shader_lib import ShaderLib
+from utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from utilities.opengl_texture_lib import OpenGLTextureLib
+from utilities.opengl_shader_lib import OpenGLShaderLib
 
 from utilities.logger import logger
 
@@ -78,28 +78,28 @@ def main():
     entity2 = scene.enroll_entity()
     entity3 = scene.enroll_entity()
 
-    vertex_shader_code = ShaderLib().load_from_file('shaders/vertex_shader_code.glsl')
-    fragment_shader_code_red = ShaderLib().load_from_file('shaders/fragment_shader_code_red.glsl')
-    textured_vertex_shader_code = ShaderLib().load_from_file('shaders/textured_vertex_shader_code.glsl')
-    textured_fragment_shader_code_blue = ShaderLib().load_from_file('shaders/textured_fragment_shader_code_blue.glsl')
-    textured_fragment_shader_code_red = ShaderLib().load_from_file('shaders/textured_fragment_shader_code_red.glsl')
+    vertex_shader_code = OpenGLShaderLib().load_from_file('shaders/vertex_shader_code.glsl')
+    fragment_shader_code_red = OpenGLShaderLib().load_from_file('shaders/fragment_shader_code_red.glsl')
+    textured_vertex_shader_code = OpenGLShaderLib().load_from_file('shaders/textured_vertex_shader_code.glsl')
+    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file('shaders/textured_fragment_shader_code_blue.glsl')
+    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file('shaders/textured_fragment_shader_code_red.glsl')
 
     Application().create(OpenGLWindow('Hello World', 1280, 720, True), OpenGLRenderer)
 
     # Build textures
-    TextureLib().build('dark_wood', 'textures/dark_wood_texture.jpg')
-    TextureLib().build('uoc_logo', 'textures/uoc_logo.png')
-    TextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('dark_wood', 'textures/dark_wood_texture.jpg')
+    OpenGLTextureLib().build('uoc_logo', 'textures/uoc_logo.png')
+    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
 
     # Build shaders 
-    ShaderLib().build('default_colored_red', vertex_shader_code, fragment_shader_code_red)
-    ShaderLib().build('textured_colored_blue', textured_vertex_shader_code, textured_fragment_shader_code_blue)
-    ShaderLib().build('textured_colored_red', textured_vertex_shader_code, textured_fragment_shader_code_red)
+    OpenGLShaderLib().build('default_colored_red', vertex_shader_code, fragment_shader_code_red)
+    OpenGLShaderLib().build('textured_colored_blue', textured_vertex_shader_code, textured_fragment_shader_code_blue)
+    OpenGLShaderLib().build('textured_colored_red', textured_vertex_shader_code, textured_fragment_shader_code_red)
     
     # Build Materials
-    MaterialLib().build('M_Red_Simple', MaterialData('default_colored_red', []))
-    MaterialLib().build('M_Red_Textured', MaterialData('textured_colored_red', ['dark_wood']))
-    MaterialLib().build('M_Blue', MaterialData('textured_colored_blue', ['uoc_logo']))
+    OpenGLMaterialLib().build('M_Red_Simple', MaterialData('default_colored_red', []))
+    OpenGLMaterialLib().build('M_Red_Textured', MaterialData('textured_colored_red', ['dark_wood']))
+    OpenGLMaterialLib().build('M_Blue', MaterialData('textured_colored_blue', ['uoc_logo']))
 
     vertices = np.array([
         [-0.5, -0.5, 0.0], #0

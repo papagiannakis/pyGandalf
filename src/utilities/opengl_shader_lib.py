@@ -1,10 +1,10 @@
 import OpenGL.GL as gl
 import os
 
-class ShaderLib(object):
+class OpenGLShaderLib(object):
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            cls.instance = super(ShaderLib, cls).__new__(cls)
+            cls.instance = super(OpenGLShaderLib, cls).__new__(cls)
             cls.instance.shaders = {}
         return cls.instance
     

@@ -1,7 +1,7 @@
 from scene.entity import Entity
 from systems.system import System
 from renderer.opengl_renderer import OpenGLRenderer
-from utilities.material_lib import MaterialLib
+from utilities.opengl_material_lib import OpenGLMaterialLib
 
 import utilities.math as utils
 
@@ -18,7 +18,7 @@ class OpenGLRenderingSystem(System):
         """
         render_data, material, transform = components
 
-        material.instance = MaterialLib().get(material.name)
+        material.instance = OpenGLMaterialLib().get(material.name)
 
         render_data.batch = OpenGLRenderer().add_batch(render_data, material)
 

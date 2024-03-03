@@ -1,5 +1,5 @@
 from renderer.base_renderer import BaseRenderer
-from utilities.texture_lib import TextureLib
+from utilities.opengl_texture_lib import OpenGLTextureLib
 from utilities.logger import logger
 
 import OpenGL.GL as gl
@@ -66,7 +66,7 @@ class OpenGLRenderer(BaseRenderer):
         gl.glUseProgram(material.instance.shader_program)
         
         # Bind textures
-        TextureLib().bind_textures()
+        OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
         gl.glUniformMatrix4fv(gl.glGetUniformLocation(material.instance.shader_program, "model"), 1, gl.GL_FALSE, model)
@@ -75,7 +75,7 @@ class OpenGLRenderer(BaseRenderer):
         if len(material.instance.textures) > 0:
             texture_id_uniform_location = gl.glGetUniformLocation(material.instance.shader_program, "u_TextureId")
             if texture_id_uniform_location != -1:
-                gl.glUniform1f(texture_id_uniform_location, TextureLib().get_slot(material.instance.textures[0]))
+                gl.glUniform1f(texture_id_uniform_location, OpenGLTextureLib().get_slot(material.instance.textures[0]))
             else:
                 logger.warning(f'Could find u_TextureId uniform for material: {material.name}!')
 
@@ -97,7 +97,7 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBindVertexArray(0)
 
         # Unbind textures
-        TextureLib().unbind_textures()
+        OpenGLTextureLib().unbind_textures()
 
         # Unbind shader program
         gl.glUseProgram(0)
@@ -107,7 +107,7 @@ class OpenGLRenderer(BaseRenderer):
         gl.glUseProgram(material.instance.shader_program)
         
         # Bind textures
-        TextureLib().bind_textures()
+        OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
         gl.glUniformMatrix4fv(gl.glGetUniformLocation(material.instance.shader_program, "model"), 1, gl.GL_FALSE, model)
@@ -116,7 +116,7 @@ class OpenGLRenderer(BaseRenderer):
         if len(material.instance.textures) > 0:
             texture_id_uniform_location = gl.glGetUniformLocation(material.instance.shader_program, "u_TextureId")
             if texture_id_uniform_location != -1:
-                gl.glUniform1f(texture_id_uniform_location, TextureLib().get_slot(material.instance.textures[0]))
+                gl.glUniform1f(texture_id_uniform_location, OpenGLTextureLib().get_slot(material.instance.textures[0]))
             else:
                 logger.warning(f'Could find u_TextureId uniform for material: {material.name}!')
 
@@ -141,7 +141,7 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, 0)
 
         # Unbind textures
-        TextureLib().unbind_textures()
+        OpenGLTextureLib().unbind_textures()
 
         # Unbind shader program
         gl.glUseProgram(0)
