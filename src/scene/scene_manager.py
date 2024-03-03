@@ -60,6 +60,10 @@ class SceneManager(object):
         else:
             cls.instance.active_scene = cls.instance.new_scene_to_loaded
 
+        if cls.instance.active_scene is None:
+            logger.critical(f'New scene is none, exiting.')
+            exit(-1)
+
         cls.instance.active_scene.on_create()
         cls.instance.new_scene_to_loaded = None
         cls.instance.scene_change_requested = False

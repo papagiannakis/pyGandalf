@@ -5,8 +5,6 @@ from utilities.opengl_material_lib import OpenGLMaterialLib
 
 import utilities.math as utils
 
-import OpenGL.GL as gl
-
 class OpenGLRenderingSystem(System):
     """
     The system responsible for rendering.
