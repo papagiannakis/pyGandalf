@@ -1,6 +1,5 @@
 from renderer.base_renderer import BaseRenderer
 from utilities.opengl_texture_lib import OpenGLTextureLib
-from utilities.logger import logger
 
 import OpenGL.GL as gl
 
@@ -42,15 +41,10 @@ class OpenGLRenderer(BaseRenderer):
         gl.glUseProgram(material.instance.shader_program)
 
         # Create samplers if texture is in use
-        texture_uniform_location = gl.glGetUniformLocation(material.instance.shader_program, "u_Textures")
-        if texture_uniform_location != -1:
-            samplers = []
-            for i in range(0, 32):
-                samplers.append(i)
-
-            gl.glUniform1iv(texture_uniform_location, 32, np.array(samplers, dtype=np.int32))
-        else:
-            logger.warning(f'Could find u_Textures uniform for material: {material.name}!')
+        samplers = []
+        for i in range(0, 32):
+            samplers.append(i)
+        material.instance.set_uniform("u_Textures", np.array(samplers, dtype=np.int32))
 
         return 0
 
@@ -69,16 +63,11 @@ class OpenGLRenderer(BaseRenderer):
         OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
-        gl.glUniformMatrix4fv(gl.glGetUniformLocation(material.instance.shader_program, "model"), 1, gl.GL_FALSE, model)
-        gl.glUniform4f(gl.glGetUniformLocation(material.instance.shader_program, "u_Color"), 1.0, 0.0, 0.0, 1.0)
+        material.instance.set_uniform('model', model)
 
         if len(material.instance.textures) > 0:
-            texture_id_uniform_location = gl.glGetUniformLocation(material.instance.shader_program, "u_TextureId")
-            if texture_id_uniform_location != -1:
-                gl.glUniform1f(texture_id_uniform_location, OpenGLTextureLib().get_slot(material.instance.textures[0]))
-            else:
-                logger.warning(f'Could find u_TextureId uniform for material: {material.name}!')
-
+            material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
+        
         # Bind vao
         gl.glBindVertexArray(render_data.vao)
 
@@ -110,15 +99,10 @@ class OpenGLRenderer(BaseRenderer):
         OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
-        gl.glUniformMatrix4fv(gl.glGetUniformLocation(material.instance.shader_program, "model"), 1, gl.GL_FALSE, model)
-        gl.glUniform4f(gl.glGetUniformLocation(material.instance.shader_program, "u_Color"), 1.0, 0.0, 0.0, 1.0)
+        material.instance.set_uniform('model', model)
 
         if len(material.instance.textures) > 0:
-            texture_id_uniform_location = gl.glGetUniformLocation(material.instance.shader_program, "u_TextureId")
-            if texture_id_uniform_location != -1:
-                gl.glUniform1f(texture_id_uniform_location, OpenGLTextureLib().get_slot(material.instance.textures[0]))
-            else:
-                logger.warning(f'Could find u_TextureId uniform for material: {material.name}!')
+            material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
 
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
 

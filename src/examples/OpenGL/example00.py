@@ -78,17 +78,17 @@ def main():
     entity2 = scene.enroll_entity()
     entity3 = scene.enroll_entity()
 
-    vertex_shader_code = OpenGLShaderLib().load_from_file('shaders/vertex_shader_code.glsl')
-    fragment_shader_code_red = OpenGLShaderLib().load_from_file('shaders/fragment_shader_code_red.glsl')
-    textured_vertex_shader_code = OpenGLShaderLib().load_from_file('shaders/textured_vertex_shader_code.glsl')
-    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file('shaders/textured_fragment_shader_code_blue.glsl')
-    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file('shaders/textured_fragment_shader_code_red.glsl')
+    vertex_shader_code = OpenGLShaderLib().load_from_file('../shaders/vertex_shader_code.glsl')
+    fragment_shader_code_red = OpenGLShaderLib().load_from_file('../shaders/fragment_shader_code_red.glsl')
+    textured_vertex_shader_code = OpenGLShaderLib().load_from_file('../shaders/textured_vertex_shader_code.glsl')
+    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file('../shaders/textured_fragment_shader_code_blue.glsl')
+    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file('../shaders/textured_fragment_shader_code_red.glsl')
 
     Application().create(OpenGLWindow('Hello World', 1280, 720, True), OpenGLRenderer)
 
     # Build textures
-    OpenGLTextureLib().build('dark_wood', 'textures/dark_wood_texture.jpg')
-    OpenGLTextureLib().build('uoc_logo', 'textures/uoc_logo.png')
+    OpenGLTextureLib().build('dark_wood', '../textures/dark_wood_texture.jpg')
+    OpenGLTextureLib().build('uoc_logo', '../textures/uoc_logo.png')
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
 
     # Build shaders 

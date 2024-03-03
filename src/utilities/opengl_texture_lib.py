@@ -55,7 +55,7 @@ class OpenGLTextureLib(object):
         return cls.instance.textures.get(name)
     
     def get_slot(cls, name: str):
-        return cls.instance.slots.get(name)
+        return float(cls.instance.slots.get(name))
     
     def bind(cls, name):
         gl.glBindTextureUnit(cls.instance.get_slot(name), cls.instance.get_id(name))

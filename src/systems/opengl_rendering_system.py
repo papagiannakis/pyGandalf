@@ -27,9 +27,9 @@ class OpenGLRenderingSystem(System):
         view = utils.translate(0.0, 0.0, -5.0)
         model = utils.identity()
 
-        gl.glUniformMatrix4fv(gl.glGetUniformLocation(material.instance.shader_program, "projection"), 1, gl.GL_FALSE, projection)
-        gl.glUniformMatrix4fv(gl.glGetUniformLocation(material.instance.shader_program, "view"), 1, gl.GL_FALSE, view)
-        gl.glUniformMatrix4fv(gl.glGetUniformLocation(material.instance.shader_program, "model"), 1, gl.GL_FALSE, model)
+        material.instance.set_uniform('projection', projection)
+        material.instance.set_uniform('view', view)
+        material.instance.set_uniform('model', model)
 
     def on_update(self, ts, entity: Entity, components):
         """
