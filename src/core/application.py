@@ -69,3 +69,4 @@ class Application(object):
             cls.instance.window.destroy()
         if (cls.instance.renderer is not None):
             cls.instance.renderer().clean()
+        SceneManager().clean()
