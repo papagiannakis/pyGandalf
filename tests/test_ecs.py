@@ -108,6 +108,8 @@ def test_scene():
 
     assert SceneManager().get_active_scene() is scene
 
+    SceneManager().clean()
+
 def test_scene_change():
     scene1 = Scene()
 
@@ -157,3 +159,5 @@ def test_scene_change():
 
     assert SceneManager().get_active_scene() is scene2
     assert SceneManager().get_active_scene().get_system(LinkSystem) is None
+
+    SceneManager().clean()

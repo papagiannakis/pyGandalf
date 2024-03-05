@@ -70,3 +70,10 @@ class SceneManager(object):
 
     def get_active_scene(cls):
         return cls.instance.active_scene
+    
+    def clean(cls):
+        cls.instance.scenes.clear()
+        cls.instance.active_scene = None
+        cls.instance.new_scene_to_loaded = None
+        cls.instance.active_scene_index = 0
+        cls.instance.scene_change_requested = False
