@@ -23,7 +23,7 @@ import glfw
 import numpy as np
 
 """
-Showcase of basic usage and API
+Showcase of basic usage and API with three 2d quads in a ecss hierachy
 """
 
 class MovementComponent:
@@ -79,7 +79,7 @@ def main():
     entity3 = scene.enroll_entity()
 
     vertex_shader_code = OpenGLShaderLib().load_from_file('../shaders/vertex_shader_code.glsl')
-    fragment_shader_code_red = OpenGLShaderLib().load_from_file('../shaders/fragment_shader_code_red.glsl')
+    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file('../shaders/fragment_shader_code_yellow.glsl')
     textured_vertex_shader_code = OpenGLShaderLib().load_from_file('../shaders/textured_vertex_shader_code.glsl')
     textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file('../shaders/textured_fragment_shader_code_blue.glsl')
     textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file('../shaders/textured_fragment_shader_code_red.glsl')
@@ -92,14 +92,14 @@ def main():
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
 
     # Build shaders 
-    OpenGLShaderLib().build('default_colored_red', vertex_shader_code, fragment_shader_code_red)
+    OpenGLShaderLib().build('default_colored_yellow', vertex_shader_code, fragment_shader_code_yellow)
     OpenGLShaderLib().build('textured_colored_blue', textured_vertex_shader_code, textured_fragment_shader_code_blue)
     OpenGLShaderLib().build('textured_colored_red', textured_vertex_shader_code, textured_fragment_shader_code_red)
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Red_Simple', MaterialData('default_colored_red', []))
+    OpenGLMaterialLib().build('M_Yellow_Simple', MaterialData('default_colored_yellow', []))
     OpenGLMaterialLib().build('M_Red_Textured', MaterialData('textured_colored_red', ['dark_wood']))
-    OpenGLMaterialLib().build('M_Blue', MaterialData('textured_colored_blue', ['uoc_logo']))
+    OpenGLMaterialLib().build('M_Blue_Textured', MaterialData('textured_colored_blue', ['uoc_logo']))
 
     vertices = np.array([
         [-0.5, -0.5, 0.0], #0
@@ -132,7 +132,7 @@ def main():
     scene.add_component(entity2, TransformComponent(utils.vec(2, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
     scene.add_component(entity2, LinkComponent(entity1))
     scene.add_component(entity2, OpenGLRenderComponent([vertices], None))
-    scene.add_component(entity2, MaterialComponent('M_Red_Simple'))
+    scene.add_component(entity2, MaterialComponent('M_Yellow_Simple'))
     scene.add_component(entity2, MovementComponent())
 
     # Register components to entity3
@@ -140,7 +140,7 @@ def main():
     scene.add_component(entity3, TransformComponent(utils.vec(-2, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
     scene.add_component(entity3, LinkComponent(entity1))
     scene.add_component(entity3, OpenGLRenderComponent([vertices, texture_coords], None))
-    scene.add_component(entity3, MaterialComponent('M_Blue'))
+    scene.add_component(entity3, MaterialComponent('M_Blue_Textured'))
     scene.add_component(entity3, MovementComponent())
 
     # Create Register systems

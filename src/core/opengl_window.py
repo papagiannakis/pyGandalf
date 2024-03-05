@@ -9,7 +9,7 @@ class OpenGLWindow(BaseWindow):
     def create(self):
         # Initialize GLFW
         if not glfw.init():
-            logger.info("GLFW could not be initialized!")
+            logger.critical("GLFW could not be initialized!")
             exit(-1)
 
         # Set GLFW window hints
@@ -36,6 +36,6 @@ class OpenGLWindow(BaseWindow):
 
     def dispatch_main_loop(self, main_loop):
         while not glfw.window_should_close(self.handle):
+            glfw.poll_events()
             main_loop()
             glfw.swap_buffers(self.handle)
-            glfw.poll_events()

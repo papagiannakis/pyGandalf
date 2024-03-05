@@ -55,7 +55,8 @@ class Application(object):
         # Calculate fps
         cls.instance.frames += 1
         if glfw.get_time() - cls.instance.timer > 1.0:
-            cls.instance.window.set_title(f'[FPS: {cls.instance.frames}]')
+            title = cls.instance.window.get_title() + f' [FPS: {cls.instance.frames}]'
+            glfw.set_window_title(cls.instance.window.get_handle(), title)
             cls.instance.timer += 1
             cls.instance.frames = 0
 

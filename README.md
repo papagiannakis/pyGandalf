@@ -25,7 +25,12 @@ pyGandalf is a Python-based framework for computer graphics, visual computing in
 
 ## Installation
 
-- Install [pdm](https://pdm-project.org/latest/): ```pip install -U pip pdm```
+- Install [pdm](https://pdm-project.org/latest/) by following the instructions [here](https://pdm-project.org/latest/#installation) or:
+  - Windows:
+    - pip: ```pip install -U pip pdm```
+  - Mac / Linux
+    - brew: ```brew install pdm```
+    - pip: ```pip install --user pdm```
 - Install dependecies: ```pdm install```
 - Select the interpreter: ```pdm use -f ./.venv```
 - Activate the environment:
