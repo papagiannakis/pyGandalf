@@ -1,13 +1,13 @@
 import pytest
 
-import src.utilities.math as utils
-
 from src.scene.scene import Scene
 from src.systems.transform_system import TransformSystem
 from src.systems.link_system import LinkSystem
 from src.scene.components import TransformComponent, InfoComponent, LinkComponent
 
 from src.scene.scene_manager import SceneManager
+
+import glm
 
 def test_enroll_entity():
     scene = Scene()
@@ -17,13 +17,13 @@ def test_enroll_entity():
 def test_add_component():
     scene = Scene()
     entity = scene.enroll_entity()
-    scene.add_component(entity, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     assert(scene.has_component(entity, TransformComponent) is True)
 
 def test_get_component():
     scene = Scene()
     entity = scene.enroll_entity()
-    scene.add_component(entity, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     transform = scene.get_component(entity, TransformComponent)
     assert(transform is not None)
 
@@ -31,8 +31,8 @@ def test_remove_component():
     scene = Scene()
     entity1 = scene.enroll_entity()
     entity2 = scene.enroll_entity()
-    scene.add_component(entity1, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
-    scene.add_component(entity2, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
 
     transform = scene.get_component(entity1, TransformComponent)
     assert(transform is not None)
@@ -53,17 +53,17 @@ def test_system():
 
     entity1 = scene.enroll_entity()
     scene.add_component(entity1, InfoComponent('e1'))
-    scene.add_component(entity1, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity1, LinkComponent(None))
 
     entity2 = scene.enroll_entity()
     scene.add_component(entity2, InfoComponent('e2'))
-    scene.add_component(entity2, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity2, LinkComponent(entity1))
 
     entity3 = scene.enroll_entity()
     scene.add_component(entity3, InfoComponent('e3'))
-    scene.add_component(entity3, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity3, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
 
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
@@ -89,17 +89,17 @@ def test_scene():
 
     entity1 = scene.enroll_entity()
     scene.add_component(entity1, InfoComponent('e1'))
-    scene.add_component(entity1, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity1, LinkComponent(None))
 
     entity2 = scene.enroll_entity()
     scene.add_component(entity2, InfoComponent('e2'))
-    scene.add_component(entity2, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity2, LinkComponent(entity1))
 
     entity3 = scene.enroll_entity()
     scene.add_component(entity3, InfoComponent('e3'))
-    scene.add_component(entity3, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity3, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
 
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
@@ -115,17 +115,17 @@ def test_scene_change():
 
     entity1 = scene1.enroll_entity()
     scene1.add_component(entity1, InfoComponent('e1'))
-    scene1.add_component(entity1, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene1.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene1.add_component(entity1, LinkComponent(None))
 
     entity2 = scene1.enroll_entity()
     scene1.add_component(entity2, InfoComponent('e2'))
-    scene1.add_component(entity2, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene1.add_component(entity2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene1.add_component(entity2, LinkComponent(entity1))
 
     entity3 = scene1.enroll_entity()
     scene1.add_component(entity3, InfoComponent('e3'))
-    scene1.add_component(entity3, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene1.add_component(entity3, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
 
     scene1.register_system(TransformSystem([TransformComponent]))
     scene1.register_system(LinkSystem([LinkComponent, TransformComponent]))
@@ -138,15 +138,15 @@ def test_scene_change():
 
     entity4 = scene2.enroll_entity()
     scene2.add_component(entity4, InfoComponent('e4'))
-    scene2.add_component(entity4, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene2.add_component(entity4, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
 
     entity5 = scene2.enroll_entity()
     scene2.add_component(entity5, InfoComponent('e5'))
-    scene2.add_component(entity5, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene2.add_component(entity5, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
 
     entity6 = scene2.enroll_entity()
     scene2.add_component(entity6, InfoComponent('e6'))
-    scene2.add_component(entity6, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene2.add_component(entity6, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
 
     scene2.register_system(TransformSystem([TransformComponent]))
 

@@ -63,7 +63,7 @@ class OpenGLRenderer(BaseRenderer):
         OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
-        material.instance.set_uniform('model', model)
+        material.instance.set_uniform('u_Model', model)
 
         if len(material.instance.textures) > 0:
             material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
@@ -99,7 +99,7 @@ class OpenGLRenderer(BaseRenderer):
         OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
-        material.instance.set_uniform('model', model)
+        material.instance.set_uniform('u_Model', model)
 
         if len(material.instance.textures) > 0:
             material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))

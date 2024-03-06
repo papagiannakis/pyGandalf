@@ -21,6 +21,7 @@ import utilities.math as utils
 
 import glfw
 import numpy as np
+import glm
 
 """
 Showcase of basic usage and API with three 2d quads in a ecss hierachy
@@ -121,7 +122,7 @@ def main():
 
     # Register components to entity1
     scene.add_component(entity1, InfoComponent("e1"))
-    scene.add_component(entity1, TransformComponent(utils.vec(0, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity1, LinkComponent(None))
     scene.add_component(entity1, OpenGLRenderComponent([vertices, texture_coords], None))
     scene.add_component(entity1, MaterialComponent('M_Red_Textured'))
@@ -129,7 +130,7 @@ def main():
 
     # Register components to entity2
     scene.add_component(entity2, InfoComponent("e2"))
-    scene.add_component(entity2, TransformComponent(utils.vec(2, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity2, TransformComponent(glm.vec3(2, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity2, LinkComponent(entity1))
     scene.add_component(entity2, OpenGLRenderComponent([vertices], None))
     scene.add_component(entity2, MaterialComponent('M_Yellow_Simple'))
@@ -137,7 +138,7 @@ def main():
 
     # Register components to entity3
     scene.add_component(entity3, InfoComponent("e3"))
-    scene.add_component(entity3, TransformComponent(utils.vec(-2, 0, 0), utils.vec(0, 0, 0), utils.vec(1, 1, 1)))
+    scene.add_component(entity3, TransformComponent(glm.vec3(-2, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity3, LinkComponent(entity1))
     scene.add_component(entity3, OpenGLRenderComponent([vertices, texture_coords], None))
     scene.add_component(entity3, MaterialComponent('M_Blue_Textured'))

@@ -4,6 +4,7 @@ from scene.scene_manager import SceneManager
 from systems.system import System
 
 import numpy as np
+import glm
 
 class LinkSystem(System):
     """
@@ -25,11 +26,11 @@ class LinkSystem(System):
         transform.world_matrix = self.get_world_space_transform(entity, link)
 
     def get_world_space_transform(self, entity, link):
-        transform = np.identity(4)
+        transform = glm.mat4(1.0)
 
         if link is not None:
             if link.parent is not None:
                 parent_link = SceneManager().get_active_scene().get_component(link.parent, LinkComponent)
                 transform = self.get_world_space_transform(link.parent, parent_link)
 
-        return transform @ SceneManager().get_active_scene().get_component(entity, TransformComponent).local_matrix
+        return transform * SceneManager().get_active_scene().get_component(entity, TransformComponent).local_matrix

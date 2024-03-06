@@ -1,6 +1,7 @@
 from scene.entity import Entity
 
 import numpy as np
+import glm
 
 class InfoComponent:
     def __init__(self, name = 'UnnamedEntity'):
@@ -8,13 +9,14 @@ class InfoComponent:
         self.enabled = True
 
 class TransformComponent:
-    def __init__(self, translation, rotation, scale):
+    def __init__(self, translation : glm.vec3, rotation : glm.vec3, scale : glm.vec3):
         self.translation = translation
         self.rotation = rotation
         self.scale = scale
 
-        self.local_matrix = np.identity(4)
-        self.world_matrix = np.identity(4)
+        self.local_matrix = glm.mat4(1.0)
+        self.world_matrix = glm.mat4(1.0)
+        self.quaternion = glm.quat()
 
         self.is_dirty = True
         self.is_static = False
