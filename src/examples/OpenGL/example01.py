@@ -17,6 +17,8 @@ from utilities.opengl_shader_lib import OpenGLShaderLib
 
 from utilities.logger import logger
 
+from definitions import ROOT_DIR
+
 import numpy as np
 import glm
 
@@ -71,16 +73,19 @@ def main():
     cube_face_top = scene.enroll_entity()
     cube_face_bottom = scene.enroll_entity()
 
-    vertex_shader_code = OpenGLShaderLib().load_from_file('../shaders/vertex_shader_code.glsl')
-    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file('../shaders/fragment_shader_code_yellow.glsl')
-    textured_vertex_shader_code = OpenGLShaderLib().load_from_file('../shaders/textured_vertex_shader_code.glsl')
-    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file('../shaders/textured_fragment_shader_code_blue.glsl')
-    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file('../shaders/textured_fragment_shader_code_red.glsl')
+
+    SHADER_PATH = ROOT_DIR/'examples'/'shaders'
+    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADER_PATH/'vertex_shader_code.glsl')
+    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADER_PATH/'fragment_shader_code_yellow.glsl')
+    textured_vertex_shader_code = OpenGLShaderLib().load_from_file(SHADER_PATH/'textured_vertex_shader_code.glsl')
+    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file(SHADER_PATH/'textured_fragment_shader_code_blue.glsl')
+    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file(SHADER_PATH/'textured_fragment_shader_code_red.glsl')
 
     Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer)
 
     # Build textures
-    OpenGLTextureLib().build('uoc_logo', '../textures/uoc_logo.png')
+    TEXTURE_PATH = ROOT_DIR/'examples'/'textures'
+    OpenGLTextureLib().build('uoc_logo', TEXTURE_PATH/'uoc_logo.png')
 
     # Build shaders 
     OpenGLShaderLib().build('default_colored_yellow', vertex_shader_code, fragment_shader_code_yellow)
