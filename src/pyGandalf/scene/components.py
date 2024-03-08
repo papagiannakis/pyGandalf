@@ -1,4 +1,4 @@
-from scene.entity import Entity
+from pyGandalf.scene.entity import Entity
 
 import numpy as np
 import glm

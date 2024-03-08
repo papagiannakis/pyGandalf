@@ -1,6 +1,6 @@
-from scene.scene_manager import SceneManager
-from renderer.base_renderer import BaseRenderer
-from core.base_window import BaseWindow
+from pyGandalf.scene.scene_manager import SceneManager
+from pyGandalf.renderer.base_renderer import BaseRenderer
+from pyGandalf.core.base_window import BaseWindow
 
 import glfw
 

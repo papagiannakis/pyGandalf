@@ -1,5 +1,5 @@
-from scene.scene import Scene
-from utilities.logger import logger
+from pyGandalf.scene.scene import Scene
+from pyGandalf.utilities.logger import logger
 
 class SceneManager(object):
     def __new__(cls):

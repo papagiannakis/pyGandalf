@@ -1,6 +1,6 @@
-from core.base_window import BaseWindow
+from pyGandalf.core.base_window import BaseWindow
 
-from utilities.logger import logger
+from pyGandalf.utilities.logger import logger
 
 import glfw
 import OpenGL.GL as gl

@@ -1,5 +1,5 @@
-from renderer.base_renderer import BaseRenderer
-from utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.renderer.base_renderer import BaseRenderer
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 
 import OpenGL.GL as gl
 

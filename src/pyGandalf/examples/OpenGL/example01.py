@@ -1,23 +1,23 @@
-from core.application import Application
-from core.opengl_window import OpenGLWindow
-from systems.system import System
-from systems.link_system import LinkSystem
-from systems.transform_system import TransformSystem
-from systems.opengl_rendering_system import OpenGLRenderingSystem
-from renderer.opengl_renderer import OpenGLRenderer
-from scene.entity import Entity
-from scene.scene import Scene
-from scene.scene_manager import SceneManager
+from pyGandalf.core.application import Application
+from pyGandalf.core.opengl_window import OpenGLWindow
+from pyGandalf.systems.system import System
+from pyGandalf.systems.link_system import LinkSystem
+from pyGandalf.systems.transform_system import TransformSystem
+from pyGandalf.systems.opengl_rendering_system import OpenGLRenderingSystem
+from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
+from pyGandalf.scene.entity import Entity
+from pyGandalf.scene.scene import Scene
+from pyGandalf.scene.scene_manager import SceneManager
 
-from scene.components import InfoComponent, TransformComponent, LinkComponent, OpenGLRenderComponent, MaterialComponent
+from pyGandalf.scene.components import InfoComponent, TransformComponent, LinkComponent, OpenGLRenderComponent, MaterialComponent
 
-from utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from utilities.opengl_texture_lib import OpenGLTextureLib
-from utilities.opengl_shader_lib import OpenGLShaderLib
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
-from utilities.logger import logger
+from pyGandalf.utilities.logger import logger
 
-from definitions import SHADERS_PATH, TEXTURES_PATH
+from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
 
 import numpy as np
 import glm

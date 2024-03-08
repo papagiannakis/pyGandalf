@@ -1,9 +1,8 @@
-from scene.entity import Entity
-from systems.system import System
-from renderer.opengl_renderer import OpenGLRenderer
-from utilities.opengl_material_lib import OpenGLMaterialLib
+from pyGandalf.scene.entity import Entity
+from pyGandalf.systems.system import System
+from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
 
-import utilities.math as utils
 import glm
 
 class OpenGLRenderingSystem(System):

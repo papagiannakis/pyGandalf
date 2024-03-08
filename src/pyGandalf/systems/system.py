@@ -1,4 +1,4 @@
-from utilities.logger import logger
+from pyGandalf.utilities.logger import logger
 
 from enum import Enum
 

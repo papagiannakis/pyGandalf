@@ -1,7 +1,7 @@
-from scene.entity import Entity
-from scene.components import LinkComponent, TransformComponent
-from scene.scene_manager import SceneManager
-from systems.system import System
+from pyGandalf.scene.entity import Entity
+from pyGandalf.scene.components import LinkComponent, TransformComponent
+from pyGandalf.scene.scene_manager import SceneManager
+from pyGandalf.systems.system import System
 
 import numpy as np
 import glm

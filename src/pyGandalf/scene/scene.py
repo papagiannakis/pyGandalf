@@ -1,4 +1,4 @@
-from scene.entity import Entity
+from pyGandalf.scene.entity import Entity
 
 class Scene():
     def __init__(self):
@@ -77,7 +77,7 @@ class Scene():
 
         system.filter(self)
 
-        from core.application import Application
+        from pyGandalf.core.application import Application
 
         if (Application().is_running()):
             system.on_create_base()
@@ -92,7 +92,7 @@ class Scene():
         return None
     
     def on_create(self):
-        from core.application import Application
+        from pyGandalf.core.application import Application
 
         Application().set_is_running(True)
         

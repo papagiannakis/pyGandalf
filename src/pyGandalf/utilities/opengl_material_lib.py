@@ -1,5 +1,5 @@
-from utilities.opengl_shader_lib import OpenGLShaderLib
-from utilities.logger import logger
+from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
+from pyGandalf.utilities.logger import logger
 
 import OpenGL.GL as gl
 

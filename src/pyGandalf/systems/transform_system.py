@@ -1,7 +1,5 @@
-from scene.entity import Entity
-from systems.system import System
-
-import utilities.math as utils
+from pyGandalf.scene.entity import Entity
+from pyGandalf.systems.system import System
 
 import numpy as np
 import glm
