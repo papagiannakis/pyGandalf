@@ -42,11 +42,13 @@ pyGandalf is a Python-based framework for computer graphics, visual computing in
 
 TBD
 
-## Documentation
-
-TBD
-
 ## Testing
+
+- **After selecting the python interpreter in VSCode**, go to ```View > Command Palette```.
+- Select ```Python: Configure Tests```.
+- Select ```pytest``` and then ```. (Root Directory)```
+
+## Documentation
 
 TBD
 
