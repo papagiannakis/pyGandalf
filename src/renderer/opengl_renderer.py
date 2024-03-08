@@ -42,7 +42,7 @@ class OpenGLRenderer(BaseRenderer):
 
         # Create samplers if texture is in use
         samplers = []
-        for i in range(0, 32):
+        for i in range(0, 16):
             samplers.append(i)
         material.instance.set_uniform("u_Textures", np.array(samplers, dtype=np.int32))
 
