@@ -58,15 +58,19 @@ class OpenGLTextureLib(object):
         return float(cls.instance.slots.get(name))
     
     def bind(cls, name):
-        gl.glBindTextureUnit(cls.instance.get_slot(name), cls.instance.get_id(name))
+        gl.glActiveTexture(cls.instance.get_slot(name) + gl.GL_TEXTURE0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, cls.instance.get_id(name))
 
     def unbind(cls, name):
-        gl.glBindTextureUnit(cls.instance.get_slot(name), 0)
+        gl.glActiveTexture(cls.instance.get_slot(name) + gl.GL_TEXTURE0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
     def bind_textures(cls):
         for slot, id in zip(cls.instance.slots.values(), cls.instance.textures.values()):
-            gl.glBindTextureUnit(slot, id)
+            gl.glActiveTexture(slot + gl.GL_TEXTURE0)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, id)
 
     def unbind_textures(cls):
         for slot in cls.instance.slots.values():
-            gl.glBindTextureUnit(slot, 0)
+            gl.glActiveTexture(slot + gl.GL_TEXTURE0)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
