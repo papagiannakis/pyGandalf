@@ -5,6 +5,8 @@ from utilities.logger import logger
 import glfw
 import OpenGL.GL as gl
 
+import platform
+
 class OpenGLWindow(BaseWindow):
     def create(self):
         # Initialize GLFW
@@ -13,9 +15,13 @@ class OpenGLWindow(BaseWindow):
             exit(-1)
 
         # Set GLFW window hints
-        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 1)
+
+        if platform.system() == "Darwin":
+            glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, glfw.TRUE);
+
+        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE);
 
         # Create a windowed mode window and its OpenGL context
         self.handle = glfw.create_window(self.width, self.height, self.title, None, None)
