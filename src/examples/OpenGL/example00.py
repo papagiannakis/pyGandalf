@@ -17,13 +17,11 @@ from utilities.opengl_shader_lib import OpenGLShaderLib
 
 from utilities.logger import logger
 
-import utilities.math as utils
-
 import glfw
 import numpy as np
 import glm
 
-from definitions import ROOT_DIR
+from definitions import SHADERS_PATH, TEXTURES_PATH
 
 """
 Showcase of basic usage and API with three 2d quads in a ecss hierachy
@@ -81,20 +79,18 @@ def main():
     entity2 = scene.enroll_entity()
     entity3 = scene.enroll_entity()
 
-
-    SHADER_PATH = ROOT_DIR/'examples'/'shaders'
-    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADER_PATH/'vertex_shader_code.glsl')
-    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADER_PATH/'fragment_shader_code_yellow.glsl')
-    textured_vertex_shader_code = OpenGLShaderLib().load_from_file(SHADER_PATH/'textured_vertex_shader_code.glsl')
-    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file(SHADER_PATH/'textured_fragment_shader_code_blue.glsl')
-    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file(SHADER_PATH/'textured_fragment_shader_code_red.glsl')
+    # Load shader source code
+    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'vertex_shader_code.glsl')
+    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADERS_PATH/'fragment_shader_code_yellow.glsl')
+    textured_vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_vertex_shader_code.glsl')
+    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_fragment_shader_code_blue.glsl')
+    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_fragment_shader_code_red.glsl')
 
     Application().create(OpenGLWindow('Hello World', 1280, 720, True), OpenGLRenderer)
 
     # Build textures
-    TEXTURE_PATH = ROOT_DIR/'examples'/'textures'
-    OpenGLTextureLib().build('dark_wood', TEXTURE_PATH/'dark_wood_texture.jpg')
-    OpenGLTextureLib().build('uoc_logo', TEXTURE_PATH/'uoc_logo.png')
+    OpenGLTextureLib().build('dark_wood', TEXTURES_PATH/'dark_wood_texture.jpg')
+    OpenGLTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png')
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
 
     # Build shaders 

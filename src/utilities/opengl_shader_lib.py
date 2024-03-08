@@ -1,8 +1,5 @@
 import OpenGL.GL as gl
 
-from utilities.logger import logger
-
-import os
 import re
 
 class ShaderData:
@@ -87,11 +84,9 @@ class OpenGLShaderLib(object):
     def get(cls, name: str):
         return cls.instance.shaders.get(name)
     
-    def load_from_file(cls, source):
+    def load_from_file(cls, path_to_source):
         """
         Returns the file contents as a string.
         """
-        path = os.path.join(os.getcwd(), source)
-
-        with open(path) as file:
+        with open(path_to_source) as file:
             return file.read()

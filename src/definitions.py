@@ -2,4 +2,6 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).parent
 
-# MODEL_DIR = ROOT_DIR / "files" / "models"
+MODELS_PATH = ROOT_DIR / "resources" / "models"
+SHADERS_PATH = ROOT_DIR / "resources" / "shaders"
+TEXTURES_PATH = ROOT_DIR / "resources" / "textures"
