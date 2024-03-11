@@ -195,7 +195,7 @@ def main():
     scene.add_component(camera_alt, InfoComponent("camera_alt"))
     scene.add_component(camera_alt, TransformComponent(glm.vec3(0, 0, 5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera_alt, LinkComponent(root))
-    scene.add_component(camera_alt, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.ORTHOGRAPHIC, False))
+    scene.add_component(camera_alt, CameraComponent(45, 1.778, 0.1, 1000, 1.8, CameraComponent.Type.ORTHOGRAPHIC, False))
     scene.add_component(camera_alt, DemoComponent((1, 1, 0), 25, False, True))
 
     # Create Register systems

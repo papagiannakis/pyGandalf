@@ -24,6 +24,8 @@ class TransformComponent:
 class LinkComponent:
     def __init__(self, parent: Entity):
         self.parent: Entity = parent
+        self.prev_parent: Entity = parent
+        self.children: list[Entity] = []
 
 class MaterialComponent:
     def __init__(self, name):
