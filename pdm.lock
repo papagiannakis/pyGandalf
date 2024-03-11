@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:4a8daebd9b22c2ff8dcd8780a9564e161f11d6dfe89973f45dad04f290cddb58"
+content_hash = "sha256:93e69ac428ca6fc756b759718c44006a4dff0eea90630d2428ad1fac930ee6dd"
 
 [[package]]
 name = "colorama"
@@ -258,6 +258,24 @@ dependencies = [
 files = [
     {file = "pytest-8.0.2-py3-none-any.whl", hash = "sha256:edfaaef32ce5172d5466b5127b42e0d6d35ebbe4453f0e3505d96afd93f6b096"},
     {file = "pytest-8.0.2.tar.gz", hash = "sha256:d4051d623a2e0b7e51960ba963193b09ce6daeb9759a451844a21e4ddedfc1bd"},
+]
+
+[[package]]
+name = "tinyobjloader"
+version = "2.0.0rc9"
+summary = "Tiny but powerful Wavefront OBJ loader"
+groups = ["default"]
+files = [
+    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:41f48a4bacd3cb46d6d60df5a8f2bc5d2263c5e174853a8ce6621f56e6a1b0c3"},
+    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:a80642f0b09702b4a478eac12ae0787669841ec5191c3444d42ba8c960d77571"},
+    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:3cf5c45f5063dff9fe5dbea328fd807b1fef468827c8039d180f9c4b584928c6"},
+    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-win32.whl", hash = "sha256:0d5871b44b490f185668c45592b2ad53f126b5e049ff127c3d6b36c3e26da0e8"},
+    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-win_amd64.whl", hash = "sha256:6c0d18bbfb088604c16d1084a01cd6ae9fb39e65fd5b4d1127f7f7ee8100501b"},
+    {file = "tinyobjloader-2.0.0rc9-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:d1c613d89279309b33446335f7bb51e57a5958c5cae8b5465342b1928f5de76f"},
+    {file = "tinyobjloader-2.0.0rc9-pp37-pypy37_pp73-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:b1c6fa2103c09e70122be8160194970fe46e1a960b8694745f9aed36453faca0"},
+    {file = "tinyobjloader-2.0.0rc9-pp37-pypy37_pp73-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:2d211bbe13f1b49a54e3c833f9419107eafbb7a60954832d3fffdc30a8c2651c"},
+    {file = "tinyobjloader-2.0.0rc9-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:5d36aef6d653a26a8b9e9e83298c807ab623ab5d68c74030004951a02a8b792d"},
+    {file = "tinyobjloader-2.0.0rc9.tar.gz", hash = "sha256:bbdb92ec2cc9ed92fc3a3f7347817e0b3ed2a3d6e0b8b38113d51983fec934e2"},
 ]
 
 [[package]]

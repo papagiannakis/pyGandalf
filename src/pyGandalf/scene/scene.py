@@ -1,4 +1,5 @@
 from pyGandalf.scene.entity import Entity
+from pyGandalf.utilities.logger import logger
 
 class Scene():
     def __init__(self):
@@ -22,6 +23,11 @@ class Scene():
 
         # Retrieve type from component
         component_type = type(component)
+
+        # Check if already has component
+        if self.has_component(entity, component_type) is True:
+            logger.info(f'Entity with id: {entity} already has component of type: {component_type}, returning that.')
+            return self.get_component(entity, component_type)
 
         # Create new component array if it does not exist yet
         if component_type not in self.component_arrays:

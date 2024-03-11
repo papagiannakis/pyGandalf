@@ -1,6 +1,8 @@
 from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 
+from pyGandalf.scene.scene_manager import SceneManager
+
 import OpenGL.GL as gl
 
 import ctypes
@@ -15,6 +17,9 @@ class OpenGLRenderer(BaseRenderer):
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)
         gl.glBindVertexArray(render_data.vao)
+
+        # Filter out None from attributes
+        render_data.attributes = list(filter(lambda x: x is not None, render_data.attributes))
 
         for index, attribute in enumerate(render_data.attributes):
             # Get a pointer to the NumPy array data
@@ -63,6 +68,9 @@ class OpenGLRenderer(BaseRenderer):
         OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
+        camera = SceneManager().get_main_camera()
+        material.instance.set_uniform('u_Projection', camera.projection)
+        material.instance.set_uniform('u_View', camera.view)
         material.instance.set_uniform('u_Model', model)
 
         if len(material.instance.textures) > 0:
@@ -99,6 +107,9 @@ class OpenGLRenderer(BaseRenderer):
         OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
+        camera = SceneManager().get_main_camera()
+        material.instance.set_uniform('u_Projection', camera.projection)
+        material.instance.set_uniform('u_View', camera.view)
         material.instance.set_uniform('u_Model', model)
 
         if len(material.instance.textures) > 0:

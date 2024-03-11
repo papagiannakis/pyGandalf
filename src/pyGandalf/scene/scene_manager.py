@@ -10,6 +10,7 @@ class SceneManager(object):
             cls.instance.new_scene_to_loaded = None
             cls.instance.active_scene_index = 0
             cls.instance.scene_change_requested = False
+            cls.instance.main_camera = None
         return cls.instance
     
     def add_scene(cls, scene: Scene):
@@ -70,6 +71,12 @@ class SceneManager(object):
 
     def get_active_scene(cls):
         return cls.instance.active_scene
+    
+    def get_main_camera(cls):
+        return cls.instance.main_camera
+    
+    def set_main_camera(cls, main_camera):
+        cls.instance.main_camera = main_camera
     
     def clean(cls):
         cls.instance.scenes.clear()
