@@ -3,7 +3,6 @@ from pyGandalf.scene.components import LinkComponent, TransformComponent
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.systems.system import System
 
-import numpy as np
 import glm
 
 class LinkSystem(System):

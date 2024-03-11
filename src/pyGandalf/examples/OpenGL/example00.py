@@ -3,13 +3,14 @@ from pyGandalf.core.opengl_window import OpenGLWindow
 from pyGandalf.systems.system import System
 from pyGandalf.systems.link_system import LinkSystem
 from pyGandalf.systems.transform_system import TransformSystem
-from pyGandalf.systems.opengl_rendering_system import OpenGLRenderingSystem
+from pyGandalf.systems.camera_system import CameraSystem
+from pyGandalf.systems.opengl_static_mesh_rendering_system import OpenGLStaticMeshRenderingSystem
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 
-from pyGandalf.scene.components import InfoComponent, TransformComponent, LinkComponent, OpenGLRenderComponent, MaterialComponent
+from pyGandalf.scene.components import InfoComponent, TransformComponent, LinkComponent, StaticMeshComponent, MaterialComponent, CameraComponent
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
@@ -78,6 +79,8 @@ def main():
     entity1 = scene.enroll_entity()
     entity2 = scene.enroll_entity()
     entity3 = scene.enroll_entity()
+    camera = scene.enroll_entity()
+    root = scene.enroll_entity()
 
     # Load shader source code
     vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'vertex_shader_code.glsl')
@@ -121,11 +124,14 @@ def main():
         [0.0, 1.0]  #0
     ], dtype=np.float32)
 
+    scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(root, LinkComponent(None))
+
     # Register components to entity1
     scene.add_component(entity1, InfoComponent("e1"))
     scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(entity1, LinkComponent(None))
-    scene.add_component(entity1, OpenGLRenderComponent([vertices, texture_coords], None))
+    scene.add_component(entity1, LinkComponent(root))
+    scene.add_component(entity1, StaticMeshComponent('', [vertices, texture_coords], None))
     scene.add_component(entity1, MaterialComponent('M_Red_Textured'))
     scene.add_component(entity1, MovementComponent())
 
@@ -133,7 +139,7 @@ def main():
     scene.add_component(entity2, InfoComponent("e2"))
     scene.add_component(entity2, TransformComponent(glm.vec3(2, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity2, LinkComponent(entity1))
-    scene.add_component(entity2, OpenGLRenderComponent([vertices], None))
+    scene.add_component(entity2, StaticMeshComponent('', [vertices], None))
     scene.add_component(entity2, MaterialComponent('M_Yellow_Simple'))
     scene.add_component(entity2, MovementComponent())
 
@@ -141,14 +147,21 @@ def main():
     scene.add_component(entity3, InfoComponent("e3"))
     scene.add_component(entity3, TransformComponent(glm.vec3(-2, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity3, LinkComponent(entity1))
-    scene.add_component(entity3, OpenGLRenderComponent([vertices, texture_coords], None))
+    scene.add_component(entity3, StaticMeshComponent('', [vertices, texture_coords], None))
     scene.add_component(entity3, MaterialComponent('M_Blue_Textured'))
     scene.add_component(entity3, MovementComponent())
+
+    # Register components to camera
+    scene.add_component(camera, InfoComponent("camera"))
+    scene.add_component(camera, TransformComponent(glm.vec3(0, 0, 5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(camera, LinkComponent(root))
+    scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
 
     # Create Register systems
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
-    scene.register_system(OpenGLRenderingSystem([OpenGLRenderComponent, MaterialComponent, TransformComponent]))
+    scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
+    scene.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(MovementSystem([MovementComponent, TransformComponent, InfoComponent]))
 
     # Add scene to manager

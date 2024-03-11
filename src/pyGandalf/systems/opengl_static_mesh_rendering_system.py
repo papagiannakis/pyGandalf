@@ -3,7 +3,6 @@ from pyGandalf.systems.system import System
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
-from pyGandalf.scene.components import OpenGLRenderComponent
 
 from pyGandalf.scene.scene_manager import SceneManager
 

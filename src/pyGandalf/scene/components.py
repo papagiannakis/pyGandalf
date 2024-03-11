@@ -25,15 +25,6 @@ class LinkComponent:
     def __init__(self, parent: Entity):
         self.parent: Entity = parent
 
-class OpenGLRenderComponent:
-    def __init__(self, attributes, indices):
-        self.attributes = attributes
-        self.indices = indices
-        self.vao = 0
-        self.vbo = []
-        self.ebo = 0
-        self.batch = -1
-
 class MaterialComponent:
     def __init__(self, name):
         self.name = name
@@ -56,7 +47,7 @@ class CameraComponent:
         if type is CameraComponent.Type.ORTHOGRAPHIC:
             self.projection = glm.ortho(-self.aspect_ratio * self.zoom_level, self.aspect_ratio * self.zoom_level, -self.zoom_level, self.zoom_level, self.near, self.far)
         elif type is CameraComponent.Type.PERSPECTIVE:
-            self.projection = glm.perspective(self.fov, self.aspect_ratio, self.near, self.far)
+            self.projection = glm.perspective(glm.radians(self.fov), self.aspect_ratio, self.near, self.far)
         self.view_projection = glm.mat4(1.0)
 
         self.primary = primary

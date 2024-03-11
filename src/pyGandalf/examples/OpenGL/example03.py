@@ -71,6 +71,7 @@ def main():
     scene = Scene()
 
     # Create Enroll entities to registry
+    root = scene.enroll_entity()
     camera = scene.enroll_entity()
     monkeh = scene.enroll_entity()
     cube_mesh = scene.enroll_entity()
@@ -104,10 +105,13 @@ def main():
     OpenGLMeshLib().build('cornell_box_mesh', MODELS_PATH/'cornell_box.obj')
     OpenGLMeshLib().build('cube_mesh', MODELS_PATH/'cube.obj')
 
+    scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(root, LinkComponent(None))
+
     # Register components to monkeh
     scene.add_component(monkeh, InfoComponent("monkeh"))
     scene.add_component(monkeh, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(monkeh, LinkComponent(None))
+    scene.add_component(monkeh, LinkComponent(root))
     scene.add_component(monkeh, StaticMeshComponent('monkeh_mesh'))
     scene.add_component(monkeh, MaterialComponent('M_Yellow_Simple'))
     scene.add_component(monkeh, DemoComponent((0, 1, 0), 25, True, False))
@@ -115,14 +119,14 @@ def main():
     # Register components to cube_mesh
     scene.add_component(cube_mesh, InfoComponent("cube_mesh"))
     scene.add_component(cube_mesh, TransformComponent(glm.vec3(3, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(cube_mesh, LinkComponent(None))
+    scene.add_component(cube_mesh, LinkComponent(root))
     scene.add_component(cube_mesh, StaticMeshComponent('cube_mesh'))
     scene.add_component(cube_mesh, MaterialComponent('M_Yellow_Simple'))
 
     # Register components to quad
     scene.add_component(quad, InfoComponent("quad"))
-    scene.add_component(quad, TransformComponent(glm.vec3(-3, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(quad, LinkComponent(None))
+    scene.add_component(quad, TransformComponent(glm.vec3(-3, -2, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(quad, LinkComponent(root))
     scene.add_component(quad, StaticMeshComponent('quad', [vertices]))
     scene.add_component(quad, MaterialComponent('M_Yellow_Simple'))
 
@@ -130,7 +134,7 @@ def main():
     scene.add_component(camera, InfoComponent("camera"))
     scene.add_component(camera, TransformComponent(glm.vec3(0, 0, 10), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, LinkComponent(None))
-    scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 10000, 5.0, CameraComponent.Type.ORTHOGRAPHIC))
+    scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 10000, 5.0, CameraComponent.Type.PERSPECTIVE))
 
     # Create Register systems
     scene.register_system(TransformSystem([TransformComponent]))
