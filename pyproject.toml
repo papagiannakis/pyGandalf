@@ -1,0 +1,26 @@
+[project]
+name = "pyGandalf"
+version = "0.0.1"
+description = "PyGandalf is a versatile Python framework for graphics and visual computing, employing an ECS approach, built on top modern graphics APIs like OpenGL and WebGPU, prioritizing flexibility, modularity, and education in core concepts."
+authors = [
+    {name = "George Papagiannakis", email = "papagian@ics.forth.gr"},
+    {name = "John Petropoulos", email = "johnaipeia@gmail.com"},
+    {name = "Stratos Geronikolakis", email = "stratos@oramavr.com"},
+    {name = "Manos Kamarianakis", email = "m.kamarianakis@gmail.com"},
+    {name = "Antonis Protopsaltis", email = "aprotopsaltis@uowm.gr"},
+]
+dependencies = [
+    "numpy>=1.26.4",
+    "glfw>=2.7.0",
+    "PyOpenGL>=3.1.7",
+    "pillow>=10.2.0",
+    "pytest>=8.0.2",
+    "PyGLM>=2.7.1",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+
+
+[tool.pdm]
+distribution = true
