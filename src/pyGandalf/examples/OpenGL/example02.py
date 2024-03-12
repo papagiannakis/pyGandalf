@@ -120,7 +120,7 @@ def main():
     scene.add_component(monkeh, MaterialComponent('M_Monkeh'))
     scene.add_component(monkeh, DemoComponent((1, 1, 0), 25, True, False))
 
-    # Register components to cube_mesh
+    # Register components to pistol
     scene.add_component(pistol, InfoComponent("pistol"))
     scene.add_component(pistol, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(15, 15, 15)))
     scene.add_component(pistol, LinkComponent(root))
@@ -128,7 +128,7 @@ def main():
     scene.add_component(pistol, MaterialComponent('M_Pistol'))
     scene.add_component(pistol, DemoComponent((1, 1, 0), 25, True, False))
 
-    # Register components to quad
+    # Register components to lion
     scene.add_component(lion, InfoComponent("lion"))
     scene.add_component(lion, TransformComponent(glm.vec3(-5.5, 0, 0), glm.vec3(0, 0, 0), glm.vec3(20, 20, 20)))
     scene.add_component(lion, LinkComponent(root))

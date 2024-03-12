@@ -40,10 +40,15 @@ class OpenGLMeshLib(object):
             logger.warn(reader.Warning())
 
         attrib = reader.GetAttrib()
+
+        vertices_length = len(attrib.vertices)
+        normals_length = len(attrib.normals)
+        texcoords_length = len(attrib.texcoords)
+
         logger.debug(f"{filename}:")
-        logger.debug(f"Vertices = {len(attrib.vertices)}")
-        logger.debug(f"Normals = {len(attrib.normals)}")
-        logger.debug(f"Texcoords = {len(attrib.texcoords)}")
+        logger.debug(f"Vertices = {vertices_length}")
+        logger.debug(f"Normals = {normals_length}")
+        logger.debug(f"Texcoords = {texcoords_length}")
 
         materials = reader.GetMaterials()
         logger.debug(f"Materials: {len(materials)}")
@@ -51,24 +56,34 @@ class OpenGLMeshLib(object):
             logger.debug(m.name)
             logger.debug(m.diffuse)
 
-        vertices = []
-        normals = []
-        texcoords = []
-
         shapes = reader.GetShapes()
+
+        length = 0
+
+        for shape in shapes:
+            length += len(shape.mesh.indices)
+
+        vertices = np.zeros((length, 3), dtype=np.float32)
+        normals = np.zeros((length, 3), dtype=np.float32)
+        texcoords = np.zeros((length, 2), dtype=np.float32)
+
         logger.debug(f"Shapes: {len(shapes)}")
+
+        i = 0
+
         for shape in shapes:
             for index in shape.mesh.indices:
-                if len(attrib.vertices) > 0:
-                    vertices.append([attrib.vertices[index.vertex_index * 3 + 0], attrib.vertices[index.vertex_index * 3 + 1], attrib.vertices[index.vertex_index * 3 + 2]])
-                if len(attrib.normals) > 0:
-                    normals.append([attrib.normals[index.normal_index * 3 + 0], attrib.normals[index.normal_index * 3 + 1], attrib.normals[index.normal_index * 3 + 2]])
-                if len(attrib.texcoords) > 0:
-                    texcoords.append([attrib.texcoords[index.texcoord_index * 2 + 0], attrib.texcoords[index.texcoord_index * 2 + 1]])
+                if vertices_length > 0:
+                    vertices[i] = attrib.vertices[index.vertex_index * 3: index.vertex_index * 3 + 3]
+                if normals_length > 0:
+                    normals[i] = attrib.normals[index.normal_index * 3: index.normal_index * 3 + 3]
+                if texcoords_length > 0:
+                    texcoords[i] = attrib.texcoords[index.texcoord_index * 2: index.texcoord_index * 2 + 2]
+                i += 1
 
-        vertices = None if len(vertices) == 0 else np.asarray(vertices, dtype=np.float32)
-        normals = None if len(normals) == 0 else np.asarray(normals, dtype=np.float32)
-        texcoords = None if len(texcoords) == 0 else np.asarray(texcoords, dtype=np.float32)
+        vertices = None if np.all(vertices == 0) else vertices
+        normals = None if np.all(normals == 0) else normals
+        texcoords = None if np.all(texcoords == 0) else texcoords
 
         cls.instance.meshes[name] = MeshInstance(name, vertices, None, normals, texcoords)
 
