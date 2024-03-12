@@ -74,11 +74,11 @@ def main():
     root = scene.enroll_entity()
     camera = scene.enroll_entity()
     monkeh = scene.enroll_entity()
-    cube_mesh = scene.enroll_entity()
-    quad = scene.enroll_entity()
+    pistol = scene.enroll_entity()
+    lion = scene.enroll_entity()
 
-    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'vertex_shader_code.glsl')
-    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADERS_PATH/'fragment_shader_code_yellow.glsl')
+    blinn_phong_mesh_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'blinn_phong_mesh_vertex.glsl')
+    blinn_phong_mesh_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'blinn_phong_mesh_fragment.glsl')
 
     vertices = np.array([
         [-0.5, -0.5, 0.0], #0
@@ -89,46 +89,52 @@ def main():
         [-0.5, -0.5, 0.0]  #0
     ], dtype=np.float32)
 
-    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, False), OpenGLRenderer)
 
     # Build textures
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('lion_albedo', TEXTURES_PATH/'fg_spkRabbit_albedo.jpg')
+    OpenGLTextureLib().build('flintlockPistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
 
-    # Build shaders 
-    OpenGLShaderLib().build('default_colored_yellow', vertex_shader_code, fragment_shader_code_yellow)
+    # Build shaders
+    OpenGLShaderLib().build('default_mesh', blinn_phong_mesh_vertex, blinn_phong_mesh_fragment)
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Yellow_Simple', MaterialData('default_colored_yellow', []))
+    OpenGLMaterialLib().build('M_Lion', MaterialData('default_mesh', ['lion_albedo']))
+    OpenGLMaterialLib().build('M_Monkeh', MaterialData('default_mesh', ['white_texture']))
+    OpenGLMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo']))
 
     # Load models
     OpenGLMeshLib().build('monkeh_mesh', MODELS_PATH/'monkey_flat.obj')
-    OpenGLMeshLib().build('cornell_box_mesh', MODELS_PATH/'cornell_box.obj')
-    OpenGLMeshLib().build('cube_mesh', MODELS_PATH/'cube.obj')
+    OpenGLMeshLib().build('lion_mesh', MODELS_PATH/'fg_spkRabbit.obj')
+    OpenGLMeshLib().build('pistol_mesh', MODELS_PATH/'fa_flintlockPistol.obj')
 
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(root, LinkComponent(None))
 
     # Register components to monkeh
     scene.add_component(monkeh, InfoComponent("monkeh"))
-    scene.add_component(monkeh, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(monkeh, TransformComponent(glm.vec3(5.5, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(monkeh, LinkComponent(root))
     scene.add_component(monkeh, StaticMeshComponent('monkeh_mesh'))
-    scene.add_component(monkeh, MaterialComponent('M_Yellow_Simple'))
-    scene.add_component(monkeh, DemoComponent((0, 1, 0), 25, True, False))
+    scene.add_component(monkeh, MaterialComponent('M_Monkeh'))
+    scene.add_component(monkeh, DemoComponent((1, 1, 0), 25, True, False))
 
     # Register components to cube_mesh
-    scene.add_component(cube_mesh, InfoComponent("cube_mesh"))
-    scene.add_component(cube_mesh, TransformComponent(glm.vec3(3, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(cube_mesh, LinkComponent(root))
-    scene.add_component(cube_mesh, StaticMeshComponent('cube_mesh'))
-    scene.add_component(cube_mesh, MaterialComponent('M_Yellow_Simple'))
+    scene.add_component(pistol, InfoComponent("pistol"))
+    scene.add_component(pistol, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(15, 15, 15)))
+    scene.add_component(pistol, LinkComponent(root))
+    scene.add_component(pistol, StaticMeshComponent('pistol_mesh'))
+    scene.add_component(pistol, MaterialComponent('M_Pistol'))
+    scene.add_component(pistol, DemoComponent((1, 1, 0), 25, True, False))
 
     # Register components to quad
-    scene.add_component(quad, InfoComponent("quad"))
-    scene.add_component(quad, TransformComponent(glm.vec3(-3, -2, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(quad, LinkComponent(root))
-    scene.add_component(quad, StaticMeshComponent('quad', [vertices]))
-    scene.add_component(quad, MaterialComponent('M_Yellow_Simple'))
+    scene.add_component(lion, InfoComponent("lion"))
+    scene.add_component(lion, TransformComponent(glm.vec3(-5.5, 0, 0), glm.vec3(0, 0, 0), glm.vec3(20, 20, 20)))
+    scene.add_component(lion, LinkComponent(root))
+    scene.add_component(lion, StaticMeshComponent('lion_mesh'))
+    scene.add_component(lion, MaterialComponent('M_Lion'))
+    scene.add_component(lion, DemoComponent((1, 1, 0), 25, True, False))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))

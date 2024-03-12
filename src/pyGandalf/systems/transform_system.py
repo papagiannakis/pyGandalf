@@ -20,7 +20,7 @@ class TransformSystem(System):
         S = glm.scale(glm.mat4(1.0), glm.vec3(transform.scale.x, transform.scale.y, transform.scale.z))
 
         transform.quaternion = R        
-        transform.local_matrix = S * glm.mat4(R) * T
+        transform.local_matrix = T * glm.mat4(R) * S
 
     def on_update(self, ts, entity: Entity, components):
         """
@@ -36,7 +36,7 @@ class TransformSystem(System):
             S = glm.scale(glm.mat4(1.0), glm.vec3(transform.scale.x, transform.scale.y, transform.scale.z))
             
             transform.quaternion = R
-            transform.local_matrix = S * glm.mat4(R) * T
+            transform.local_matrix = T * glm.mat4(R) * S
             transform.world_matrix = transform.local_matrix        
 
             if (np.array_equal(previous_local_matrix, transform.local_matrix)):

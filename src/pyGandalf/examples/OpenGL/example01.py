@@ -144,42 +144,42 @@ def main():
 
     # Register components to cube_face_front
     scene.add_component(cube_face_front, InfoComponent("cube_face_front"))
-    scene.add_component(cube_face_front, TransformComponent(glm.vec3(0, 0, 0.5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(cube_face_front, TransformComponent(glm.vec3(0.0, 0.0, 0.5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_front, LinkComponent(cube))
     scene.add_component(cube_face_front, StaticMeshComponent('f', [vertices, texture_coords], None))
     scene.add_component(cube_face_front, MaterialComponent('M_Red_Textured'))
 
     # Register components to cube_face_back
     scene.add_component(cube_face_back, InfoComponent("cube_face_back"))
-    scene.add_component(cube_face_back, TransformComponent(glm.vec3(0, 0, -0.5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(cube_face_back, TransformComponent(glm.vec3(0.0, 0.0, -0.5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_back, LinkComponent(cube))
     scene.add_component(cube_face_back, StaticMeshComponent('b', [vertices, texture_coords], None))
     scene.add_component(cube_face_back, MaterialComponent('M_Red_Textured'))
 
     # Register components to cube_face_right
     scene.add_component(cube_face_right, InfoComponent("cube_face_right"))
-    scene.add_component(cube_face_right, TransformComponent(glm.vec3(0.0, 0, 0.5), glm.vec3(0, 90, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(cube_face_right, TransformComponent(glm.vec3(0.5, 0.0, 0.0), glm.vec3(0, 90, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_right, LinkComponent(cube))
     scene.add_component(cube_face_right, StaticMeshComponent('r', [vertices, texture_coords], None))
     scene.add_component(cube_face_right, MaterialComponent('M_Blue_Textured'))
 
     # Register components to cube_face_left
     scene.add_component(cube_face_left, InfoComponent("cube_face_left"))
-    scene.add_component(cube_face_left, TransformComponent(glm.vec3(0.0, 0, -0.5), glm.vec3(0, 90, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(cube_face_left, TransformComponent(glm.vec3(-0.5, 0.0, 0.0), glm.vec3(0, 90, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_left, LinkComponent(cube))
     scene.add_component(cube_face_left, StaticMeshComponent('l', [vertices, texture_coords], None))
     scene.add_component(cube_face_left, MaterialComponent('M_Blue_Textured'))
 
     # Register components to cube_face_top
     scene.add_component(cube_face_top, InfoComponent("cube_face_top"))
-    scene.add_component(cube_face_top, TransformComponent(glm.vec3(0, 0, 0.5), glm.vec3(90, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(cube_face_top, TransformComponent(glm.vec3(0.0, 0.5, 0.0), glm.vec3(90, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_top, LinkComponent(cube))
     scene.add_component(cube_face_top, StaticMeshComponent('t', [vertices], None))
     scene.add_component(cube_face_top, MaterialComponent('M_Yellow_Simple'))
 
     # Register components to cube_face_bottom
     scene.add_component(cube_face_bottom, InfoComponent("cube_face_bottom"))
-    scene.add_component(cube_face_bottom, TransformComponent(glm.vec3(0, 0, -0.5), glm.vec3(90, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(cube_face_bottom, TransformComponent(glm.vec3(0.0, -0.5, 0.0), glm.vec3(90, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_bottom, LinkComponent(cube))
     scene.add_component(cube_face_bottom, StaticMeshComponent('b', [vertices], None))
     scene.add_component(cube_face_bottom, MaterialComponent('M_Yellow_Simple'))
