@@ -115,10 +115,11 @@ class OpenGLRenderer(BaseRenderer):
         if len(material.instance.textures) > 0:
             material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
 
-        gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
-
         # Bind vao
         gl.glBindVertexArray(render_data.vao)
+
+        # Bind ebo
+        gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
 
         # Bind vertex buffer and their layout
         for index, attribute in enumerate(render_data.attributes):

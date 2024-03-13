@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:93e69ac428ca6fc756b759718c44006a4dff0eea90630d2428ad1fac930ee6dd"
+content_hash = "sha256:ee22b75bb19fc917e93cdd93063626ccfbad64a4ef412d5d2f0bcd03d196fb46"
 
 [[package]]
 name = "colorama"
@@ -261,21 +261,34 @@ files = [
 ]
 
 [[package]]
-name = "tinyobjloader"
-version = "2.0.0rc9"
-summary = "Tiny but powerful Wavefront OBJ loader"
+name = "scipy"
+version = "1.12.0"
+requires_python = ">=3.9"
+summary = "Fundamental algorithms for scientific computing in Python"
 groups = ["default"]
+dependencies = [
+    "numpy<1.29.0,>=1.22.4",
+]
 files = [
-    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:41f48a4bacd3cb46d6d60df5a8f2bc5d2263c5e174853a8ce6621f56e6a1b0c3"},
-    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:a80642f0b09702b4a478eac12ae0787669841ec5191c3444d42ba8c960d77571"},
-    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:3cf5c45f5063dff9fe5dbea328fd807b1fef468827c8039d180f9c4b584928c6"},
-    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-win32.whl", hash = "sha256:0d5871b44b490f185668c45592b2ad53f126b5e049ff127c3d6b36c3e26da0e8"},
-    {file = "tinyobjloader-2.0.0rc9-cp310-cp310-win_amd64.whl", hash = "sha256:6c0d18bbfb088604c16d1084a01cd6ae9fb39e65fd5b4d1127f7f7ee8100501b"},
-    {file = "tinyobjloader-2.0.0rc9-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:d1c613d89279309b33446335f7bb51e57a5958c5cae8b5465342b1928f5de76f"},
-    {file = "tinyobjloader-2.0.0rc9-pp37-pypy37_pp73-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:b1c6fa2103c09e70122be8160194970fe46e1a960b8694745f9aed36453faca0"},
-    {file = "tinyobjloader-2.0.0rc9-pp37-pypy37_pp73-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:2d211bbe13f1b49a54e3c833f9419107eafbb7a60954832d3fffdc30a8c2651c"},
-    {file = "tinyobjloader-2.0.0rc9-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:5d36aef6d653a26a8b9e9e83298c807ab623ab5d68c74030004951a02a8b792d"},
-    {file = "tinyobjloader-2.0.0rc9.tar.gz", hash = "sha256:bbdb92ec2cc9ed92fc3a3f7347817e0b3ed2a3d6e0b8b38113d51983fec934e2"},
+    {file = "scipy-1.12.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:78e4402e140879387187f7f25d91cc592b3501a2e51dfb320f48dfb73565f10b"},
+    {file = "scipy-1.12.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:f5f00ebaf8de24d14b8449981a2842d404152774c1a1d880c901bf454cb8e2a1"},
+    {file = "scipy-1.12.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e53958531a7c695ff66c2e7bb7b79560ffdc562e2051644c5576c39ff8efb563"},
+    {file = "scipy-1.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5e32847e08da8d895ce09d108a494d9eb78974cf6de23063f93306a3e419960c"},
+    {file = "scipy-1.12.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:4c1020cad92772bf44b8e4cdabc1df5d87376cb219742549ef69fc9fd86282dd"},
+    {file = "scipy-1.12.0-cp310-cp310-win_amd64.whl", hash = "sha256:75ea2a144096b5e39402e2ff53a36fecfd3b960d786b7efd3c180e29c39e53f2"},
+    {file = "scipy-1.12.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:408c68423f9de16cb9e602528be4ce0d6312b05001f3de61fe9ec8b1263cad08"},
+    {file = "scipy-1.12.0-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:5adfad5dbf0163397beb4aca679187d24aec085343755fcdbdeb32b3679f254c"},
+    {file = "scipy-1.12.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c3003652496f6e7c387b1cf63f4bb720951cfa18907e998ea551e6de51a04467"},
+    {file = "scipy-1.12.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8b8066bce124ee5531d12a74b617d9ac0ea59245246410e19bca549656d9a40a"},
+    {file = "scipy-1.12.0-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:8bee4993817e204d761dba10dbab0774ba5a8612e57e81319ea04d84945375ba"},
+    {file = "scipy-1.12.0-cp311-cp311-win_amd64.whl", hash = "sha256:a24024d45ce9a675c1fb8494e8e5244efea1c7a09c60beb1eeb80373d0fecc70"},
+    {file = "scipy-1.12.0-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:e7e76cc48638228212c747ada851ef355c2bb5e7f939e10952bc504c11f4e372"},
+    {file = "scipy-1.12.0-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:f7ce148dffcd64ade37b2df9315541f9adad6efcaa86866ee7dd5db0c8f041c3"},
+    {file = "scipy-1.12.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9c39f92041f490422924dfdb782527a4abddf4707616e07b021de33467f917bc"},
+    {file = "scipy-1.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a7ebda398f86e56178c2fa94cad15bf457a218a54a35c2a7b4490b9f9cb2676c"},
+    {file = "scipy-1.12.0-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:95e5c750d55cf518c398a8240571b0e0782c2d5a703250872f36eaf737751338"},
+    {file = "scipy-1.12.0-cp312-cp312-win_amd64.whl", hash = "sha256:e646d8571804a304e1da01040d21577685ce8e2db08ac58e543eaca063453e1c"},
+    {file = "scipy-1.12.0.tar.gz", hash = "sha256:4bf5abab8a36d20193c698b0f1fc282c1d083c94723902c447e5d2f1780936a3"},
 ]
 
 [[package]]
@@ -288,4 +301,18 @@ marker = "python_version < \"3.11\""
 files = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
+]
+
+[[package]]
+name = "trimesh"
+version = "4.2.0"
+requires_python = ">=3.7"
+summary = "Import, export, process, analyze and view triangular meshes."
+groups = ["default"]
+dependencies = [
+    "numpy",
+]
+files = [
+    {file = "trimesh-4.2.0-py3-none-any.whl", hash = "sha256:119673cb17749c078cc821b30651b71e6c66610ed1e34c79b73332951543152e"},
+    {file = "trimesh-4.2.0.tar.gz", hash = "sha256:b92ea854d4be24137ad521150f02d00e809feb44b0a9757bf37d44d89fa16fb2"},
 ]
