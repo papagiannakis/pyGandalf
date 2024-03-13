@@ -20,7 +20,7 @@ class CameraSystem(System):
         camera.view_projection = camera.projection * camera.view
 
         if camera.primary:
-            SceneManager().set_main_camera(camera)
+            SceneManager().set_main_camera(entity, camera)
 
     def on_update(self, ts, entity: Entity, components):
         """
@@ -33,8 +33,5 @@ class CameraSystem(System):
             camera.view = glm.inverse(transform.world_matrix)
             camera.view_projection = camera.projection * camera.view
 
-            if camera.primary:
-                SceneManager().set_main_camera(camera)
-        else:
-            if camera.primary:
-                SceneManager().set_main_camera(camera)
+        if camera.primary:
+            SceneManager().set_main_camera(entity, camera)

@@ -9,8 +9,8 @@ in vec3 v_Position;
 in vec3 v_Normal;
 in vec2 v_TexCoord;
 
-uniform vec3 lightPos = vec3(0.0, 5.0, 0.0);
-uniform vec3 viewPos = vec3(0.0, 0.0, 10.0);
+uniform vec3 u_LightPosition = vec3(0.0, 5.0, 0.0);
+uniform vec3 u_ViewPosition = vec3(0.0, 0.0, 10.0);
 
 void main()
 {
@@ -39,23 +39,19 @@ void main()
     }
 
     // ambient
-    vec3 ambient = 0.1 * color;
+    vec3 ambient = 0.25 * color;
 
     // diffuse
-    vec3 lightDir = normalize(lightPos - v_Position);
+    vec3 lightDir = normalize(u_LightPosition - v_Position);
     vec3 normal = normalize(v_Normal);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * color;
 
     // specular
-    vec3 viewDir = normalize(viewPos - v_Position);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = 0.0;
-
+    vec3 viewDir = normalize(u_ViewPosition - v_Position);
     vec3 halfwayDir = normalize(lightDir + viewDir);  
-    spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
-
-    vec3 specular = vec3(0.65) * spec; // assuming bright white light color
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+    vec3 specular = vec3(0.75) * spec; // assuming bright white light color
 
     FragColor = vec4(ambient + diffuse + specular, 1.0) * vec4(u_Color, 1.0);
 }

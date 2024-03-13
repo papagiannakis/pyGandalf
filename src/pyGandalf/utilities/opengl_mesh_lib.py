@@ -1,7 +1,7 @@
 from pyGandalf.utilities.logger import logger
 
 import trimesh
-
+from pathlib import Path
 import numpy as np
 
 class MeshInstance:
@@ -20,7 +20,7 @@ class OpenGLMeshLib(object):
             cls.instance.meshes: dict[str, MeshInstance] = {} # type: ignore
         return cls.instance
     
-    def build(cls, name: str, path):
+    def build(cls, name: str, path: Path):
         filename = str(path)
 
         mesh: trimesh.Trimesh = trimesh.load(filename, force='mesh')

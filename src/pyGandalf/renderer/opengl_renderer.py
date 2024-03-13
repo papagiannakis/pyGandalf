@@ -1,6 +1,7 @@
 from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 
+from pyGandalf.scene.components import TransformComponent
 from pyGandalf.scene.scene_manager import SceneManager
 
 import OpenGL.GL as gl
@@ -73,6 +74,11 @@ class OpenGLRenderer(BaseRenderer):
         material.instance.set_uniform('u_View', camera.view)
         material.instance.set_uniform('u_Model', model)
 
+        camera_entity = SceneManager().get_main_camera_entity()
+        if camera_entity != None:
+            # TODO: update to get world position
+            material.instance.set_uniform('u_ViewPosition', SceneManager().get_active_scene().get_component(camera_entity, TransformComponent).translation)
+
         if len(material.instance.textures) > 0:
             material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
         
@@ -111,6 +117,11 @@ class OpenGLRenderer(BaseRenderer):
         material.instance.set_uniform('u_Projection', camera.projection)
         material.instance.set_uniform('u_View', camera.view)
         material.instance.set_uniform('u_Model', model)
+
+        camera_entity = SceneManager().get_main_camera_entity()
+        if camera_entity != None:
+            # TODO: update to get world position
+            material.instance.set_uniform('u_ViewPosition', SceneManager().get_active_scene().get_component(camera_entity, TransformComponent).translation)
 
         if len(material.instance.textures) > 0:
             material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))

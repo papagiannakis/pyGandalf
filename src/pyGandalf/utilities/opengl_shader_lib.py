@@ -52,9 +52,9 @@ class OpenGLShaderLib(object):
         return shader_program
     
     def parse(cls, shader_code):
-        uniform_pattern = re.compile(r'uniform\s+(\w+)\s+(\w+)\s*;')
+        uniform_pattern = re.compile(r'uniform\s+(\w+)\s+(\w+)\s*')
         uniform_buffer_pattern = re.compile(r'layout\s*\(\s*std140\s*\)\s*uniform\s+(\w+)\s*{([^}]*)\s*};')
-        uniform_array_pattern = re.compile(r'uniform\s+(\w+)\s+(\w+)\s*\[\s*(\d+)\s*\]\s*;')
+        uniform_array_pattern = re.compile(r'uniform\s+(\w+)\s+(\w+)\s*\[\s*(\d+)\s*\]\s*')
 
         uniforms = {}
         matches = uniform_pattern.findall(shader_code)
