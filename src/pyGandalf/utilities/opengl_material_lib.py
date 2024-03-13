@@ -2,9 +2,9 @@ from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.logger import logger
 
 import OpenGL.GL as gl
+import numpy as np
 
 import re
-import numpy as np
 import glm
 
 class MaterialInstance:
@@ -117,24 +117,45 @@ class MaterialInstance:
             if match:
                 count = int(match.group(1))
                 assert len(uniform_data) == count and isinstance(uniform_data[0], glm.mat2), f"Uniform type with name: {uniform_name} is not a NumPy array of {count} 2x2 glm matrices"
-                gl.glUniformMatrix2fv(uniform_location, count, gl.GL_FALSE, glm.value_ptr(uniform_data))
+                gl.glUniformMatrix2fv(uniform_location, count, gl.GL_FALSE, uniform_data.ptr)
         elif 'mat3[' in uniform_type:
             number_pattern = re.compile(r'\[(\d+)\]')
             match = number_pattern.search(uniform_type)
             if match:
                 count = int(match.group(1))
                 assert len(uniform_data) == count and isinstance(uniform_data[0], glm.mat3), f"Uniform type with name: {uniform_name} is not an array of {count} 3x3 glm matrices"
-                gl.glUniformMatrix3fv(uniform_location, count, gl.GL_FALSE, glm.value_ptr(uniform_data))
+                gl.glUniformMatrix3fv(uniform_location, count, gl.GL_FALSE, uniform_data.ptr)
         elif 'mat4[' in uniform_type:
             number_pattern = re.compile(r'\[(\d+)\]')
             match = number_pattern.search(uniform_type)
             if match:
                 count = int(match.group(1))
                 assert len(uniform_data) == count and isinstance(uniform_data[0], glm.mat4), f"Uniform type with name: {uniform_name} is not an array of {count} 4x4 glm matrices"
-                gl.glUniformMatrix4fv(uniform_location, count, gl.GL_FALSE, glm.value_ptr(uniform_data))
+                gl.glUniformMatrix4fv(uniform_location, count, gl.GL_FALSE, uniform_data.ptr)
+        elif 'vec2[' in uniform_type:
+            number_pattern = re.compile(r'\[(\d+)\]')
+            match = number_pattern.search(uniform_type)
+            if match:
+                count = int(match.group(1))
+                assert len(uniform_data) == count and isinstance(uniform_data[0], glm.vec2), f"Uniform type with name: {uniform_name} is not an array of {count} 2x1 glm array of float"
+                gl.glUniform2fv(uniform_location, count, uniform_data.ptr)
+        elif 'vec3[' in uniform_type:
+            number_pattern = re.compile(r'\[(\d+)\]')
+            match = number_pattern.search(uniform_type)
+            if match:
+                count = int(match.group(1))
+                assert len(uniform_data) == count and isinstance(uniform_data[0], glm.vec3), f"Uniform type with name: {uniform_name} is not an array of {count} 3x1 glm array of float"
+                gl.glUniform3fv(uniform_location, count, uniform_data.ptr)
+        elif 'vec4[' in uniform_type:
+            number_pattern = re.compile(r'\[(\d+)\]')
+            match = number_pattern.search(uniform_type)
+            if match:
+                count = int(match.group(1))
+                assert len(uniform_data) == count and isinstance(uniform_data[0], glm.vec4), f"Uniform type with name: {uniform_name} is not an array of {count} 4x1 glm array of float"
+                gl.glUniform4fv(uniform_location, count, uniform_data.ptr)
 
     def uniform_not_found(self, uniform_name):
-        logger.debug(f'Could find {uniform_name} uniform for material: {self.name}!\n These are the available uniforms for shader with id {self.shader_program}:\n {self.shader_params}')
+        logger.debug(f'Could not find {uniform_name} uniform for material: {self.name}!\n These are the available uniforms for shader with id {self.shader_program}:\n {self.shader_params}')
     
     def print_available_uniforms(self):
         logger.log(f'Available uniforms for material: {self.name} and shader id {self.shader_program}:\n {self.shader_params}')

@@ -2,8 +2,8 @@ from pyGandalf.core.base_window import BaseWindow
 
 from pyGandalf.utilities.logger import logger
 
-import glfw
 import OpenGL.GL as gl
+import glfw
 
 import platform
 

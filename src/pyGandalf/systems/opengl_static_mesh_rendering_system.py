@@ -1,10 +1,11 @@
-from pyGandalf.scene.entity import Entity
 from pyGandalf.systems.system import System
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
+
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 from pyGandalf.scene.scene_manager import SceneManager
+from pyGandalf.scene.entity import Entity
 
 import glm
 
@@ -40,6 +41,7 @@ class OpenGLStaticMeshRenderingSystem(System):
         """
         mesh, material, transform = components
 
+        # Draw the mesh
         if (mesh.indices is None):
             OpenGLRenderer().draw(transform.world_matrix, mesh, material)
         else:

@@ -1,8 +1,9 @@
 from pyGandalf.utilities.logger import logger
 
-import trimesh
-from pathlib import Path
 import numpy as np
+import trimesh
+
+from pathlib import Path
 
 class MeshInstance:
     def __init__(self, name, vertices, indices, normals, texcoords):

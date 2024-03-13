@@ -85,4 +85,4 @@ class System:
         return self.filtered_entities
     
     def get_filtered_components(self):
-        return self.filtered_entities
+        return self.filtered_components
