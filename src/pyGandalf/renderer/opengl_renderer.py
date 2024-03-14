@@ -1,13 +1,16 @@
 from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 
-from pyGandalf.scene.components import TransformComponent
 from pyGandalf.scene.scene_manager import SceneManager
+from pyGandalf.scene.components import TransformComponent
+
+from pyGandalf.systems.light_system import LightSystem
 
 import OpenGL.GL as gl
+import numpy as np
+import glm
 
 import ctypes
-import numpy as np
 
 class OpenGLRenderer(BaseRenderer):    
     def initialize(cls):
@@ -50,7 +53,7 @@ class OpenGLRenderer(BaseRenderer):
         samplers = []
         for i in range(0, 16):
             samplers.append(i)
-        material.instance.set_uniform("u_Textures", np.array(samplers, dtype=np.int32))
+        material.instance.set_uniform("u_Textures", np.asarray(samplers, dtype=np.int32))
 
         return 0
 
@@ -60,6 +63,42 @@ class OpenGLRenderer(BaseRenderer):
 
     def end_frame(cls):
         pass
+
+    def update_uniforms(cls, model, material):
+        light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
+
+        light_positions: list[glm.vec3] = []
+        light_colors: list[glm.vec3] = []
+        light_intensities: list[np.float32] = []
+        
+        if light_system is not None:
+            for components in light_system.get_filtered_components():
+                light, transform = components
+                light_colors.append(light.color)
+                light_positions.append(transform.get_world_position())
+                light_intensities.append(light.intensity)
+
+        count = len(light_positions)
+
+        if count != 0:
+            material.instance.set_uniform('u_LightPositions', glm.array(light_positions))
+            material.instance.set_uniform('u_LightColors', glm.array(light_colors))
+            material.instance.set_uniform('u_LightIntensities', np.asarray(light_intensities, dtype=np.float32))
+            material.instance.set_uniform('u_LightCount', count)
+            material.instance.set_uniform('u_Glossiness', material.glossiness)
+
+        camera = SceneManager().get_main_camera()
+        material.instance.set_uniform('u_Projection', camera.projection)
+        material.instance.set_uniform('u_View', camera.view)
+        material.instance.set_uniform('u_Model', model)
+
+        if material.instance.has_uniform('u_ViewPosition'):
+            camera_entity = SceneManager().get_main_camera_entity()
+            if camera_entity != None:
+                material.instance.set_uniform('u_ViewPosition', SceneManager().get_active_scene().get_component(camera_entity, TransformComponent).get_world_position())
+
+        if len(material.instance.textures) > 0:
+            material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
     
     def draw(cls, model, render_data, material):
         # Bind shader program
@@ -69,18 +108,7 @@ class OpenGLRenderer(BaseRenderer):
         OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
-        camera = SceneManager().get_main_camera()
-        material.instance.set_uniform('u_Projection', camera.projection)
-        material.instance.set_uniform('u_View', camera.view)
-        material.instance.set_uniform('u_Model', model)
-
-        camera_entity = SceneManager().get_main_camera_entity()
-        if camera_entity != None:
-            # TODO: update to get world position
-            material.instance.set_uniform('u_ViewPosition', SceneManager().get_active_scene().get_component(camera_entity, TransformComponent).translation)
-
-        if len(material.instance.textures) > 0:
-            material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
+        cls.instance.update_uniforms(model, material)
         
         # Bind vao
         gl.glBindVertexArray(render_data.vao)
@@ -113,18 +141,7 @@ class OpenGLRenderer(BaseRenderer):
         OpenGLTextureLib().bind_textures()
 
         # Set Uniforms
-        camera = SceneManager().get_main_camera()
-        material.instance.set_uniform('u_Projection', camera.projection)
-        material.instance.set_uniform('u_View', camera.view)
-        material.instance.set_uniform('u_Model', model)
-
-        camera_entity = SceneManager().get_main_camera_entity()
-        if camera_entity != None:
-            # TODO: update to get world position
-            material.instance.set_uniform('u_ViewPosition', SceneManager().get_active_scene().get_component(camera_entity, TransformComponent).translation)
-
-        if len(material.instance.textures) > 0:
-            material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
+        cls.instance.update_uniforms(model, material)
 
         # Bind vao
         gl.glBindVertexArray(render_data.vao)

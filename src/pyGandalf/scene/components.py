@@ -1,7 +1,9 @@
 from pyGandalf.scene.entity import Entity
 
-from enum import Enum
+import numpy as np
 import glm
+
+from enum import Enum
 
 class InfoComponent:
     def __init__(self, name = 'UnnamedEntity'):
@@ -9,7 +11,7 @@ class InfoComponent:
         self.enabled = True
 
 class TransformComponent:
-    def __init__(self, translation : glm.vec3, rotation : glm.vec3, scale : glm.vec3):
+    def __init__(self, translation: glm.vec3, rotation: glm.vec3, scale: glm.vec3):
         self.translation = translation
         self.rotation = rotation
         self.scale = scale
@@ -20,6 +22,9 @@ class TransformComponent:
 
         self.is_dirty = True
         self.is_static = False
+    
+    def get_world_position(self):
+        return (self.world_matrix * glm.vec4(self.translation, 1.0)).xyz
 
 class LinkComponent:
     def __init__(self, parent: Entity):
@@ -28,9 +33,12 @@ class LinkComponent:
         self.children: list[Entity] = []
 
 class MaterialComponent:
-    def __init__(self, name):
+    def __init__(self, name, color = glm.vec3(1.0, 1.0, 1.0)):
         self.name = name
         self.instance = None
+        self.color = color
+        self.glossiness = 5.0
+        self.metallicness = 0.0
 
 class CameraComponent:
     class Type(Enum):
@@ -64,3 +72,9 @@ class StaticMeshComponent:
         self.vbo = []
         self.ebo = 0
         self.batch = -1
+
+class LightComponent:
+    def __init__(self, color, intensity, static = True):
+        self.color = color
+        self.intensity = intensity
+        self.static = static
