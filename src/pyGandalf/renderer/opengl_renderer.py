@@ -17,6 +17,9 @@ class OpenGLRenderer(BaseRenderer):
         # Initialize OpenGL
         gl.glEnable(gl.GL_DEPTH_TEST)
 
+    def resize(cls, width, height):
+        gl.glViewport(0, 0, width, height)
+
     def add_batch(cls, render_data, material):
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)

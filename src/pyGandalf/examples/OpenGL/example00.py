@@ -1,5 +1,8 @@
 from pyGandalf.core.application import Application
 from pyGandalf.core.opengl_window import OpenGLWindow
+from pyGandalf.core.input_manager import InputManager
+from pyGandalf.core.event_manager import EventManager
+from pyGandalf.core.window_events import EventType
 from pyGandalf.systems.system import System
 from pyGandalf.systems.link_system import LinkSystem
 from pyGandalf.systems.transform_system import TransformSystem
@@ -19,6 +22,7 @@ from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.logger import logger
 
+import OpenGL.GL as gl
 import glfw
 import numpy as np
 import glm
@@ -44,6 +48,18 @@ class MovementSystem(System):
         Gets called once in the first frame for every entity that the system operates on.
         """
         movement, transform, info = components
+        def on_close_callback():
+            print(f'Entity with name: {info.tag} says goodbye')
+
+        def on_pointer_entered(entered):
+            if info.tag == 'e1':
+                if entered == 1:
+                    print(f'The pointer got inside')
+                else:
+                    print(f'The pointer got outside')
+
+        EventManager().attach_callback(EventType.WINDOW_CLOSE, on_close_callback)
+        EventManager().attach_callback(EventType.CURSOR_ENTER, on_pointer_entered, True)
 
     def on_update(self, ts, entity: Entity, components):
         """
@@ -51,23 +67,24 @@ class MovementSystem(System):
         """
         movement, transform, info = components
 
-        movement.selected = False
-
-        if glfw.get_key(Application().get_window().get_handle(), glfw.KEY_1) == glfw.PRESS:
+        if InputManager().get_key_down(glfw.KEY_1):
             if info.tag == 'e1': movement.selected = True
-        elif glfw.get_key(Application().get_window().get_handle(), glfw.KEY_2) == glfw.PRESS:
+            else: movement.selected = False
+        if InputManager().get_key_down(glfw.KEY_2):
             if info.tag == 'e2': movement.selected = True
-        elif glfw.get_key(Application().get_window().get_handle(), glfw.KEY_3) == glfw.PRESS:
-            if info.tag == 'e3': movement.selected = True
+            else: movement.selected = False
+        if InputManager().get_key_down(glfw.KEY_3):
+            if info.tag == 'e3':movement.selected = True
+            else: movement.selected = False
 
         if movement.selected:
-            if glfw.get_key(Application().get_window().get_handle(), glfw.KEY_D) == glfw.PRESS:
+            if InputManager().get_key_down(glfw.KEY_D):
                 transform.translation[0] += movement.speed * ts
-            elif glfw.get_key(Application().get_window().get_handle(), glfw.KEY_A) == glfw.PRESS:
+            elif InputManager().get_key_down(glfw.KEY_A):
                 transform.translation[0] -= movement.speed * ts
-            if glfw.get_key(Application().get_window().get_handle(), glfw.KEY_W) == glfw.PRESS:
+            if InputManager().get_key_down(glfw.KEY_W):
                 transform.translation[1] += movement.speed * ts
-            elif glfw.get_key(Application().get_window().get_handle(), glfw.KEY_S) == glfw.PRESS:
+            elif InputManager().get_key_down(glfw.KEY_S):
                 transform.translation[1] -= movement.speed * ts
 
 # Example Usage

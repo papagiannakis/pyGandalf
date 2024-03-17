@@ -13,5 +13,8 @@ class BaseRenderer(object):
     def end_frame(cls):
         raise NotImplementedError()
     
+    def resize(cls, width, height):
+        raise NotImplementedError()
+    
     def clean(cls):
         raise NotImplementedError()

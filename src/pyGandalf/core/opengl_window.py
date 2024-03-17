@@ -40,6 +40,9 @@ class OpenGLWindow(BaseWindow):
         gVersionLabel = f'OpenGL {gl.glGetString(gl.GL_VERSION).decode()} GLSL {gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION).decode()} Renderer {gl.glGetString(gl.GL_RENDERER).decode()}'
         logger.info(gVersionLabel)
 
+        # Attach the callbacks.
+        self.set_callbacks()
+
     def dispatch_main_loop(self, main_loop):
         while not glfw.window_should_close(self.handle):
             glfw.poll_events()

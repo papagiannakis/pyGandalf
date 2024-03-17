@@ -1,6 +1,8 @@
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.core.base_window import BaseWindow
+from pyGandalf.core.input_manager import InputManager
+from pyGandalf.core.event_manager import EventManager
 
 import glfw
 
@@ -30,6 +32,8 @@ class Application(object):
         cls.instance.window = window
         cls.instance.renderer = renderer
         cls.instance.window.create()
+        InputManager().initialize(cls.instance.window.get_handle())
+        EventManager().initialize(cls.instance.window.get_handle())
         renderer().initialize()
 
     def start(cls):
@@ -39,6 +43,7 @@ class Application(object):
             cls.instance.begin_frame()
             cls.instance.renderer().begin_frame()
             SceneManager().on_update(cls.instance.delta_time)
+            EventManager().process()
             cls.instance.renderer().end_frame()
             cls.instance.end_frame()
 
