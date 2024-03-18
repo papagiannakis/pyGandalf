@@ -2,7 +2,7 @@ from pyGandalf.core.application import Application
 from pyGandalf.core.opengl_window import OpenGLWindow
 from pyGandalf.core.input_manager import InputManager
 from pyGandalf.core.event_manager import EventManager
-from pyGandalf.core.window_events import EventType
+from pyGandalf.core.events import EventType
 from pyGandalf.systems.system import System
 from pyGandalf.systems.link_system import LinkSystem
 from pyGandalf.systems.transform_system import TransformSystem

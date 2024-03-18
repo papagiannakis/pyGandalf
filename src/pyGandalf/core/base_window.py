@@ -1,5 +1,5 @@
 from pyGandalf.utilities.logger import logger
-from pyGandalf.core.window_events import WindowEvent, PushEvent, EventType
+from pyGandalf.core.events import Event, PushEvent, EventType
 
 import glfw
 
@@ -68,60 +68,51 @@ class BaseWindow:
 
         glfw.set_key_callback(self.handle, weakbind(self._on_key))
     
-    def _on_window_close(self, window):
-        logger.debug(f'_on_window_close: {glfw.window_should_close(window)}')
-    
-        event = WindowEvent() 
+    def _on_window_close(self, window):    
+        event = Event() 
         event.type = EventType.WINDOW_CLOSE
         event.data = None 
         PushEvent(event)
 
     def _on_window_resize(self, window, width, height):
-        logger.debug(f'_on_window_resize ({width}, {height})')
-
         ev = {
             "width": width, 
             "height": height
         } 
     
-        event = WindowEvent() 
+        event = Event() 
         event.type = EventType.WINDOW_SIZE
         event.data = ev 
         PushEvent(event)
     
     def _on_framebuffer_resize(self, window, width, height):
-        logger.debug(f'_on_framebuffer_resize ({width}, {height})')
         ev = {
             "width": width, 
             "height": height
         }
 
-        event = WindowEvent() 
+        event = Event() 
         event.type = EventType.FRAMEBUFFER_SIZE
         event.data = ev 
         PushEvent(event)
 
     def _on_window_refresh(self, window):
-        logger.debug(f'_on_window_refresh')
-        event = WindowEvent() 
+        event = Event() 
         event.type = EventType.WINDOW_REFRESH
         event.data = None 
         PushEvent(event)
 
     def _on_window_focus(self, window, focus):
-        logger.debug(f'_on_window_focus {focus}')
         ev = {
             "focus": focus
         }
 
-        event = WindowEvent() 
-        event.type = EventType.FOCUS
+        event = Event() 
+        event.type = EventType.WINDOW_FOCUS
         event.data = ev 
         PushEvent(event)
 
     def _on_key(self, window, key, scancode, action, mods):
-        logger.debug(f'_on_key {key}, {scancode}, {action}, {mods}')
-
         if action == glfw.PRESS:
             event_type = EventType.KEY_PRESS
             if key == glfw.KEY_LEFT_SHIFT or key == glfw.KEY_LEFT_CONTROL or key == glfw.KEY_LEFT_ALT:
@@ -142,15 +133,12 @@ class BaseWindow:
             "modifiers": list(self.key_modifiers)
         }
 
-        print(ev)
-
-        event = WindowEvent()  
+        event = Event()  
         event.type = event_type
         event.data = ev 
         PushEvent(event)
 
     def _on_scroll(self, window, dx, dy):
-        logger.debug(f'_on_scroll ({dx}, {dy})')
         ev = {  
             "dx": 100.0 * dx, 
             "dy": -100.0 * dy, 
@@ -160,14 +148,12 @@ class BaseWindow:
             "modifiers": list(self.key_modifiers)
         }   
         
-        event = WindowEvent() 
+        event = Event() 
         event.type = EventType.SCROLL
         event.data = ev
         PushEvent(event)
 
     def _on_mouse_button(self, window, button, action, mods):
-        logger.debug(f'_on_mouse_button {button}, {action}, {mods}')
-
         if action == glfw.PRESS:  
             event_type = EventType.MOUSE_BUTTON_PRESS
             buttons = set(self.pointer_buttons)
@@ -188,13 +174,12 @@ class BaseWindow:
             "modifiers": list(self.key_modifiers)  
         } 
         
-        event = WindowEvent()  
+        event = Event()  
         event.type = event_type 
         event.data = ev
         PushEvent(event)
 
     def _on_cursor_pos(self, window, x, y):
-        logger.debug(f'_on_cursor_pos ({x}, {y})')
         ev = {  
             "x": x, 
             "y": y,
@@ -202,18 +187,17 @@ class BaseWindow:
             "modifiers": list(self.key_modifiers)
         } 
       
-        event = WindowEvent() 
+        event = Event() 
         event.type = EventType.CURSOR_POS
         event.data = ev  
         PushEvent(event)
 
     def _on_cursor_enter(self, window, entered):
-        logger.debug(f'_on_cursor_enter {entered}')
         ev = {  
             "enter": entered
         } 
 
-        event = WindowEvent() 
+        event = Event() 
         event.type = EventType.CURSOR_ENTER
         event.data = ev  
         PushEvent(event)

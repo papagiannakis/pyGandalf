@@ -1,12 +1,14 @@
 from pyGandalf.scene.entity import Entity
+from pyGandalf.systems.system import System
 from pyGandalf.utilities.logger import logger
 
 class Scene():
-    def __init__(self):
+    def __init__(self, name = 'UnnamedScene'):
         self.entity_components = {}
         self.component_arrays = {}
         self.entities = []
         self.systems = []
+        self.name = name
     
     def enroll_entity(self):
         entity = Entity()
@@ -62,7 +64,7 @@ class Scene():
         self.component_arrays[component_type].pop(self.entity_components[entity.id][component_type])
         self.entity_components[entity.id].pop(component_type)
 
-    def has_component(self, entity: Entity, component_type: type):
+    def has_component(self, entity: Entity, component_type: type) -> bool:
         return component_type in self.entity_components.get(entity.id)
     
     def get_component(self, entity: Entity, component_type: type):
@@ -88,10 +90,10 @@ class Scene():
         if (Application().is_running()):
             system.on_create_base()
 
-    def get_systems(self):
+    def get_systems(self) -> list[System]:
         return self.systems
     
-    def get_system(self, system_type: type):
+    def get_system(self, system_type: type) -> (System | None):
         for system in self.systems:
             if type(system) is system_type:
                 return system

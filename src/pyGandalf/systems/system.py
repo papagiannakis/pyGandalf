@@ -1,3 +1,4 @@
+from pyGandalf.core.events import Event, PushEvent, EventType
 from pyGandalf.utilities.logger import logger
 
 from enum import Enum
@@ -16,6 +17,7 @@ class System:
 
     def set_state(self, state: SystemState):
         self.state = state
+        self.record_system_state_event(type(self), self.state)
 
     def get_state(self):
         return self.state
@@ -86,3 +88,14 @@ class System:
     
     def get_filtered_components(self):
         return self.filtered_components
+    
+    def record_system_state_event(cls, type, state):
+        ev = {  
+            "type": type,
+            "state": state
+        }
+
+        event = Event() 
+        event.type = EventType.SYSTEM_STATE
+        event.data = ev  
+        PushEvent(event)

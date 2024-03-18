@@ -1,8 +1,7 @@
 from pyGandalf.utilities.logger import logger
-from pyGandalf.core.window_events import WindowEvent, PollEventAndFlush, EventType
+from pyGandalf.core.events import Event, PollEventAndFlush, EventType
 
 import glfw
-import glm
 
 class EventManager:
     """Provides an inteface to process the recorded events and calls the user attached callbacks for each type.
@@ -27,7 +26,7 @@ class EventManager:
     def process(cls):
         """Polls and flushes the pushed events and excecutes the callbacks attached to them.
         """
-        events: list[WindowEvent] = PollEventAndFlush()
+        events: list[Event] = PollEventAndFlush()
 
         for event in events:
             match event.type:
@@ -81,6 +80,14 @@ class EventManager:
                     for callback, _ in cls.instance.event_callbacks[EventType.KEY_RELEASE]:
                         callback(event.data["key"], event.data["modifiers"])
                     cls.instance._handle_callback_flush(event.type)
+                case EventType.SCENE_CHANGE:
+                    for callback, _ in cls.instance.event_callbacks[EventType.SCENE_CHANGE]:
+                        callback(event.data["previous"], event.data["next"])
+                    cls.instance._handle_callback_flush(event.type)
+                case EventType.SYSTEM_STATE:
+                    for callback, _ in cls.instance.event_callbacks[EventType.SYSTEM_STATE]:
+                        callback(event.data["type"], event.data["state"])
+                    cls.instance._handle_callback_flush(event.type)
 
     def attach_callback(cls, event_type: EventType, callback, persistent = False):
         """Attaches a callback to the provided event type callback array.
@@ -102,6 +109,8 @@ class EventManager:
             \n- EventType.MOUSE_BUTTON_RELEASE: Callable[[int, list[int], float, float], None]
             \n- EventType.KEY_PRESS: Callable[[int, list[int]], None]
             \n- EventType.KEY_RELEASE: Callable[[int, list[int]], None]
+            \n- EventType.SCENE_CHANGE: Callable[[Scene, Scene], None]
+            \n- EventType.SYSTEM_STATE: Callable[[type, SystemState], None]
         """
         cls.instance.event_callbacks[event_type].append((callback, persistent))
 

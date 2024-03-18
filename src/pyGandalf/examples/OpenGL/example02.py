@@ -27,8 +27,8 @@ import numpy as np
 import glm
 
 """
-Showcase of an ecss cube consisting of an empty parent entity and six other entities for each face of the cube.
-A custom component is added to the root entity to rotate around the whole cube.
+Showcase of obj model loading with textures and basic Blinn-Phong lighting.
+A custom component is added to the entities to rotate around.
 """
 
 class DemoComponent:

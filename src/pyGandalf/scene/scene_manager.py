@@ -1,5 +1,6 @@
 from pyGandalf.scene.scene import Scene
 from pyGandalf.utilities.logger import logger
+from pyGandalf.core.events import Event, PushEvent, EventType
 
 class SceneManager(object):
     def __new__(cls):
@@ -48,7 +49,14 @@ class SceneManager(object):
             cls.instance.active_scene_index += 1
         else:
             cls.instance.new_scene_to_loaded = scene
+            cls.instance.active_scene_index = cls.instance.scenes.index(scene)
 
+        if len(cls.instance.scenes) <= cls.instance.active_scene_index:
+            logger.error(f'Out of bounds scene index: {cls.instance.active_scene_index} for scene change')
+            return
+        
+        cls.instance.record_scene_change_event(cls.instance.active_scene, cls.instance.scenes[cls.instance.active_scene_index])
+        
         cls.instance.scene_change_requested = True
 
     def change_scene_deffered(cls):
@@ -70,7 +78,7 @@ class SceneManager(object):
         cls.instance.new_scene_to_loaded = None
         cls.instance.scene_change_requested = False
 
-    def get_active_scene(cls):
+    def get_active_scene(cls) -> Scene:
         return cls.instance.active_scene
     
     def get_main_camera(cls):
@@ -91,3 +99,14 @@ class SceneManager(object):
         cls.instance.scene_change_requested = False
         cls.instance.main_camera = None
         cls.instance.main_camera_entity = None
+
+    def record_scene_change_event(cls, previous, next):
+        ev = {  
+            "previous": previous,
+            "next": next
+        }
+        
+        event = Event() 
+        event.type = EventType.SCENE_CHANGE
+        event.data = ev  
+        PushEvent(event)
