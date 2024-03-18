@@ -90,7 +90,7 @@ class EventManager:
                     cls.instance._handle_callback_flush(event.type)
 
     def attach_callback(cls, event_type: EventType, callback, persistent = False):
-        """Attaches a callback to the provided event type callback array.
+        """Attaches a callback to the specified event type callback array.
 
         Args:
             event_type (EventType): The type of event to attach the callback to.
