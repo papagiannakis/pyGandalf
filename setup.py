@@ -7,25 +7,18 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 
-
-
-    # {name = "Stratos Geronikolakis", email = "stratos@oramavr.com"},
-    # {name = "Manos Kamarianakis", email = "m.kamarianakis@gmail.com"},
-    # {name = "Antonis Protopsaltis", email = "aprotopsaltis@uowm.gr"},
-
 setup(
     name='pyGandalf',
     version="0.0.1",
     license='Apache-2.0', 
-    description = "The Elements project",
+    description = "The pyGandalf project",
     long_description=long_description,
-    # long_description= file: README.md, LICENSE.txt
     long_description_content_type='text/markdown',
     author = "George Papagiannakis", 
     author_email = "papagian@csd.uoc.gr",
     maintainer='John Petropoulos',
     maintainer_email='johnaipeia@gmail.com',
-    url='https://github.com/papagiannakis/Elements',
+    url='https://github.com/papagiannakis/pyGandalf',
     keywords = ['ECS','Scenegraph','Python design patterns','Computer Graphics'],
     package_dir={'pyGandalf':'pyGandalf'},
     packages=find_packages(exclude=["tests"]),
@@ -52,9 +45,8 @@ setup(
         "Programming Language :: Python :: 3.10",
     ],
     project_urls={
-        "Homepage" : "https://papagiannakis.github.io/Elements",
-        "Source" : "https://github.com/papagiannakis/Elements",
-        "Documentation" : "https://ElementsProject.readthedocs.io",
+        "Homepage" : "https://github.com/papagiannakis/pyGandalf",
+        "Source" : "https://github.com/papagiannakis/pyGandalf",
     },
 
     python_requires=">=3.10",
