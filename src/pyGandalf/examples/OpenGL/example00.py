@@ -30,7 +30,9 @@ import glm
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
 
 """
-Showcase of basic usage and API with three 2d quads in a ecss hierachy
+Showcase of basic usage and API with three 2d quads in a ecss hierachy.
+- Press 1,2,3 to select between the entities.
+- Use WASD keys to move around the selected entity.
 """
 
 class MovementComponent:

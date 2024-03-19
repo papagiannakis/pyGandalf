@@ -125,7 +125,7 @@ def main():
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, False), OpenGLRenderer)
+    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer)
 
     # Build textures
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
