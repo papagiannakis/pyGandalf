@@ -1,11 +1,11 @@
 import pytest
 
-from src.pyGandalf.scene.scene import Scene
-from src.pyGandalf.systems.transform_system import TransformSystem
-from src.pyGandalf.systems.link_system import LinkSystem
-from src.pyGandalf.scene.components import TransformComponent, InfoComponent, LinkComponent
+from pyGandalf.scene.scene import Scene
+from pyGandalf.systems.transform_system import TransformSystem
+from pyGandalf.systems.link_system import LinkSystem
+from pyGandalf.scene.components import TransformComponent, InfoComponent, LinkComponent
 
-from src.pyGandalf.scene.scene_manager import SceneManager
+from pyGandalf.scene.scene_manager import SceneManager
 
 import glm
 
