@@ -25,18 +25,15 @@ pyGandalf is a Python-based framework for computer graphics, visual computing in
 
 ## Installation
 
-- Install [pdm](https://pdm-project.org/latest/) by following the instructions [here](https://pdm-project.org/latest/#installation) or:
-  - Windows:
-    - pip: ```pip install -U pip pdm```
-  - Mac / Linux
-    - brew: ```brew install pdm```
-    - pip: ```pip install --user pdm```
-- Install dependecies: ```pdm install```
-- Select the interpreter: ```pdm use -f ./.venv```
-- Activate the environment:
-    - Powershell: ```Invoke-Expression (pdm venv activate in-project)```
-    - Bash/csh/zsh: ```eval $(pdm venv activate in-project)```
-    - Fish: ```eval (pdm venv activate in-project)```
+1. Create a python 3.10 environment (in the code examples below named `pyGandalf`).
+  1. (Recommended way): 
+    1. Install [Anaconda or Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) 
+    2. Create a new environment: ```conda create -n pygandalf python=3.10```
+    3. Activate the environment: ```conda activate pygandalf```
+  2. (Alternative way):
+    1. You may use any other virtual environment manager, such as venv, pipenv, or pdm.
+2. Install the pyGandalf package from the root directory (the one containining the `setup.py`) by running ```pip install -e .``` in the activated environment
+  1. This will install the package in editable mode, so you can modify the code and see the changes immediately (make sure to run the command often, if you restructure the folders).
 
 ## Usage
 
