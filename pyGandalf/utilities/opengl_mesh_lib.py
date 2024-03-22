@@ -19,10 +19,14 @@ class OpenGLMeshLib(object):
         if not hasattr(cls, 'instance'):
             cls.instance = super(OpenGLMeshLib, cls).__new__(cls)
             cls.instance.meshes: dict[str, MeshInstance] = {} # type: ignore
+            cls.instance.meshes_names: dict[str, str] = {} # type: ignore
         return cls.instance
     
     def build(cls, name: str, path: Path):
         filename = str(path)
+
+        if cls.instance.meshes.get(filename) != None:
+            return cls.instance.meshes[filename]
 
         mesh: trimesh.Trimesh = trimesh.load(filename, force='mesh')
 
@@ -31,9 +35,10 @@ class OpenGLMeshLib(object):
         normals = np.asarray(mesh.vertex_normals, dtype=np.float32)
         texcoords = np.asarray(mesh.visual.uv, dtype=np.float32)
 
-        cls.instance.meshes[name] = MeshInstance(name, vertices, indices, normals, texcoords)
+        cls.instance.meshes_names[name] = filename
+        cls.instance.meshes[filename] = MeshInstance(name, vertices, indices, normals, texcoords)
 
-        return
+        return cls.instance.meshes[filename]
 
     def get(cls, name: str):
-        return cls.instance.meshes[name]
+        return cls.instance.meshes[cls.instance.meshes_names[name]]

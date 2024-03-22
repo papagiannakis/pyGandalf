@@ -189,7 +189,7 @@ class OpenGLMaterialLib(object):
             cls.instance.materials: dict[str, MaterialInstance] = {} # type: ignore
         return cls.instance
     
-    def build(cls, name: str, data: MaterialData):
+    def build(cls, name: str, data: MaterialData) -> MaterialInstance:
         if cls.instance.cached_materials.get(data) != None:
             material = cls.instance.cached_materials[data]
             cls.instance.materials[name] = material
@@ -206,5 +206,5 @@ class OpenGLMaterialLib(object):
 
         return cls.instance.materials[name]
 
-    def get(cls, name):
+    def get(cls, name) -> MaterialInstance:
         return cls.instance.materials.get(name)

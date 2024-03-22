@@ -20,7 +20,7 @@ def weakbind(method):
     return proxy
 
 class BaseWindow:
-    def __init__(self, title, width, height, vertical_sync):
+    def __init__(self, title = 'Untitled', width = 1280, height = 720, vertical_sync = True):
         self.handle = None
         self.title = title
         self.width = width

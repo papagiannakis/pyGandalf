@@ -44,7 +44,7 @@ class OpenGLShaderLib(object):
     
     def build(cls, name: str, vertex_shader_code: str, fragment_shader_code: str):
         if cls.instance.shaders.get(name) != None:
-            return cls.instance.shaders.get(name)
+            return cls.instance.shaders.get(name).shader_program
 
         shader_program = cls.instance.create_shader_program(vertex_shader_code, fragment_shader_code)
         cls.instance.shaders[name] = ShaderData(shader_program, vertex_shader_code, fragment_shader_code)

@@ -6,7 +6,6 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-
 setup(
     name='pyGandalf',
     version="0.0.1",
@@ -31,8 +30,7 @@ setup(
         "PyGLM>=2.7.1",
         "trimesh>=4.2.0",
         "scipy>=1.12.0",
-    ],
-    
+    ],    
 
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
