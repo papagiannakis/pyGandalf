@@ -8,7 +8,7 @@ from pyGandalf.systems.system import System, SystemState
 from pyGandalf.systems.link_system import LinkSystem
 from pyGandalf.systems.transform_system import TransformSystem
 from pyGandalf.systems.camera_system import CameraSystem
-from pyGandalf.systems.opengl_static_mesh_rendering_system import OpenGLStaticMeshRenderingSystem
+from pyGandalf.systems.opengl_rendering_system import OpenGLStaticMeshRenderingSystem
 from pyGandalf.systems.light_system import LightSystem
 
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer

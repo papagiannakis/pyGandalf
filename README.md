@@ -77,7 +77,7 @@ TBD
 │   │   ├── camera_system.py            <- A Camera System
 │   │   ├── light_system.py             <- A Light System 
 │   │   ├── link_system.py              <- System for scene hierarchy
-│   │   ├── opengl_static_mesh_rendering_system.py    <- System for rendering
+│   │   ├── opengl_rendering_system.py  <- System for static mesh rendering
 │   │   ├── system.py                   <- The System Class 
 │   │   └── transform_system.py         <- System for Transformations
 │   └── utilities                       <- Utilities for anything
