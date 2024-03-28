@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='pyGandalf',
-    version="0.0.1",
+    version="0.2.0",
     license='Apache-2.0', 
     description = "The pyGandalf project",
     long_description=long_description,
