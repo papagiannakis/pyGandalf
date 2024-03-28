@@ -45,6 +45,59 @@ TBD
 - Select ```Python: Configure Tests```.
 - Select ```pytest``` and then ```. (Root Directory)```
 
+
+## Project Structure
+
+```
+├── data                                <- Data for the github README
+├── LICENSE
+├── pyGandalf                           <- The Source Code
+│   ├── core                            
+│   │   ├── application.py              <- The Application Class
+│   │   ├── base_window.py              <- The BaseWindow Class
+│   │   ├── event_manager.py            <- The EventManager Class
+│   │   ├── events.py                   <- The EventType and Event Class
+│   │   ├── input_manager.py            <- Input management
+│   │   └── opengl_window.py            <- Window management using GLFW
+│   ├── examples                        <- Examples of all kind
+│   │   └── OpenGL                      <- Examples using OpenGL
+│   ├── renderer
+│   │   ├── base_renderer.py            <- BaseRenderer Class
+│   │   └── opengl_renderer.py          <- OpenGLRenderer
+│   ├── resources
+│   │   ├── models                      <- Model files (obj,etc)
+│   │   ├── shaders                     <- Shader files (glsl, etc)
+│   │   └── textures                    <- Texture files (jpg, png, etc)
+│   ├── scene
+│   │   ├── components.py               <- All kinds of Components
+│   │   ├── entity.py                   <- Entity Class
+│   │   ├── scene.py                    <- The Scene Class
+│   │   └── scene_manager.py            <- Scene management Class
+│   ├── systems
+│   │   ├── camera_system.py            <- A Camera System
+│   │   ├── light_system.py             <- A Light System 
+│   │   ├── link_system.py              <- System for scene hierarchy
+│   │   ├── opengl_static_mesh_rendering_system.py    <- System for rendering
+│   │   ├── system.py                   <- The System Class 
+│   │   └── transform_system.py         <- System for Transformations
+│   └── utilities                       <- Utilities for anything
+│       ├── definitions.py              <- PATH shortcuts 
+│       ├── logger.py                   <- Custom logger 
+│       ├── math.py                     <- Math related functions
+│       ├── opengl_material_lib.py      <- Material related classes
+│       ├── opengl_mesh_lib.py          <- Mesh related classes       
+│       ├── opengl_shader_lib.py        <- Shader related classes
+│       └── opengl_texture_lib.py       <- Texture related classes
+├── tests
+│   ├── test_ecs.py                     <- Tests involving the entity component system
+│   ├── test_components.py              <- Tests involving the components
+│   └── test_utility_libs.py            <- Tests involving the utility libs
+├── README.md
+├── setup.cfg                           <- Optional configuration options
+└── setup.py                            <- Setup configuration 
+``` 
+
+
 ## Documentation
 
 TBD
