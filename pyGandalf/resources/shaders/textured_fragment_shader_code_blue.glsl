@@ -8,68 +8,25 @@ in vec2 v_TexCoord;
 
 void main()
 {
-    if (u_TextureId == 0.0)
-    {
-        FragColor = texture(u_Textures[0], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 1.0)
-    {
-        FragColor = texture(u_Textures[1], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 2.0)
-    {
-        FragColor = texture(u_Textures[2], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 3.0)
-    {
-        FragColor = texture(u_Textures[3], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 4.0)
-    {
-        FragColor = texture(u_Textures[4], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 5.0)
-    {
-        FragColor = texture(u_Textures[5], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 6.0)
-    {
-        FragColor = texture(u_Textures[6], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 7.0)
-    {
-        FragColor = texture(u_Textures[7], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 8.0)
-    {
-        FragColor = texture(u_Textures[8], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 9.0)
-    {
-        FragColor = texture(u_Textures[9], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 10.0)
-    {
-        FragColor = texture(u_Textures[10], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 11.0)
-    {
-        FragColor = texture(u_Textures[11], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 12.0)
-    {
-        FragColor = texture(u_Textures[12], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 13.0)
-    {
-        FragColor = texture(u_Textures[13], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 14.0)
-    {
-        FragColor = texture(u_Textures[14], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
-    }
-    else if (u_TextureId == 15.0)
-    {
-        FragColor = texture(u_Textures[15], v_TexCoord) * vec4(0.0, 0.0, 1.0, 0.0);
+    int textureID = int(u_TextureId);
+
+    switch (textureID)
+	{
+	case  0: FragColor = texture(u_Textures[0],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  1: FragColor = texture(u_Textures[1],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  2: FragColor = texture(u_Textures[2],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  3: FragColor = texture(u_Textures[3],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  4: FragColor = texture(u_Textures[4],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  5: FragColor = texture(u_Textures[5],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  6: FragColor = texture(u_Textures[6],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  7: FragColor = texture(u_Textures[7],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  8: FragColor = texture(u_Textures[8],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case  9: FragColor = texture(u_Textures[9],  v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case 10: FragColor = texture(u_Textures[10], v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case 11: FragColor = texture(u_Textures[11], v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case 12: FragColor = texture(u_Textures[12], v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case 13: FragColor = texture(u_Textures[13], v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case 14: FragColor = texture(u_Textures[14], v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
+	case 15: FragColor = texture(u_Textures[15], v_TexCoord) * vec4(0.0, 0.0, 1.0, 1.0); break;
     }
 }

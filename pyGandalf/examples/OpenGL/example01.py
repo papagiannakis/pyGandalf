@@ -135,6 +135,7 @@ def main():
 
 
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(root, InfoComponent("root"))
     scene.add_component(root, LinkComponent(None))
 
     # Register components to cube

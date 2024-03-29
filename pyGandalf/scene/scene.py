@@ -1,6 +1,8 @@
 from pyGandalf.scene.entity import Entity
 from pyGandalf.systems.system import System
 from pyGandalf.utilities.logger import logger
+from pyGandalf.scene.components import LinkComponent
+from pyGandalf.scene.editor_components import EditorVisibleComponent
 
 class Scene():
     """A class that represents a scene which contains all the entities, their components and the registered systems.
@@ -20,7 +22,34 @@ class Scene():
         """
         entity = Entity()
         self.entities.append(entity)
+        self.add_component(entity, EditorVisibleComponent())
         return entity
+    
+    def destroy_entity(self, entity: Entity):
+        """Destroy the given entity from the scene. If the entity has children, recursively destroys them all.
+
+        Args:
+            entity (Entity): The entity to destroy.
+        """
+        entity_component_references = self.get_entity_component_references(entity)
+
+        component_types = []
+        for type in entity_component_references.keys():
+            component_types.append(type)
+
+        # Recursively destroy all children of entity.
+        link = self.get_component(entity, LinkComponent)
+        if link != None:
+            for child in link.children:
+                self.destroy_entity(child)
+
+        # Remove all components from entity.
+        for component_type in component_types:
+            self.remove_component(entity, component_type)
+
+        # Remove entity from list.
+        if entity in self.entities:
+            self.entities.remove(entity) 
 
     def get_entities(self) -> list[Entity]:
         """Returns a list containing all the enrolled entities of the scene.
@@ -88,8 +117,8 @@ class Scene():
             system.remove_entity_components(entity, component_type)
 
         # Update component arrays and entity components references
-        self.component_arrays[component_type].pop(self.entity_components[entity.id][component_type])
-        self.entity_components[entity.id].pop(component_type)
+        self.component_arrays[component_type][self.entity_components[entity.id][component_type]] = None
+        self.entity_components[entity.id][component_type] = None
 
     def has_component(self, entity: Entity, component_type: type) -> bool:
         """Returns whether or not the specified entity has a compoent of the given type.
@@ -101,7 +130,10 @@ class Scene():
         Returns:
             bool: ```True``` if the entity has the component or ```False``` otherwise.
         """
-        return component_type in self.entity_components.get(entity.id)
+        return (entity.id in self.entity_components and
+                component_type in self.entity_components.get(entity.id) and
+                self.entity_components[entity.id][component_type] != None and
+                self.component_arrays[component_type][self.entity_components[entity.id][component_type]] != None)
     
     def get_component(self, entity: Entity, component_type: type):
         """Returns a component of the specified type from the given entity or ```None``` if the entity does not have a component of the specified type.
@@ -113,11 +145,11 @@ class Scene():
         Returns:
             component: The component of the specified type from the given entity or ```None``` if the entity does not have a component of the specified type.
         """
-        if component_type in self.entity_components[entity.id]:
-            component_index = self.entity_components[entity.id][component_type]
-            return self.component_arrays[component_type][component_index]
-        else:
+        if self.has_component(entity, component_type) == False:
             return None
+        
+        component_index = self.entity_components[entity.id][component_type]
+        return self.component_arrays[component_type][component_index]
     
     def get_entity_component_references(self, entity: Entity):
         """Returns a dictionary with keys the component type and values the indices to the component arrays for the specified entity.
@@ -193,3 +225,12 @@ class Scene():
         """
         for system in self.systems:
             system.on_update_base(ts)
+
+    def on_gui_update(self, ts: float):
+        """Called every frame and calls all the on_update_gui_base method from all the registered systems of the scene.
+
+        Args:
+            ts (float): The application timestep.
+        """
+        for system in self.systems:
+            system.on_gui_update_base(ts)

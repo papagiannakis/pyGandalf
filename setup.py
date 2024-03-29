@@ -30,6 +30,7 @@ setup(
         "PyGLM>=2.7.1",
         "trimesh>=4.2.0",
         "scipy>=1.12.0",
+        "imgui-bundle>=1.3.0",
     ],    
 
     classifiers=[

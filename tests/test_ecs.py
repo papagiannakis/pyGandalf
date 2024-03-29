@@ -18,35 +18,40 @@ def test_add_component():
     scene = Scene()
     entity = scene.enroll_entity()
     scene.add_component(entity, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    assert(scene.has_component(entity, TransformComponent) is True)
+    assert scene.has_component(entity, TransformComponent) is True
 
 def test_get_component():
     scene = Scene()
     entity = scene.enroll_entity()
     scene.add_component(entity, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     transform = scene.get_component(entity, TransformComponent)
-    assert(transform is not None)
+    assert transform is not None
 
 def test_remove_component():
     scene = Scene()
     entity1 = scene.enroll_entity()
     entity2 = scene.enroll_entity()
     scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(entity2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity2, TransformComponent(glm.vec3(2, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
 
     transform = scene.get_component(entity1, TransformComponent)
-    assert(transform is not None)
+    assert transform is not None
 
     transform_system = TransformSystem([TransformComponent])
     scene.register_system(transform_system)
-    assert(len(transform_system.get_filtered_components()) == 2)
-    assert(len(transform_system.get_filtered_entities()) == 2)
+    assert len(transform_system.get_filtered_components()) == 2
+    assert len(transform_system.get_filtered_entities()) == 2
 
     scene.remove_component(entity1, TransformComponent)
-    assert(scene.has_component(entity1, TransformComponent) is False)
-    assert(entity1 not in transform_system.get_filtered_entities())
-    assert(len(transform_system.get_filtered_components()) == 1)
-    assert(len(transform_system.get_filtered_entities()) == 1)
+    
+    assert scene.has_component(entity1, TransformComponent) is False
+    assert entity1 not in transform_system.get_filtered_entities()
+    assert len(transform_system.get_filtered_components()) == 1
+    assert len(transform_system.get_filtered_entities()) == 1
+    assert transform not in transform_system.get_filtered_components()
+
+    transform2 = scene.get_component(entity2, TransformComponent)
+    assert transform2 != None and transform2.translation == glm.vec3(2, 0, 0)
 
 def test_system():
     scene = Scene()

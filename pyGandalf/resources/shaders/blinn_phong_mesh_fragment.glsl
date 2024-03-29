@@ -78,5 +78,5 @@ void main()
     vec3 final = textureColor.rgb * BlinnPhong;
     final = pow(final, vec3(1.0 / 1.2));
 
-    FragColor = vec4(final, 1.0);
+    FragColor = vec4(final * u_Color, 1.0);
 }

@@ -1,6 +1,5 @@
 from pyGandalf.scene.entity import Entity
 
-import numpy as np
 import glm
 
 from enum import Enum
@@ -20,8 +19,8 @@ class TransformComponent:
         self.world_matrix = glm.mat4(1.0)
         self.quaternion = glm.quat()
 
-        self.is_dirty = True
-        self.is_static = False
+        self.dirty = True
+        self.static = False
     
     def get_world_position(self):
         return (self.world_matrix * glm.vec4(self.translation, 1.0)).xyz
@@ -64,10 +63,11 @@ class CameraComponent:
         self.static = static
 
 class StaticMeshComponent:
-    def __init__(self, name, attributes = None, indices = None):
+    def __init__(self, name, attributes = None, indices = None, primitive = None):
         self.name = name
         self.attributes = attributes
         self.indices = indices
+        self.primitive = primitive
         self.vao = 0
         self.vbo = []
         self.ebo = 0

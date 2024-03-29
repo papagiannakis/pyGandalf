@@ -125,7 +125,7 @@ def main():
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer, True, True)
 
     # Build textures
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
@@ -151,6 +151,7 @@ def main():
 
     # Root entity of scene1
     scene1.add_component(root1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene1.add_component(root1, InfoComponent("root1"))
     scene1.add_component(root1, LinkComponent(None))
 
     # Register components to monkeh
@@ -200,6 +201,7 @@ def main():
 
     # Root entity of scene2
     scene2.add_component(root2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene2.add_component(root2, InfoComponent("root2"))
     scene2.add_component(root2, LinkComponent(None))
 
     # Register components to camera

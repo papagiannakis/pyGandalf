@@ -24,9 +24,10 @@ class LinkSystem(System):
         Gets called every frame for every entity that the system operates on.
         """
         link, transform = components
-        transform.world_matrix = self.get_world_space_transform(entity, link)
 
-        self.update_children(entity, link)
+        if not transform.static:
+            transform.world_matrix = self.get_world_space_transform(entity, link)
+            self.update_children(entity, link)
 
     def get_world_space_transform(self, entity, link):
         transform = glm.mat4(1.0)
@@ -43,7 +44,8 @@ class LinkSystem(System):
         if link.parent is not None:
             parent_link = SceneManager().get_active_scene().get_component(link.parent, LinkComponent)
             if parent_link is not None:
-                parent_link.children.append(entity)
+                if entity not in parent_link.children:
+                    parent_link.children.append(entity)
 
     def update_children(self, entity: Entity, link: LinkComponent):
         # Check if the entity's parent has changed or if it's no longer a child
