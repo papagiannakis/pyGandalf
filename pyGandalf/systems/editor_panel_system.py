@@ -14,7 +14,6 @@ import numpy as np
 import glfw
 
 from pathlib import Path
-import ctypes
 import os
 
 class EditorPanelSystem(System):
@@ -164,7 +163,7 @@ class EditorPanelSystem(System):
                 np.asmatrix(camera.projection, dtype=np.float32),
                 self.gizmo_operation,
                 imguizmo.im_guizmo.MODE.local,
-                np.asmatrix(transform.world_matrix, dtype=np.float32),
+                np.asmatrix(transform.local_matrix, dtype=np.float32),
                 None,
                 None if snap == False else snap_values)
             
@@ -193,7 +192,6 @@ class EditorPanelSystem(System):
             camera_transform.translation = glm.vec3(view_matrix_components.translation[0], view_matrix_components.translation[1], view_matrix_components.translation[2])
             camera_transform.rotation += glm.vec3(view_matrix_components.rotation[0] - camera_transform.rotation.x, view_matrix_components.rotation[1] - camera_transform.rotation.y, view_matrix_components.rotation[2] - camera_transform.rotation.z)
             camera_transform.scale = glm.vec3(view_matrix_components.scale[0], view_matrix_components.scale[1], view_matrix_components.scale[2])
-
 
     def draw_hierachy_panel(self):
         if imgui.begin_popup_context_window('Right click options', imgui.PopupFlags_.no_open_over_items | imgui.PopupFlags_.mouse_button_right):

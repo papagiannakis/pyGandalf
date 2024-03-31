@@ -8,9 +8,6 @@ from pyGandalf.systems.camera_system import CameraSystem
 from pyGandalf.systems.opengl_rendering_system import OpenGLStaticMeshRenderingSystem
 from pyGandalf.systems.light_system import LightSystem
 
-from pyGandalf.systems.editor_panel_system import EditorPanelSystem, EditorVisibleComponent
-from pyGandalf.scene.editor_components import EditorPanelComponent
-
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
 from pyGandalf.scene.entity import Entity
@@ -115,7 +112,7 @@ def main():
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer, True, True)
+    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer, attach_imgui=True, attach_editor=True)
 
     # Build textures
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
