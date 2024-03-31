@@ -1,6 +1,6 @@
 from pyGandalf.renderer.base_renderer import BaseRenderer
 
-from imgui_bundle import imgui
+from imgui_bundle import imgui, imguizmo
 import OpenGL.GL as gl
 import glfw
 
@@ -42,6 +42,7 @@ class ImGuiRenderer(BaseRenderer):
         imgui.new_frame()
         
         if cls.instance.docking_enable:
+            imguizmo.im_guizmo.begin_frame()
             imgui.dock_space_over_viewport(imgui.get_main_viewport())
     
     def end_frame(cls):

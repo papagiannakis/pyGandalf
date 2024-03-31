@@ -35,7 +35,6 @@ class CameraSystem(System):
         camera, transform = components
 
         if not camera.static:
-            camera, transform = components
             camera.view = glm.inverse(transform.world_matrix)
             camera.view_projection = camera.projection * camera.view
         
