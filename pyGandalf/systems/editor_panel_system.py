@@ -131,14 +131,15 @@ class EditorPanelSystem(System):
         context = SceneManager().get_active_scene()
         selected_entity: Entity = EditorVisibleComponent.SELECTED_ENTITY
 
-        if InputManager().get_key_press(glfw.KEY_T):
-            self.gizmo_operation = imguizmo.im_guizmo.OPERATION.translate
-        elif InputManager().get_key_press(glfw.KEY_R):
-            self.gizmo_operation = imguizmo.im_guizmo.OPERATION.rotate
-        elif InputManager().get_key_press(glfw.KEY_S):
-            self.gizmo_operation = imguizmo.im_guizmo.OPERATION.scale
-        elif InputManager().get_key_press(glfw.KEY_Q):
-            self.gizmo_operation = None
+        if not imguizmo.im_guizmo.is_using():
+            if InputManager().get_key_press(glfw.KEY_T):
+                self.gizmo_operation = imguizmo.im_guizmo.OPERATION.translate
+            elif InputManager().get_key_press(glfw.KEY_R):
+                self.gizmo_operation = imguizmo.im_guizmo.OPERATION.rotate
+            elif InputManager().get_key_press(glfw.KEY_S):
+                self.gizmo_operation = imguizmo.im_guizmo.OPERATION.scale
+            elif InputManager().get_key_press(glfw.KEY_Q):
+                self.gizmo_operation = None
 
         if camera.type == CameraComponent.Type.ORTHOGRAPHIC:
             imguizmo.im_guizmo.set_orthographic(True)
