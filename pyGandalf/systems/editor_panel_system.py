@@ -371,12 +371,17 @@ class EditorPanelSystem(System):
                         OpenGLRenderer().set_fill_mode(gl.GL_FILL)
                     self.wireframe_value = show
 
+                from pyGandalf.core.application import Application
+                self.vsync_value = Application().get_window().vertical_sync
+
                 modified_vsync, enable = imgui.checkbox('Vertical Sync', self.vsync_value)
                 if modified_vsync:
                     if enable:
                         glfw.swap_interval(1)
+                        Application().get_window().vertical_sync = True
                     else:
                         glfw.swap_interval(0)
+                        Application().get_window().vertical_sync = False
                     self.vsync_value = enable
 
                 imgui.end_menu()
