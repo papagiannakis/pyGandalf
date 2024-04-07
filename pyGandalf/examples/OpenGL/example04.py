@@ -167,11 +167,11 @@ def main():
     scene.add_component(floor, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(270, 0, 0), glm.vec3(20, 20, 20)))
     scene.add_component(floor, LinkComponent(root))
     scene.add_component(floor, StaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
-    scene.add_component(floor, MaterialComponent('M_Floor'))
+    scene.add_component(floor, MaterialComponent('M_Floor')).glossiness = 1.0
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
-    scene.add_component(light, TransformComponent(glm.vec3(-3, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(light, TransformComponent(glm.vec3(0, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(light, LinkComponent(None))
     scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 0.75))
 
