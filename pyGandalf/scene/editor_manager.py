@@ -24,17 +24,10 @@ class EditorManager(object):
         cls.instance.editor_scene.add_component(menu_bar, EditorPanelComponent('MenuBar', EditorPanelComponent.Type.MENU_BAR, None))
         cls.instance.editor_scene.add_component(content_browser, EditorPanelComponent('Content Browser', EditorPanelComponent.Type.CONTENT_BROWSER, None))
         cls.instance.editor_scene.add_component(systems, EditorPanelComponent('Systems', EditorPanelComponent.Type.SYSTEMS, None))
-
-        cls.instance.editor_scene.get_component(viewport, EditorVisibleComponent).editor_visible = False
-        cls.instance.editor_scene.get_component(hierachy, EditorVisibleComponent).editor_visible = False
-        cls.instance.editor_scene.get_component(properties, EditorVisibleComponent).editor_visible = False
-        cls.instance.editor_scene.get_component(menu_bar, EditorVisibleComponent).editor_visible = False
-        cls.instance.editor_scene.get_component(content_browser, EditorVisibleComponent).editor_visible = False
-        cls.instance.editor_scene.get_component(systems, EditorVisibleComponent).editor_visible = False
         
         from pyGandalf.systems.editor_panel_system import EditorPanelSystem
 
-        cls.instance.editor_scene.register_system(EditorPanelSystem([EditorPanelComponent, EditorVisibleComponent]))
+        cls.instance.editor_scene.register_system(EditorPanelSystem([EditorPanelComponent]))
 
         cls.instance.editor_scene.on_create()
 

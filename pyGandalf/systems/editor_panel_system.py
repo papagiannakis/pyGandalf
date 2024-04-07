@@ -48,7 +48,7 @@ class EditorPanelSystem(System):
         """
         Gets called every frame for every entity that the system operates on.
         """
-        editor_panel, editor_visible = components
+        editor_panel = components
 
         if editor_panel.enabled:
             if editor_panel.styles != None:
@@ -373,10 +373,10 @@ class EditorPanelSystem(System):
             if imgui.begin_menu('View'):
                 editor_panel_system: EditorPanelSystem = EditorManager().get_scene().get_system(EditorPanelSystem)
                 if editor_panel_system != None:
-                    for panel, _ in editor_panel_system.filtered_components:
-                        modified, show = imgui.checkbox(panel.name, panel.enabled)
+                    for panel in editor_panel_system.filtered_components:
+                        modified, show = imgui.checkbox(panel[0].name, panel[0].enabled)
                         if modified:
-                            panel.enabled = show
+                            panel[0].enabled = show
                 imgui.end_menu()
             if imgui.begin_menu('Settings'):
                 modified_wireframe, show = imgui.checkbox('Wireframe', self.wireframe_value)
