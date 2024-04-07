@@ -213,6 +213,10 @@ class EditorPanelSystem(System):
             modified_camera, _ = imgui.menu_item('Create Camera', '', False)
             if modified_camera:
                 create_camera()
+            
+            modified_light, _ = imgui.menu_item('Create Light', '', False)
+            if modified_light:
+                create_light()
 
             imgui.end_popup()
         

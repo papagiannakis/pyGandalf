@@ -1,5 +1,6 @@
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.components import *
+from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 
 from pyGandalf.utilities.definitions import SHADERS_PATH
@@ -10,10 +11,11 @@ from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialD
 import numpy as np
 
 def create_empty() -> Entity:
-    entity_empty = SceneManager().get_active_scene().enroll_entity()
-    SceneManager().get_active_scene().add_component(entity_empty, InfoComponent('Empty Entity'))
-    SceneManager().get_active_scene().add_component(entity_empty, TransformComponent())
-    SceneManager().get_active_scene().add_component(entity_empty, LinkComponent())
+    scene: Scene = SceneManager().get_active_scene()
+    entity_empty = scene.enroll_entity()
+    scene.add_component(entity_empty, InfoComponent('Empty Entity'))
+    scene.add_component(entity_empty, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_empty, LinkComponent(None))
     return entity_empty
 
 def create_plane() -> Entity:
@@ -51,13 +53,14 @@ def create_plane() -> Entity:
     OpenGLShaderLib().build('default_mesh', lit_blinn_phong_vertex, lit_blinn_phong_fragment)
     OpenGLMaterialLib().build('M_Plane', MaterialData('default_mesh', ['white_texture']))
 
-    entity_plane = SceneManager().get_active_scene().enroll_entity()
-    print(entity_plane.id)
-    SceneManager().get_active_scene().add_component(entity_plane, InfoComponent('Plane'))
-    SceneManager().get_active_scene().add_component(entity_plane, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(270, 0, 0), glm.vec3(1, 1, 1)))
-    SceneManager().get_active_scene().add_component(entity_plane, LinkComponent())
-    SceneManager().get_active_scene().add_component(entity_plane, StaticMeshComponent('plane_mesh', [vertices, normals, texture_coords]))
-    SceneManager().get_active_scene().add_component(entity_plane, MaterialComponent('M_Plane'))
+    scene: Scene = SceneManager().get_active_scene()
+
+    entity_plane = scene.enroll_entity()
+    scene.add_component(entity_plane, InfoComponent('Plane'))
+    scene.add_component(entity_plane, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(270, 0, 0), glm.vec3(10, 10, 10)))
+    scene.add_component(entity_plane, LinkComponent(None))
+    scene.add_component(entity_plane, StaticMeshComponent('plane_mesh', [vertices, normals, texture_coords]))
+    scene.add_component(entity_plane, MaterialComponent('M_Plane'))
     return entity_plane
 
 def create_cube() -> Entity:
@@ -180,21 +183,31 @@ def create_cube() -> Entity:
     OpenGLShaderLib().build('default_mesh', lit_blinn_phong_vertex, lit_blinn_phong_fragment)
     OpenGLMaterialLib().build('M_Cube', MaterialData('default_mesh', ['white_texture']))
 
-    entity_cube = SceneManager().get_active_scene().enroll_entity()
-    print(entity_cube.id)
-    SceneManager().get_active_scene().add_component(entity_cube, InfoComponent('Cube'))
-    SceneManager().get_active_scene().add_component(entity_cube, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    SceneManager().get_active_scene().add_component(entity_cube, LinkComponent(None))
-    SceneManager().get_active_scene().add_component(entity_cube, StaticMeshComponent('cube_mesh', [vertices, normals, texture_coords]))
-    SceneManager().get_active_scene().add_component(entity_cube, MaterialComponent('M_Cube'))
+    scene: Scene = SceneManager().get_active_scene()
+
+    entity_cube = scene.enroll_entity()
+    scene.add_component(entity_cube, InfoComponent('Cube'))
+    scene.add_component(entity_cube, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_cube, LinkComponent(None))
+    scene.add_component(entity_cube, StaticMeshComponent('cube_mesh', [vertices, normals, texture_coords]))
+    scene.add_component(entity_cube, MaterialComponent('M_Cube'))
 
     return entity_cube
 
 def create_camera() -> Entity:
-    entity_camera = SceneManager().get_active_scene().enroll_entity()
-    print(entity_camera.id)
-    SceneManager().get_active_scene().add_component(entity_camera, InfoComponent('Camera'))
-    SceneManager().get_active_scene().add_component(entity_camera, TransformComponent(glm.vec3(0, 0, 10), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    SceneManager().get_active_scene().add_component(entity_camera, LinkComponent(None))
-    SceneManager().get_active_scene().add_component(entity_camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
+    scene: Scene = SceneManager().get_active_scene()
+    entity_camera = scene.enroll_entity()
+    scene.add_component(entity_camera, InfoComponent('Camera'))
+    scene.add_component(entity_camera, TransformComponent(glm.vec3(0, 0, 10), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_camera, LinkComponent(None))
+    scene.add_component(entity_camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     return entity_camera
+
+def create_light() -> Entity:
+    scene: Scene = SceneManager().get_active_scene()
+    entity_light = scene.enroll_entity()
+    scene.add_component(entity_light, InfoComponent('Light'))
+    scene.add_component(entity_light, TransformComponent(glm.vec3(0, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_light, LinkComponent(None))
+    scene.add_component(entity_light, LightComponent(glm.vec3(1, 1, 1), 0.75))
+    return entity_light
