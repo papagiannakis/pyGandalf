@@ -16,6 +16,7 @@ class CameraSystem(System):
         Gets called once in the first frame for every entity that the system operates on.
         """
         camera, transform = components
+        
         camera.view = glm.inverse(transform.world_matrix)
         camera.view_projection = camera.projection * camera.view
 

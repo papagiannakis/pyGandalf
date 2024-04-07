@@ -98,7 +98,15 @@ class Scene():
         # Update existing systems that operate on this component. (Usefull in runtime addition of components)
         for system in self.systems:
             entity_components = self.get_entity_component_references(entity)
-            system.filter_entity_components(entity, entity_components, self.component_arrays)
+            components = system.filter_entity_components(entity, entity_components, self.component_arrays)
+
+            from pyGandalf.core.application import Application
+            if (Application().is_running()):
+                if components != None:
+                    if (len(components) == 1):
+                        system.on_create(entity, components[0])
+                    else:
+                        system.on_create(entity, components)
 
         return component
     

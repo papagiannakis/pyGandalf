@@ -7,6 +7,7 @@ from pyGandalf.scene.components import *
 from pyGandalf.scene.editor_components import EditorPanelComponent, EditorVisibleComponent
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 from pyGandalf.utilities.definitions import ROOT_DIR
+from pyGandalf.utilities.entity_presets import *
 
 from imgui_bundle import imgui, imguizmo
 import OpenGL.GL as gl
@@ -128,80 +129,91 @@ class EditorPanelSystem(System):
         # Gizmos
         camera: CameraComponent = SceneManager().get_main_camera()
         camera_entity: CameraComponent = SceneManager().get_main_camera_entity()
-        context = SceneManager().get_active_scene()
-        selected_entity: Entity = EditorVisibleComponent.SELECTED_ENTITY
+        if camera != None and camera_entity != None:
+            context = SceneManager().get_active_scene()
+            selected_entity: Entity = EditorVisibleComponent.SELECTED_ENTITY
 
-        if not imguizmo.im_guizmo.is_using():
-            if InputManager().get_key_press(glfw.KEY_T):
-                self.gizmo_operation = imguizmo.im_guizmo.OPERATION.translate
-            elif InputManager().get_key_press(glfw.KEY_R):
-                self.gizmo_operation = imguizmo.im_guizmo.OPERATION.rotate
-            elif InputManager().get_key_press(glfw.KEY_S):
-                self.gizmo_operation = imguizmo.im_guizmo.OPERATION.scale
-            elif InputManager().get_key_press(glfw.KEY_Q):
-                self.gizmo_operation = None
+            if not imguizmo.im_guizmo.is_using():
+                if InputManager().get_key_press(glfw.KEY_T):
+                    self.gizmo_operation = imguizmo.im_guizmo.OPERATION.translate
+                elif InputManager().get_key_press(glfw.KEY_R):
+                    self.gizmo_operation = imguizmo.im_guizmo.OPERATION.rotate
+                elif InputManager().get_key_press(glfw.KEY_S):
+                    self.gizmo_operation = imguizmo.im_guizmo.OPERATION.scale
+                elif InputManager().get_key_press(glfw.KEY_Q):
+                    self.gizmo_operation = None
 
-        if camera.type == CameraComponent.Type.ORTHOGRAPHIC:
-            imguizmo.im_guizmo.set_orthographic(True)
-        else:
-            imguizmo.im_guizmo.set_orthographic(False)
+            if camera.type == CameraComponent.Type.ORTHOGRAPHIC:
+                imguizmo.im_guizmo.set_orthographic(True)
+            else:
+                imguizmo.im_guizmo.set_orthographic(False)
 
-        # Set window for rendering into.
-        imguizmo.im_guizmo.set_drawlist()
+            # Set window for rendering into.
+            imguizmo.im_guizmo.set_drawlist()
 
-        # Set viewport size.
-        imguizmo.im_guizmo.set_rect(imgui.get_window_pos().x, imgui.get_window_pos().y, imgui.get_window_width(), imgui.get_window_height())
+            # Set viewport size.
+            imguizmo.im_guizmo.set_rect(imgui.get_window_pos().x, imgui.get_window_pos().y, imgui.get_window_width(), imgui.get_window_height())
 
-        # Transformations gizmo.
-        if selected_entity != None and self.gizmo_operation != None:
-            snap = InputManager().get_key_down(glfw.KEY_LEFT_CONTROL)
-            snap_value = 45.0 if self.gizmo_operation == imguizmo.im_guizmo.OPERATION.rotate else 0.5
-            snap_values: imguizmo.Matrix3 = np.array([snap_value, snap_value, snap_value], dtype=np.float32)
+            # Transformations gizmo.
+            if selected_entity != None and self.gizmo_operation != None:
+                snap = InputManager().get_key_down(glfw.KEY_LEFT_CONTROL)
+                snap_value = 45.0 if self.gizmo_operation == imguizmo.im_guizmo.OPERATION.rotate else 0.5
+                snap_values: imguizmo.Matrix3 = np.array([snap_value, snap_value, snap_value], dtype=np.float32)
 
-            transform: TransformComponent = context.get_component(selected_entity, TransformComponent)
-            new_matrix: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.manipulate(
+                transform: TransformComponent = context.get_component(selected_entity, TransformComponent)
+                new_matrix: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.manipulate(
+                    np.asmatrix(camera.view, dtype=np.float32),
+                    np.asmatrix(camera.projection, dtype=np.float32),
+                    self.gizmo_operation,
+                    imguizmo.im_guizmo.MODE.local,
+                    np.asmatrix(transform.local_matrix, dtype=np.float32),
+                    None,
+                    None if snap == False else snap_values)
+                
+                if new_matrix.edited:
+                    if imguizmo.im_guizmo.is_using():
+                        matrix_components: imguizmo.im_guizmo.MatrixComponents = imguizmo.im_guizmo.decompose_matrix_to_components(new_matrix.value)
+                        transform.translation = glm.vec3(matrix_components.translation[0], matrix_components.translation[1], matrix_components.translation[2])
+                        transform.rotation += glm.vec3(matrix_components.rotation[0] - transform.rotation.x, matrix_components.rotation[1] - transform.rotation.y, matrix_components.rotation[2] - transform.rotation.z)
+                        transform.scale = glm.vec3(matrix_components.scale[0], matrix_components.scale[1], matrix_components.scale[2])
+
+            # Camera gizmo.
+            view_manipulate_right = imgui.get_window_pos().x + imgui.get_window_width()
+            view_manipulate_top = imgui.get_window_pos().y
+
+            camera_transform: TransformComponent = context.get_component(camera_entity, TransformComponent)
+            new_view: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.view_manipulate(
                 np.asmatrix(camera.view, dtype=np.float32),
-                np.asmatrix(camera.projection, dtype=np.float32),
-                self.gizmo_operation,
-                imguizmo.im_guizmo.MODE.local,
-                np.asmatrix(transform.local_matrix, dtype=np.float32),
-                None,
-                None if snap == False else snap_values)
-            
-            if new_matrix.edited:
-                if imguizmo.im_guizmo.is_using():
-                    matrix_components: imguizmo.im_guizmo.MatrixComponents = imguizmo.im_guizmo.decompose_matrix_to_components(new_matrix.value)
-                    transform.translation = glm.vec3(matrix_components.translation[0], matrix_components.translation[1], matrix_components.translation[2])
-                    transform.rotation += glm.vec3(matrix_components.rotation[0] - transform.rotation.x, matrix_components.rotation[1] - transform.rotation.y, matrix_components.rotation[2] - transform.rotation.z)
-                    transform.scale = glm.vec3(matrix_components.scale[0], matrix_components.scale[1], matrix_components.scale[2])
+                camera_transform.translation.z,
+                imgui.ImVec2(view_manipulate_right - 128, view_manipulate_top),
+                imgui.ImVec2(128, 128),
+                0x10101010,
+            )
 
-        # Camera gizmo.
-        view_manipulate_right = imgui.get_window_pos().x + imgui.get_window_width()
-        view_manipulate_top = imgui.get_window_pos().y
-
-        camera_transform: TransformComponent = context.get_component(camera_entity, TransformComponent)
-        new_view: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.view_manipulate(
-            np.asmatrix(camera.view, dtype=np.float32),
-            camera_transform.translation.z,
-            imgui.ImVec2(view_manipulate_right - 128, view_manipulate_top),
-            imgui.ImVec2(128, 128),
-            0x10101010,
-        )
-
-        if new_view.edited:
-            view_matrix_components: imguizmo.im_guizmo.MatrixComponents = imguizmo.im_guizmo.decompose_matrix_to_components(np.linalg.inv(new_view.value))
-            camera_transform.translation = glm.vec3(view_matrix_components.translation[0], view_matrix_components.translation[1], view_matrix_components.translation[2])
-            camera_transform.rotation += glm.vec3(view_matrix_components.rotation[0] - camera_transform.rotation.x, view_matrix_components.rotation[1] - camera_transform.rotation.y, view_matrix_components.rotation[2] - camera_transform.rotation.z)
-            camera_transform.scale = glm.vec3(view_matrix_components.scale[0], view_matrix_components.scale[1], view_matrix_components.scale[2])
+            if new_view.edited:
+                view_matrix_components: imguizmo.im_guizmo.MatrixComponents = imguizmo.im_guizmo.decompose_matrix_to_components(np.linalg.inv(new_view.value))
+                camera_transform.translation = glm.vec3(view_matrix_components.translation[0], view_matrix_components.translation[1], view_matrix_components.translation[2])
+                camera_transform.rotation += glm.vec3(view_matrix_components.rotation[0] - camera_transform.rotation.x, view_matrix_components.rotation[1] - camera_transform.rotation.y, view_matrix_components.rotation[2] - camera_transform.rotation.z)
+                camera_transform.scale = glm.vec3(view_matrix_components.scale[0], view_matrix_components.scale[1], view_matrix_components.scale[2])
 
     def draw_hierachy_panel(self):
         if imgui.begin_popup_context_window('Right click options', imgui.PopupFlags_.no_open_over_items | imgui.PopupFlags_.mouse_button_right):
-            modified, _ = imgui.menu_item('Create Empty', '', False)
-            if modified:
-                entity = SceneManager().get_active_scene().enroll_entity()
-                SceneManager().get_active_scene().add_component(entity, InfoComponent())
-                SceneManager().get_active_scene().add_component(entity, TransformComponent())
-                SceneManager().get_active_scene().add_component(entity, LinkComponent())
+            modified_empty, _ = imgui.menu_item('Create Empty', '', False)
+            if modified_empty:
+                create_empty()
+
+            modified_cube, _ = imgui.menu_item('Create Cube', '', False)
+            if modified_cube:
+                create_cube()
+
+            modified_plane, _ = imgui.menu_item('Create Plane', '', False)
+            if modified_plane:
+                create_plane()
+
+            modified_camera, _ = imgui.menu_item('Create Camera', '', False)
+            if modified_camera:
+                create_camera()
+
             imgui.end_popup()
         
         entities = SceneManager().get_active_scene().get_entities()

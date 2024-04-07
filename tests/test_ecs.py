@@ -53,6 +53,55 @@ def test_remove_component():
     transform2 = scene.get_component(entity2, TransformComponent)
     assert transform2 != None and transform2.translation == glm.vec3(2, 0, 0)
 
+def test_destroy_entity():
+    scene = Scene()
+
+    entity1 = scene.enroll_entity()
+    scene.add_component(entity1, InfoComponent('e1'))
+    transform1 = scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    link1 = scene.add_component(entity1, LinkComponent(None))
+
+    entity2 = scene.enroll_entity()
+    scene.add_component(entity2, InfoComponent('e2'))
+    transform2 = scene.add_component(entity2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    link2 = scene.add_component(entity2, LinkComponent(entity1))
+
+    entity3 = scene.enroll_entity()
+    scene.add_component(entity3, InfoComponent('e3'))
+    transform3 = scene.add_component(entity3, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+
+    scene.register_system(TransformSystem([TransformComponent]))
+    scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
+
+    SceneManager().add_scene(scene)
+
+    scene.get_system(TransformSystem).on_create_base()
+    scene.get_system(LinkSystem).on_create_base()
+
+    scene.destroy_entity(entity1)
+
+    assert entity2 not in scene.get_entities() and entity1 not in scene.get_entities()
+    assert entity3 in scene.get_entities()
+
+    assert entity1 not in scene.get_system(TransformSystem).get_filtered_entities()
+    assert entity2 not in scene.get_system(TransformSystem).get_filtered_entities()
+
+    assert entity1 not in scene.get_system(LinkSystem).get_filtered_entities()
+    assert entity2 not in scene.get_system(LinkSystem).get_filtered_entities()
+
+    assert entity3 in scene.get_system(TransformSystem).get_filtered_entities()
+
+    for components in scene.get_system(TransformSystem).get_filtered_components():
+        assert transform1 not in components
+        assert transform2 not in components
+
+    for components in scene.get_system(LinkSystem).get_filtered_components():
+        assert link1 not in components
+        assert link2 not in components
+
+    for components in scene.get_system(TransformSystem).get_filtered_components():
+        assert transform3 in components
+
 def test_system():
     scene = Scene()
 
@@ -80,14 +129,14 @@ def test_system():
     assert(link_system is not None)
 
     entities = transform_system.get_filtered_entities()
-    assert(entity1 in entities)
-    assert(entity2 in entities)
-    assert(entity3 in entities)
+    assert entity1 in entities 
+    assert entity2 in entities
+    assert entity3 in entities
 
     entities = link_system.get_filtered_entities()
-    assert(entity1 in entities)
-    assert(entity2 in entities)
-    assert(entity3 not in entities)
+    assert entity1 in entities
+    assert entity2 in entities
+    assert entity3 not in entities
 
 def test_scene():
     scene = Scene()

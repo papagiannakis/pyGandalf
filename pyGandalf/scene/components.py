@@ -10,7 +10,7 @@ class InfoComponent:
         self.enabled = True
 
 class TransformComponent:
-    def __init__(self, translation: glm.vec3 = glm.vec3(0, 0, 0), rotation: glm.vec3 = glm.vec3(0, 0, 0), scale: glm.vec3 = glm.vec3(1, 1, 1)):
+    def __init__(self, translation: glm.vec3, rotation: glm.vec3, scale: glm.vec3):
         self.translation = translation
         self.rotation = rotation
         self.scale = scale
@@ -26,7 +26,7 @@ class TransformComponent:
         return (self.world_matrix * glm.vec4(self.translation, 1.0)).xyz
 
 class LinkComponent:
-    def __init__(self, parent: Entity = None):
+    def __init__(self, parent: Entity):
         self.parent: Entity = parent
         self.prev_parent: Entity = parent
         self.children: list[Entity] = []

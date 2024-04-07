@@ -48,7 +48,7 @@ void main()
 	case 15: textureColor = texture(u_Textures[15], v_TexCoord).rgb; break;
     }
 
-    float ambientCoefficient = 0.01;
+    float ambientCoefficient = 0.1;
     vec3 normal = normalize(v_Normal);
     vec3 camDir = normalize(u_ViewPosition - v_Position);
     vec3 diffuse = vec3(0.0);

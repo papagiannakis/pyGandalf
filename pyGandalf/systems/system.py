@@ -65,6 +65,10 @@ class System:
         if (j == i):
             self.filtered_components.append(tuple(components_array[filter][entity_components[filter]] for filter in self.filters))
             self.filtered_entities.append(entity)
+            
+            return self.filtered_components[-1]
+        
+        return None
 
     def remove_entity_components(self, entity, component):
         """Removes the entity and its component from the cached arrays.
