@@ -102,6 +102,8 @@ def test_destroy_entity():
     for components in scene.get_system(TransformSystem).get_filtered_components():
         assert transform3 in components
 
+    SceneManager().clean()
+
 def test_system():
     scene = Scene()
 
