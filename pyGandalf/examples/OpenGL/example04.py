@@ -23,6 +23,8 @@ from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
 from pyGandalf.utilities.logger import logger
 
+from imgui_bundle import imgui
+import OpenGL.GL as gl
 import numpy as np
 import glm
 
@@ -110,7 +112,7 @@ def main():
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer, attach_imgui=True, attach_editor=True)
 
     # Build textures
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
@@ -133,6 +135,7 @@ def main():
     OpenGLMeshLib().build('pistol_mesh', MODELS_PATH/'fa_flintlockPistol.obj')
 
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(root, InfoComponent('root'))
     scene.add_component(root, LinkComponent(None))
 
     # Register components to monkeh
@@ -164,18 +167,18 @@ def main():
     scene.add_component(floor, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(270, 0, 0), glm.vec3(20, 20, 20)))
     scene.add_component(floor, LinkComponent(root))
     scene.add_component(floor, StaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
-    scene.add_component(floor, MaterialComponent('M_Floor'))
+    scene.add_component(floor, MaterialComponent('M_Floor')).glossiness = 1.0
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
-    scene.add_component(light, TransformComponent(glm.vec3(-3, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(light, LinkComponent(root))
+    scene.add_component(light, TransformComponent(glm.vec3(0, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(light, LinkComponent(None))
     scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 0.75))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
     scene.add_component(camera, TransformComponent(glm.vec3(0, 5, 10), glm.vec3(-25, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(camera, LinkComponent(root))
+    scene.add_component(camera, LinkComponent(None))
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 5.0, CameraComponent.Type.PERSPECTIVE))
 
     # Create Register systems

@@ -65,6 +65,10 @@ class System:
         if (j == i):
             self.filtered_components.append(tuple(components_array[filter][entity_components[filter]] for filter in self.filters))
             self.filtered_entities.append(entity)
+            
+            return self.filtered_components[-1]
+        
+        return None
 
     def remove_entity_components(self, entity, component):
         """Removes the entity and its component from the cached arrays.
@@ -114,6 +118,17 @@ class System:
                         self.on_update(ts, entity, components)
         else:
             logger.error("on_update method not implemented")
+
+    def on_gui_update_base(self, ts):
+        """Calls the on_update method of the system for each entity and its filtered components.
+        """
+        if hasattr(self, 'on_gui_update') and callable(getattr(self, 'on_gui_update')):
+            if self.state is SystemState.PLAY:
+                for entity, components in zip(self.filtered_entities, self.filtered_components):
+                    if (len(components) == 1):
+                        self.on_gui_update(ts, entity, components[0])
+                    else:
+                        self.on_gui_update(ts, entity, components)
 
     def filtered_data(self):
         """Returns the entities and components that the system operates on zipped.

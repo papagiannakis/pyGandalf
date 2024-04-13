@@ -19,23 +19,23 @@ def test_texture_lib():
     assert slot2 != 0 and slot2 != 0
 
 def test_shader_lib():
-    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'vertex_shader_code.glsl')
-    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADERS_PATH/'fragment_shader_code_yellow.glsl')
+    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_vertex.glsl')
+    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_fragment.glsl')
 
     program1 = OpenGLShaderLib().build('default_colored_yellow', vertex_shader_code, fragment_shader_code_yellow)
 
     assert program1 > 0
 
-    blinn_phong_mesh_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'blinn_phong_mesh_vertex.glsl')
-    blinn_phong_mesh_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'blinn_phong_mesh_fragment.glsl')
+    blinn_phong_mesh_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_vertex.glsl')
+    blinn_phong_mesh_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
 
     program2 = OpenGLShaderLib().build('default_mesh', blinn_phong_mesh_vertex, blinn_phong_mesh_fragment)
 
     assert program2 > 0 and program1 != program2
 
 def test_material_lib():
-    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'vertex_shader_code.glsl')
-    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADERS_PATH/'fragment_shader_code_yellow.glsl')
+    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_vertex.glsl')
+    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_fragment.glsl')
 
     program1 = OpenGLShaderLib().build('default_colored_yellow', vertex_shader_code, fragment_shader_code_yellow)
 
@@ -54,8 +54,8 @@ def test_material_lib():
 
     assert OpenGLMaterialLib().get('M_Yellow_Simple') != OpenGLMaterialLib().get('M_Yellow_Simple_Var')
 
-    blinn_phong_mesh_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'blinn_phong_mesh_vertex.glsl')
-    blinn_phong_mesh_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'blinn_phong_mesh_fragment.glsl')
+    blinn_phong_mesh_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_vertex.glsl')
+    blinn_phong_mesh_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
 
     program2 = OpenGLShaderLib().build('default_mesh', blinn_phong_mesh_vertex, blinn_phong_mesh_fragment)
 

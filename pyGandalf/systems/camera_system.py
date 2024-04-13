@@ -16,8 +16,15 @@ class CameraSystem(System):
         Gets called once in the first frame for every entity that the system operates on.
         """
         camera, transform = components
+        
         camera.view = glm.inverse(transform.world_matrix)
         camera.view_projection = camera.projection * camera.view
+
+        match camera.type:
+            case CameraComponent.Type.PERSPECTIVE:
+                camera.projection = glm.perspective(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)
+            case CameraComponent.Type.ORTHOGRAPHIC:
+                camera.projection = glm.ortho(-camera.aspect_ratio * camera.zoom_level, camera.aspect_ratio * camera.zoom_level, -camera.zoom_level, camera.zoom_level, camera.near, camera.far)
 
         if camera.primary:
             SceneManager().set_main_camera(entity, camera)
@@ -29,9 +36,14 @@ class CameraSystem(System):
         camera, transform = components
 
         if not camera.static:
-            camera, transform = components
             camera.view = glm.inverse(transform.world_matrix)
             camera.view_projection = camera.projection * camera.view
+        
+        match camera.type:
+            case CameraComponent.Type.PERSPECTIVE:
+                camera.projection = glm.perspective(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)
+            case CameraComponent.Type.ORTHOGRAPHIC:
+                camera.projection = glm.ortho(-camera.aspect_ratio * camera.zoom_level, camera.aspect_ratio * camera.zoom_level, -camera.zoom_level, camera.zoom_level, camera.near, camera.far)
 
         if camera.primary:
             SceneManager().set_main_camera(entity, camera)

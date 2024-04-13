@@ -94,11 +94,11 @@ def main():
     root = scene.enroll_entity()
 
     # Load shader source code
-    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'vertex_shader_code.glsl')
-    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADERS_PATH/'fragment_shader_code_yellow.glsl')
-    textured_vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_vertex_shader_code.glsl')
-    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_fragment_shader_code_blue.glsl')
-    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_fragment_shader_code_red.glsl')
+    unlit_simple_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_vertex.glsl')
+    unlit_simple_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_fragment.glsl')
+
+    unlit_textured_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_textured_vertex.glsl')
+    unlit_textured_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_textured_fragment.glsl')
 
     Application().create(OpenGLWindow('Hello World', 1280, 720, True), OpenGLRenderer)
 
@@ -108,14 +108,13 @@ def main():
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
 
     # Build shaders 
-    OpenGLShaderLib().build('default_colored_yellow', vertex_shader_code, fragment_shader_code_yellow)
-    OpenGLShaderLib().build('textured_colored_blue', textured_vertex_shader_code, textured_fragment_shader_code_blue)
-    OpenGLShaderLib().build('textured_colored_red', textured_vertex_shader_code, textured_fragment_shader_code_red)
+    OpenGLShaderLib().build('unlit_simple', unlit_simple_vertex, unlit_simple_fragment)
+    OpenGLShaderLib().build('unlit_textured', unlit_textured_vertex, unlit_textured_fragment)
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Yellow_Simple', MaterialData('default_colored_yellow', []))
-    OpenGLMaterialLib().build('M_Red_Textured', MaterialData('textured_colored_red', ['dark_wood']))
-    OpenGLMaterialLib().build('M_Blue_Textured', MaterialData('textured_colored_blue', ['uoc_logo']))
+    OpenGLMaterialLib().build('M_Yellow_Simple', MaterialData('unlit_simple', []))
+    OpenGLMaterialLib().build('M_Red_Textured', MaterialData('unlit_textured', ['dark_wood']))
+    OpenGLMaterialLib().build('M_Blue_Textured', MaterialData('unlit_textured', ['uoc_logo']))
 
     vertices = np.array([
         [-0.5, -0.5, 0.0], #0
@@ -136,6 +135,7 @@ def main():
     ], dtype=np.float32)
 
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(root, InfoComponent("root"))
     scene.add_component(root, LinkComponent(None))
 
     # Register components to entity1
@@ -143,7 +143,7 @@ def main():
     scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity1, LinkComponent(root))
     scene.add_component(entity1, StaticMeshComponent('', [vertices, texture_coords], None))
-    scene.add_component(entity1, MaterialComponent('M_Red_Textured'))
+    scene.add_component(entity1, MaterialComponent('M_Red_Textured')).color = glm.vec3(1.0, 0.0, 0.0)
     scene.add_component(entity1, MovementComponent())
 
     # Register components to entity2
@@ -151,7 +151,7 @@ def main():
     scene.add_component(entity2, TransformComponent(glm.vec3(0.5, -1.25, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity2, LinkComponent(entity1))
     scene.add_component(entity2, StaticMeshComponent('', [vertices], None))
-    scene.add_component(entity2, MaterialComponent('M_Yellow_Simple'))
+    scene.add_component(entity2, MaterialComponent('M_Yellow_Simple')).color = glm.vec3(1.0, 1.0, 0.0)
     scene.add_component(entity2, MovementComponent())
 
     # Register components to entity3
@@ -159,7 +159,7 @@ def main():
     scene.add_component(entity3, TransformComponent(glm.vec3(-2, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity3, LinkComponent(root))
     scene.add_component(entity3, StaticMeshComponent('', [vertices, texture_coords], None))
-    scene.add_component(entity3, MaterialComponent('M_Blue_Textured'))
+    scene.add_component(entity3, MaterialComponent('M_Blue_Textured')).color = glm.vec3(0.0, 0.0, 1.0)
     scene.add_component(entity3, MovementComponent())
 
     # Register components to camera

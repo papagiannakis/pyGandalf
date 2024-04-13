@@ -1,5 +1,7 @@
 from pyGandalf.scene.components import *
 
+import numpy as np
+
 def test_InfoComponent():
     info = InfoComponent()
     assert info.tag == 'UnnamedEntity'
@@ -18,8 +20,8 @@ def test_TransformComponent():
     assert np.allclose(transform.local_matrix, glm.mat4(1.0))
     assert np.allclose(transform.world_matrix, glm.mat4(1.0))
     assert np.allclose(transform.quaternion, glm.quat())
-    assert transform.is_dirty == True
-    assert transform.is_static == False
+    assert transform.dirty == True
+    assert transform.static == False
 
 def test_LinkComponent():
     parent_entity = Entity()

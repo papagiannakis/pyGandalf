@@ -95,8 +95,8 @@ def main():
     light2 = scene2.enroll_entity()
     rabbit2 = scene2.enroll_entity()
 
-    blinn_phong_mesh_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'blinn_phong_mesh_vertex.glsl')
-    blinn_phong_mesh_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'blinn_phong_mesh_fragment.glsl')
+    lit_blinn_phong_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_vertex.glsl')
+    lit_blinn_phong_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
 
     vertices = np.array([
         [-0.5, -0.5, 0.0], #0
@@ -125,7 +125,7 @@ def main():
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer, True, True)
 
     # Build textures
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
@@ -135,7 +135,7 @@ def main():
     OpenGLTextureLib().build('marble_texture', TEXTURES_PATH/'4K_carrara_gioa_p1004___polished___marble_diffuse.png')
 
     # Build shaders
-    OpenGLShaderLib().build('default_mesh', blinn_phong_mesh_vertex, blinn_phong_mesh_fragment)
+    OpenGLShaderLib().build('default_mesh', lit_blinn_phong_vertex, lit_blinn_phong_fragment)
     
     # Build Materials
     OpenGLMaterialLib().build('M_Rabbit', MaterialData('default_mesh', ['rabbit_albedo']))
@@ -151,6 +151,7 @@ def main():
 
     # Root entity of scene1
     scene1.add_component(root1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene1.add_component(root1, InfoComponent("root1"))
     scene1.add_component(root1, LinkComponent(None))
 
     # Register components to monkeh
@@ -200,6 +201,7 @@ def main():
 
     # Root entity of scene2
     scene2.add_component(root2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene2.add_component(root2, InfoComponent("root2"))
     scene2.add_component(root2, LinkComponent(None))
 
     # Register components to camera

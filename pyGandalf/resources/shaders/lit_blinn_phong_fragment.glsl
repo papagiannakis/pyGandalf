@@ -48,7 +48,7 @@ void main()
 	case 15: textureColor = texture(u_Textures[15], v_TexCoord).rgb; break;
     }
 
-    float ambientCoefficient = 0.01;
+    float ambientCoefficient = 0.1;
     vec3 normal = normalize(v_Normal);
     vec3 camDir = normalize(u_ViewPosition - v_Position);
     vec3 diffuse = vec3(0.0);
@@ -78,5 +78,5 @@ void main()
     vec3 final = textureColor.rgb * BlinnPhong;
     final = pow(final, vec3(1.0 / 1.2));
 
-    FragColor = vec4(final, 1.0);
+    FragColor = vec4(final * u_Color, 1.0);
 }

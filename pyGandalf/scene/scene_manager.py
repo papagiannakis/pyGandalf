@@ -44,6 +44,13 @@ class SceneManager(object):
         if cls.instance.scene_change_requested:
             cls.instance.change_scene_deffered()
 
+    def on_gui_update(cls, ts):
+        if cls.instance.active_scene is None:
+            logger.critical('There is no active scene currenlty')
+            return
+        
+        cls.instance.active_scene.on_gui_update(ts)
+
     def change_scene(cls, scene: Scene = None):
         if scene is None:
             cls.instance.active_scene_index += 1

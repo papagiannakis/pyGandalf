@@ -94,11 +94,11 @@ def main():
     cube_face_top = scene.enroll_entity()
     cube_face_bottom = scene.enroll_entity()
 
-    vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'vertex_shader_code.glsl')
-    fragment_shader_code_yellow = OpenGLShaderLib().load_from_file(SHADERS_PATH/'fragment_shader_code_yellow.glsl')
-    textured_vertex_shader_code = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_vertex_shader_code.glsl')
-    textured_fragment_shader_code_blue = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_fragment_shader_code_blue.glsl')
-    textured_fragment_shader_code_red = OpenGLShaderLib().load_from_file(SHADERS_PATH/'textured_fragment_shader_code_red.glsl')
+    unlit_simple_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_vertex.glsl')
+    unlit_simple_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_fragment.glsl')
+
+    unlit_textured_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_textured_vertex.glsl')
+    unlit_textured_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_textured_fragment.glsl')
 
     Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer)
 
@@ -106,14 +106,13 @@ def main():
     OpenGLTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png')
 
     # Build shaders 
-    OpenGLShaderLib().build('default_colored_yellow', vertex_shader_code, fragment_shader_code_yellow)
-    OpenGLShaderLib().build('textured_colored_blue', textured_vertex_shader_code, textured_fragment_shader_code_blue)
-    OpenGLShaderLib().build('textured_colored_red', textured_vertex_shader_code, textured_fragment_shader_code_red)
+    OpenGLShaderLib().build('unlit_simple', unlit_simple_vertex, unlit_simple_fragment)
+    OpenGLShaderLib().build('unlit_textured', unlit_textured_vertex, unlit_textured_fragment)
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Yellow_Simple', MaterialData('default_colored_yellow', []))
-    OpenGLMaterialLib().build('M_Red_Textured', MaterialData('textured_colored_red', ['uoc_logo']))
-    OpenGLMaterialLib().build('M_Blue_Textured', MaterialData('textured_colored_blue', ['uoc_logo']))
+    OpenGLMaterialLib().build('M_Yellow_Simple', MaterialData('unlit_simple', []))
+    OpenGLMaterialLib().build('M_Red_Textured', MaterialData('unlit_textured', ['uoc_logo']))
+    OpenGLMaterialLib().build('M_Blue_Textured', MaterialData('unlit_textured', ['uoc_logo']))
 
     vertices = np.array([
         [-0.5, -0.5, 0.0], #0
@@ -135,6 +134,7 @@ def main():
 
 
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(root, InfoComponent("root"))
     scene.add_component(root, LinkComponent(None))
 
     # Register components to cube
@@ -148,42 +148,42 @@ def main():
     scene.add_component(cube_face_front, TransformComponent(glm.vec3(0.0, 0.0, 0.5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_front, LinkComponent(cube))
     scene.add_component(cube_face_front, StaticMeshComponent('f', [vertices, texture_coords], None))
-    scene.add_component(cube_face_front, MaterialComponent('M_Red_Textured'))
+    scene.add_component(cube_face_front, MaterialComponent('M_Red_Textured')).color = glm.vec3(1.0, 0.0, 0.0)
 
     # Register components to cube_face_back
     scene.add_component(cube_face_back, InfoComponent("cube_face_back"))
     scene.add_component(cube_face_back, TransformComponent(glm.vec3(0.0, 0.0, -0.5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_back, LinkComponent(cube))
     scene.add_component(cube_face_back, StaticMeshComponent('b', [vertices, texture_coords], None))
-    scene.add_component(cube_face_back, MaterialComponent('M_Red_Textured'))
+    scene.add_component(cube_face_back, MaterialComponent('M_Red_Textured')).color = glm.vec3(1.0, 0.0, 0.0)
 
     # Register components to cube_face_right
     scene.add_component(cube_face_right, InfoComponent("cube_face_right"))
     scene.add_component(cube_face_right, TransformComponent(glm.vec3(0.5, 0.0, 0.0), glm.vec3(0, 90, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_right, LinkComponent(cube))
     scene.add_component(cube_face_right, StaticMeshComponent('r', [vertices, texture_coords], None))
-    scene.add_component(cube_face_right, MaterialComponent('M_Blue_Textured'))
+    scene.add_component(cube_face_right, MaterialComponent('M_Blue_Textured')).color = glm.vec3(0.0, 0.0, 1.0)
 
     # Register components to cube_face_left
     scene.add_component(cube_face_left, InfoComponent("cube_face_left"))
     scene.add_component(cube_face_left, TransformComponent(glm.vec3(-0.5, 0.0, 0.0), glm.vec3(0, 90, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_left, LinkComponent(cube))
     scene.add_component(cube_face_left, StaticMeshComponent('l', [vertices, texture_coords], None))
-    scene.add_component(cube_face_left, MaterialComponent('M_Blue_Textured'))
+    scene.add_component(cube_face_left, MaterialComponent('M_Blue_Textured')).color = glm.vec3(0.0, 0.0, 1.0)
 
     # Register components to cube_face_top
     scene.add_component(cube_face_top, InfoComponent("cube_face_top"))
     scene.add_component(cube_face_top, TransformComponent(glm.vec3(0.0, 0.5, 0.0), glm.vec3(90, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_top, LinkComponent(cube))
     scene.add_component(cube_face_top, StaticMeshComponent('t', [vertices], None))
-    scene.add_component(cube_face_top, MaterialComponent('M_Yellow_Simple'))
+    scene.add_component(cube_face_top, MaterialComponent('M_Yellow_Simple')).color = glm.vec3(1.0, 1.0, 0.0)
 
     # Register components to cube_face_bottom
     scene.add_component(cube_face_bottom, InfoComponent("cube_face_bottom"))
     scene.add_component(cube_face_bottom, TransformComponent(glm.vec3(0.0, -0.5, 0.0), glm.vec3(90, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_bottom, LinkComponent(cube))
     scene.add_component(cube_face_bottom, StaticMeshComponent('b', [vertices], None))
-    scene.add_component(cube_face_bottom, MaterialComponent('M_Yellow_Simple'))
+    scene.add_component(cube_face_bottom, MaterialComponent('M_Yellow_Simple')).color = glm.vec3(1.0, 1.0, 0.0)
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))

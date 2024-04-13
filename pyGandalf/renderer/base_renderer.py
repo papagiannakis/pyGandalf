@@ -4,7 +4,7 @@ class BaseRenderer(object):
             cls.instance = super(BaseRenderer, cls).__new__(cls)
         return cls.instance
     
-    def initialize(cls):
+    def initialize(cls, *kargs):
         raise NotImplementedError()
 
     def begin_frame(cls):

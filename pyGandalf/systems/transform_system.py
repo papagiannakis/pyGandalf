@@ -28,7 +28,7 @@ class TransformSystem(System):
         """
         transform = components
 
-        if not transform.is_static:
+        if not transform.static:
             previous_local_matrix = transform.local_matrix
 
             T = glm.translate(glm.mat4(1.0), glm.vec3(transform.translation.x, transform.translation.y, transform.translation.z))
@@ -40,8 +40,8 @@ class TransformSystem(System):
             transform.world_matrix = transform.local_matrix        
 
             if (np.array_equal(previous_local_matrix, transform.local_matrix)):
-                transform.is_dirty = False
+                transform.dirty = False
             else:
-                transform.is_dirty = True
+                transform.dirty = True
         else:
-            transform.is_dirty = False
+            transform.dirty = False
