@@ -1,13 +1,16 @@
 from pyGandalf.utilities.logger import logger
+from pyGandalf.utilities.definitions import MODELS_PATH
 
 import numpy as np
 import trimesh
 
+import os
 from pathlib import Path
 
 class MeshInstance:
-    def __init__(self, name, vertices, indices, normals, texcoords):
+    def __init__(self, name, path, vertices, indices, normals, texcoords):
         self.name = name
+        self.path = path
         self.handle = None
         self.vertices = vertices
         self.indices = indices
@@ -35,10 +38,15 @@ class OpenGLMeshLib(object):
         normals = np.asarray(mesh.vertex_normals, dtype=np.float32)
         texcoords = np.asarray(mesh.visual.uv, dtype=np.float32)
 
+        rel_path = Path(os.path.relpath(path, MODELS_PATH))
+
         cls.instance.meshes_names[name] = filename
-        cls.instance.meshes[filename] = MeshInstance(name, vertices, indices, normals, texcoords)
+        cls.instance.meshes[filename] = MeshInstance(name, rel_path, vertices, indices, normals, texcoords)
 
         return cls.instance.meshes[filename]
 
-    def get(cls, name: str):
+    def get(cls, name: str) -> MeshInstance:
         return cls.instance.meshes[cls.instance.meshes_names[name]]
+    
+    def get_meshes(cls) -> dict[str, MeshInstance]:
+        return cls.instance.meshes

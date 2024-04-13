@@ -1,5 +1,17 @@
+from pyGandalf.utilities.definitions import TEXTURES_PATH
+
+import os
 import OpenGL.GL as gl
 from PIL import Image
+from pathlib import Path
+
+class TextureData:
+    def __init__(self, id, slot, name: str, path: Path, data: tuple[bytes, int, int] = None):
+        self.id = id
+        self.slot = slot
+        self.name = name
+        self.path = path
+        self.data = data
 
 class OpenGLTextureLib(object):
     def __new__(cls):
@@ -10,9 +22,9 @@ class OpenGLTextureLib(object):
             cls.instance.current_slot = 0
         return cls.instance
     
-    def build(cls, name: str, path: str = None, img_data: tuple[bytes, int, int] = None):
+    def build(cls, name: str, path: Path = None, img_data: tuple[bytes, int, int] = None):
         if cls.instance.textures.get(name) != None:
-            return cls.instance.textures.get(name)
+            return cls.instance.textures[name].slot
 
         img_bytes = img_data[0] if img_data is not None else None
         img = None
@@ -44,33 +56,45 @@ class OpenGLTextureLib(object):
 
         gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
 
-        cls.instance.textures[name] = texture_id
-        cls.instance.slots[name] = cls.instance.current_slot
+        relative_path = None
+        if path is not None:
+            relative_path = Path(os.path.relpath(path, TEXTURES_PATH))
+
+        if img_data is not None:
+            print(img_data[0])
+            print([x for x in img_data[0]])
+            print(bytes([x for x in img_data[0]]))
+
+        data : TextureData = TextureData(texture_id, cls.instance.current_slot, name, relative_path, img_data)
+        cls.instance.textures[name] = data
 
         cls.instance.current_slot += 1
 
-        return cls.instance.slots[name]
+        return data.slot
 
     def get_id(cls, name: str):
-        return cls.instance.textures.get(name)
+        return cls.instance.textures.get(name).id
     
     def get_slot(cls, name: str):
-        return float(cls.instance.slots.get(name))
+        return float(cls.instance.textures.get(name).slot)
     
     def bind(cls, name):
-        gl.glActiveTexture(cls.instance.get_slot(name) + gl.GL_TEXTURE0)
+        gl.glActiveTexture(cls.instance.textures.get(name).slot + gl.GL_TEXTURE0)
         gl.glBindTexture(gl.GL_TEXTURE_2D, cls.instance.get_id(name))
 
     def unbind(cls, name):
-        gl.glActiveTexture(cls.instance.get_slot(name) + gl.GL_TEXTURE0)
+        gl.glActiveTexture(cls.instance.textures.get(name).slot + gl.GL_TEXTURE0)
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
     def bind_textures(cls):
-        for slot, id in zip(cls.instance.slots.values(), cls.instance.textures.values()):
-            gl.glActiveTexture(slot + gl.GL_TEXTURE0)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, id)
+        for texture in cls.instance.textures.values():
+            gl.glActiveTexture(texture.slot + gl.GL_TEXTURE0)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, texture.id)
 
     def unbind_textures(cls):
-        for slot in cls.instance.slots.values():
-            gl.glActiveTexture(slot + gl.GL_TEXTURE0)
+        for texture in cls.instance.textures.values():
+            gl.glActiveTexture(texture.slot + gl.GL_TEXTURE0)
             gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+    
+    def get_textures(cls):
+        return cls.instance.textures

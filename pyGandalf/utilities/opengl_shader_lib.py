@@ -1,12 +1,19 @@
+from pyGandalf.utilities.definitions import SHADERS_PATH
+
 import OpenGL.GL as gl
 
+import os
 import re
+from pathlib import Path
 
 class ShaderData:
-    def __init__(self, shader_program, vertex_shader_code: str, fragment_shader_code: str):
+    def __init__(self, shader_program, name: str, vs_path: Path, fs_path: Path, vs_code: str, fs_code: str):
+        self.name = name
+        self.vs_path = vs_path
+        self.fs_path = fs_path
         self.shader_program = shader_program
-        self.vertex_shader_code = vertex_shader_code
-        self.fragment_shader_code = fragment_shader_code
+        self.vs_code = vs_code
+        self.fs_code = fs_code
 
 class OpenGLShaderLib(object):
     def __new__(cls):
@@ -42,16 +49,40 @@ class OpenGLShaderLib(object):
 
         return shader_program
     
-    def build(cls, name: str, vertex_shader_code: str, fragment_shader_code: str):
+    def build(cls, name: str, vs_path: Path, fs_path: Path) -> int:
+        """Builds a new shader (if not already exists) and returns its shader program.
+
+        Args:
+            name (str): The name of the shader
+            vs_path (Path): The path to the vertex shader code
+            fs_path (Path): _desThe path to the fragment shader codecription_
+
+        Returns:
+            int: The shader program
+        """
         if cls.instance.shaders.get(name) != None:
             return cls.instance.shaders.get(name).shader_program
+        
+        vs_code = cls.instance.load_from_file(vs_path)
+        fs_code = cls.instance.load_from_file(fs_path)
 
-        shader_program = cls.instance.create_shader_program(vertex_shader_code, fragment_shader_code)
-        cls.instance.shaders[name] = ShaderData(shader_program, vertex_shader_code, fragment_shader_code)
+        vs_rel_path = Path(os.path.relpath(vs_path, SHADERS_PATH))
+        fs_rel_path = Path(os.path.relpath(fs_path, SHADERS_PATH))
+
+        shader_program = cls.instance.create_shader_program(vs_code, fs_code)
+        cls.instance.shaders[name] = ShaderData(shader_program, name, vs_rel_path, fs_rel_path, vs_code, fs_code)
         
         return shader_program
     
-    def parse(cls, shader_code):
+    def parse(cls, shader_code: str) -> dict:
+        """Parses the provided shader code and identifies all the uniforms along with their types.
+
+        Args:
+            shader_code (str): The source code of the shader to parse.
+
+        Returns:
+            dict: A dictionary holding the uniform name as a key and the uniform type as a value
+        """
         uniform_pattern = re.compile(r'uniform\s+(\w+)\s+(\w+)\s*')
         uniform_buffer_pattern = re.compile(r'layout\s*\(\s*std140\s*\)\s*uniform\s+(\w+)\s*{([^}]*)\s*};')
         uniform_array_pattern = re.compile(r'uniform\s+(\w+)\s+(\w+)\s*\[\s*(\d+)\s*\]\s*')
@@ -81,8 +112,24 @@ class OpenGLShaderLib(object):
         return uniforms
 
 
-    def get(cls, name: str):
+    def get(cls, name: str) -> ShaderData:
+        """Gets the shader data of the given shader name.
+
+        Args:
+            name (str): The name of the shader to get its data.
+
+        Returns:
+            ShaderData: the shader data of the given shader name.
+        """
         return cls.instance.shaders.get(name)
+    
+    def get_shaders(cls) -> dict[str, ShaderData]:
+        """Returns the dictionary that holds all the shader data
+
+        Returns:
+            dict[str, ShaderData]: the dictionary that holds all the shader data
+        """
+        return cls.instance.shaders
     
     def load_from_file(cls, path_to_source):
         """

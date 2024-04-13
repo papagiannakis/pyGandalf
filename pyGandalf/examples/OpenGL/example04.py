@@ -12,15 +12,16 @@ from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene import Scene
+from pyGandalf.scene.scene_serializer import SceneSerializer
 from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import InfoComponent, TransformComponent, LinkComponent, MaterialComponent, CameraComponent, StaticMeshComponent, LightComponent
+from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
-from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
+from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH, SCENES_PATH
 from pyGandalf.utilities.logger import logger
 
 from imgui_bundle import imgui
@@ -33,7 +34,7 @@ Showcase of obj model loading with textures and basic Blinn-Phong lighting.
 A custom component is added to the entities to rotate around.
 """
 
-class DemoComponent:
+class DemoComponent(Component):
     def __init__(self, axis, speed, rotate_around, main_camera) -> None:
         self.axis = axis
         self.speed = speed
@@ -82,9 +83,6 @@ def main():
     floor = scene.enroll_entity()
     light = scene.enroll_entity()
 
-    lit_blinn_phong_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_vertex.glsl')
-    lit_blinn_phong_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
-
     vertices = np.array([
         [-0.5, -0.5, 0.0], #0
         [ 0.5, -0.5, 0.0], #1
@@ -121,7 +119,7 @@ def main():
     OpenGLTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
 
     # Build shaders
-    OpenGLShaderLib().build('default_mesh', lit_blinn_phong_vertex, lit_blinn_phong_fragment)
+    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Rabbit', MaterialData('default_mesh', ['rabbit_albedo']))
@@ -188,6 +186,10 @@ def main():
     scene.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
     scene.register_system(DemoSystem([DemoComponent, TransformComponent, InfoComponent]))
+
+    scene_serializer: SceneSerializer = SceneSerializer(scene)
+    scene_serializer.serialize(SCENES_PATH / "EmptyScene.usda")
+    scene_serializer.deserialize(SCENES_PATH / "EmptyScene.usda")
 
     # Add scene to manager
     SceneManager().add_scene(scene)

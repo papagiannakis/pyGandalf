@@ -4,12 +4,16 @@ import glm
 
 from enum import Enum
 
-class InfoComponent:
+class Component(object):
+    def __init__(self):
+        pass
+
+class InfoComponent(Component):
     def __init__(self, name = 'UnnamedEntity'):
         self.tag = name
         self.enabled = True
 
-class TransformComponent:
+class TransformComponent(Component):
     def __init__(self, translation: glm.vec3, rotation: glm.vec3, scale: glm.vec3):
         self.translation = translation
         self.rotation = rotation
@@ -25,13 +29,13 @@ class TransformComponent:
     def get_world_position(self):
         return (self.world_matrix * glm.vec4(self.translation, 1.0)).xyz
 
-class LinkComponent:
+class LinkComponent(Component):
     def __init__(self, parent: Entity):
         self.parent: Entity = parent
         self.prev_parent: Entity = parent
         self.children: list[Entity] = []
 
-class MaterialComponent:
+class MaterialComponent(Component):
     def __init__(self, name, color = glm.vec3(1.0, 1.0, 1.0)):
         self.name = name
         self.instance = None
@@ -39,7 +43,7 @@ class MaterialComponent:
         self.glossiness = 5.0
         self.metallicness = 0.0
 
-class CameraComponent:
+class CameraComponent(Component):
     class Type(Enum):
         PERSPECTIVE = 1
         ORTHOGRAPHIC = 2
@@ -62,7 +66,7 @@ class CameraComponent:
         self.primary = primary
         self.static = static
 
-class StaticMeshComponent:
+class StaticMeshComponent(Component):
     def __init__(self, name, attributes = None, indices = None, primitive = None):
         self.name = name
         self.attributes = attributes
@@ -73,7 +77,7 @@ class StaticMeshComponent:
         self.ebo = 0
         self.batch = -1
 
-class LightComponent:
+class LightComponent(Component):
     def __init__(self, color, intensity, static = True):
         self.color = color
         self.intensity = intensity

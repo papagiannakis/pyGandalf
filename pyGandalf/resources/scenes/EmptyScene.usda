@@ -1,0 +1,421 @@
+#usda 1.0
+
+def "Hierachy"
+{
+    def "root"
+    {
+        custom bool enabled = 1
+        custom string id = "e4c5b4e0cd114eb6911c0e5691c3422f"
+
+        def "InfoComponent"
+        {
+            custom bool enabled = 1
+            custom string tag = "root"
+        }
+
+        def "TransformComponent"
+        {
+            custom bool dirty = 1
+            custom matrix4d local_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom quatf quaternion = (0, 0, 0, 1)
+            custom float3 rotation = (0, 0, 0)
+            custom float3 scale = (1, 1, 1)
+            custom bool static = 0
+            custom float3 translation = (0, 0, 0)
+            custom matrix4d world_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        }
+
+        def "LinkComponent"
+        {
+        }
+    }
+
+    def "camera"
+    {
+        custom bool enabled = 1
+        custom string id = "ea05549c98b948bc9d63c90901ccf1bd"
+
+        def "InfoComponent"
+        {
+            custom bool enabled = 1
+            custom string tag = "camera"
+        }
+
+        def "TransformComponent"
+        {
+            custom bool dirty = 1
+            custom matrix4d local_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom quatf quaternion = (0, 0, 0, 1)
+            custom float3 rotation = (-25, 0, 0)
+            custom float3 scale = (1, 1, 1)
+            custom bool static = 0
+            custom float3 translation = (0, 5, 5)
+            custom matrix4d world_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        }
+
+        def "LinkComponent"
+        {
+        }
+
+        def "CameraComponent"
+        {
+            custom float aspect_ratio = 1.778
+            custom int far = 1000
+            custom int fov = 45
+            custom float near = 0.1
+            custom bool primary = 1
+            custom matrix4d projection = ( (1.3578253984451294, 0, 0, 0), (0, 2.4142134189605713, 0, 0), (0, 0, -1.0001999139785767, -1), (0, 0, -0.20002000033855438, 0) )
+            custom bool static = 0
+            custom matrix4d view = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom matrix4d view_projection = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom float zoom_level = 5
+        }
+    }
+
+    def "monkeh"
+    {
+        custom bool enabled = 1
+        custom string id = "8fce34cf310f4b03be7a8cab7a8c7c07"
+
+        def "InfoComponent"
+        {
+            custom bool enabled = 1
+            custom string tag = "monkeh"
+        }
+
+        def "TransformComponent"
+        {
+            custom bool dirty = 1
+            custom matrix4d local_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom quatf quaternion = (0, 0, 0, 1)
+            custom float3 rotation = (0, 0, 0)
+            custom float3 scale = (1, 1, 1)
+            custom bool static = 0
+            custom float3 translation = (5.5, 0, 0)
+            custom matrix4d world_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        }
+
+        def "LinkComponent"
+        {
+            custom string parent = "e4c5b4e0cd114eb6911c0e5691c3422f"
+            custom string prev_parent = "e4c5b4e0cd114eb6911c0e5691c3422f"
+        }
+
+        def "MaterialComponent"
+        {
+            custom float3 color = (1, 1, 1)
+            custom float glossiness = 5
+            custom float metallicness = 0
+            custom string name = "M_Monkeh"
+        }
+
+        def "StaticMeshComponent"
+        {
+            custom int batch = -1
+            custom int ebo = 0
+            custom string name = "monkeh_mesh"
+            custom int vao = 0
+        }
+
+        def "DemoComponent"
+        {
+            custom bool main_camera = 0
+            custom bool rotate_around = 1
+            custom int speed = 25
+        }
+    }
+
+    def "pistol"
+    {
+        custom bool enabled = 1
+        custom string id = "548b5493b7ab42b3a45d622a2b397bc3"
+
+        def "InfoComponent"
+        {
+            custom bool enabled = 1
+            custom string tag = "pistol"
+        }
+
+        def "TransformComponent"
+        {
+            custom bool dirty = 1
+            custom matrix4d local_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom quatf quaternion = (0, 0, 0, 1)
+            custom float3 rotation = (0, 0, 0)
+            custom float3 scale = (15, 15, 15)
+            custom bool static = 0
+            custom float3 translation = (0, 0, 0)
+            custom matrix4d world_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        }
+
+        def "LinkComponent"
+        {
+            custom string parent = "e4c5b4e0cd114eb6911c0e5691c3422f"
+            custom string prev_parent = "e4c5b4e0cd114eb6911c0e5691c3422f"
+        }
+
+        def "MaterialComponent"
+        {
+            custom float3 color = (1, 1, 1)
+            custom float glossiness = 5
+            custom float metallicness = 0
+            custom string name = "M_Pistol"
+        }
+
+        def "StaticMeshComponent"
+        {
+            custom int batch = -1
+            custom int ebo = 0
+            custom string name = "pistol_mesh"
+            custom int vao = 0
+        }
+
+        def "DemoComponent"
+        {
+            custom bool main_camera = 0
+            custom bool rotate_around = 1
+            custom int speed = 25
+        }
+    }
+
+    def "rabbit"
+    {
+        custom bool enabled = 1
+        custom string id = "daeb20daf0a741bb8b4c0b58b408a90b"
+
+        def "InfoComponent"
+        {
+            custom bool enabled = 1
+            custom string tag = "rabbit"
+        }
+
+        def "TransformComponent"
+        {
+            custom bool dirty = 1
+            custom matrix4d local_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom quatf quaternion = (0, 0, 0, 1)
+            custom float3 rotation = (0, 0, 0)
+            custom float3 scale = (20, 20, 20)
+            custom bool static = 0
+            custom float3 translation = (-5.5, 0, 0)
+            custom matrix4d world_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        }
+
+        def "LinkComponent"
+        {
+            custom string parent = "e4c5b4e0cd114eb6911c0e5691c3422f"
+            custom string prev_parent = "e4c5b4e0cd114eb6911c0e5691c3422f"
+        }
+
+        def "MaterialComponent"
+        {
+            custom float3 color = (1, 1, 1)
+            custom float glossiness = 5
+            custom float metallicness = 0
+            custom string name = "M_Rabbit"
+        }
+
+        def "StaticMeshComponent"
+        {
+            custom int batch = -1
+            custom int ebo = 0
+            custom string name = "rabbit_mesh"
+            custom int vao = 0
+        }
+
+        def "DemoComponent"
+        {
+            custom bool main_camera = 0
+            custom bool rotate_around = 1
+            custom int speed = 25
+        }
+    }
+
+    def "floor"
+    {
+        custom bool enabled = 1
+        custom string id = "ff39890fc3c64f48b5ffd19626876c59"
+
+        def "InfoComponent"
+        {
+            custom bool enabled = 1
+            custom string tag = "floor"
+        }
+
+        def "TransformComponent"
+        {
+            custom bool dirty = 1
+            custom matrix4d local_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom quatf quaternion = (0, 0, 0, 1)
+            custom float3 rotation = (270, 0, 0)
+            custom float3 scale = (20, 20, 20)
+            custom bool static = 0
+            custom float3 translation = (0, -2, -2)
+            custom matrix4d world_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        }
+
+        def "LinkComponent"
+        {
+            custom string parent = "e4c5b4e0cd114eb6911c0e5691c3422f"
+            custom string prev_parent = "e4c5b4e0cd114eb6911c0e5691c3422f"
+        }
+
+        def "MaterialComponent"
+        {
+            custom float3 color = (1, 1, 1)
+            custom float glossiness = 1
+            custom float metallicness = 0
+            custom string name = "M_Floor"
+        }
+
+        def "StaticMeshComponent"
+        {
+            custom int batch = -1
+            custom int ebo = 0
+            custom string name = "floor_mesh"
+            custom int vao = 0
+        }
+    }
+
+    def "light"
+    {
+        custom bool enabled = 1
+        custom string id = "7685c96b273340d4b8da702510d1dcf8"
+
+        def "InfoComponent"
+        {
+            custom bool enabled = 1
+            custom string tag = "light"
+        }
+
+        def "TransformComponent"
+        {
+            custom bool dirty = 1
+            custom matrix4d local_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+            custom quatf quaternion = (0, 0, 0, 1)
+            custom float3 rotation = (0, 0, 0)
+            custom float3 scale = (1, 1, 1)
+            custom bool static = 0
+            custom float3 translation = (0, 5, 5)
+            custom matrix4d world_matrix = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        }
+
+        def "LinkComponent"
+        {
+        }
+
+        def "LightComponent"
+        {
+            custom float3 color = (1, 1, 1)
+            custom float intensity = 0.75
+            custom bool static = 1
+        }
+    }
+}
+
+def "Textures"
+{
+    def "white_texture"
+    {
+        custom int[] data = [255, 255, 255, 255]
+        custom int2 dimensions = (1, 1)
+        custom int id = 3
+        custom string name = "white_texture"
+        custom string path = ""
+        custom float slot = 0
+    }
+
+    def "rabbit_albedo"
+    {
+        custom int[] data = []
+        custom int2 dimensions = (-1, -1)
+        custom int id = 4
+        custom string name = "rabbit_albedo"
+        custom string path = "fg_spkRabbit_albedo.jpg"
+        custom float slot = 1
+    }
+
+    def "flintlockPistol_albedo"
+    {
+        custom int[] data = []
+        custom int2 dimensions = (-1, -1)
+        custom int id = 5
+        custom string name = "flintlockPistol_albedo"
+        custom string path = "fa_flintlockPistol_albedo.jpg"
+        custom float slot = 2
+    }
+
+    def "dark_wood_texture"
+    {
+        custom int[] data = []
+        custom int2 dimensions = (-1, -1)
+        custom int id = 6
+        custom string name = "dark_wood_texture"
+        custom string path = "dark_wood_texture.jpg"
+        custom float slot = 3
+    }
+}
+
+def "Shaders"
+{
+    def "default_mesh"
+    {
+        custom string fs_path = "lit_blinn_phong_fragment.glsl"
+        custom string name = "default_mesh"
+        custom int shader_program = 3
+        custom string vs_path = "lit_blinn_phong_vertex.glsl"
+    }
+}
+
+def "Materials"
+{
+    def "M_Rabbit"
+    {
+        custom string name = "M_Rabbit"
+        custom int shader_program = 3
+        custom string[] textures = ["rabbit_albedo"]
+    }
+
+    def "M_Monkeh"
+    {
+        custom string name = "M_Monkeh"
+        custom int shader_program = 3
+        custom string[] textures = ["white_texture"]
+    }
+
+    def "M_Floor"
+    {
+        custom string name = "M_Floor"
+        custom int shader_program = 3
+        custom string[] textures = ["dark_wood_texture"]
+    }
+
+    def "M_Pistol"
+    {
+        custom string name = "M_Pistol"
+        custom int shader_program = 3
+        custom string[] textures = ["flintlockPistol_albedo"]
+    }
+}
+
+def "Meshes"
+{
+    def "monkeh_mesh"
+    {
+        custom string name = "monkeh_mesh"
+        custom string path = "monkey_flat.obj"
+    }
+
+    def "rabbit_mesh"
+    {
+        custom string name = "rabbit_mesh"
+        custom string path = "fg_spkRabbit.obj"
+    }
+
+    def "pistol_mesh"
+    {
+        custom string name = "pistol_mesh"
+        custom string path = "fa_flintlockPistol.obj"
+    }
+}
+

@@ -198,8 +198,8 @@ class OpenGLMaterialLib(object):
         shader_data = OpenGLShaderLib().get(data.base_template)
 
         shader_program = shader_data.shader_program
-        shader_params_vertex = OpenGLShaderLib().parse(shader_data.vertex_shader_code)
-        shader_params_fragment = OpenGLShaderLib().parse(shader_data.fragment_shader_code)
+        shader_params_vertex = OpenGLShaderLib().parse(shader_data.vs_code)
+        shader_params_fragment = OpenGLShaderLib().parse(shader_data.fs_code)
 
         cls.instance.cached_materials[data] = MaterialInstance(name, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
         cls.instance.materials[name] = MaterialInstance(name, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
@@ -208,3 +208,6 @@ class OpenGLMaterialLib(object):
 
     def get(cls, name) -> MaterialInstance:
         return cls.instance.materials.get(name)
+    
+    def get_materials(cls) -> dict[str, MaterialInstance]:
+        return cls.instance.materials
