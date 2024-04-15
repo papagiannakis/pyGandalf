@@ -370,11 +370,19 @@ class EditorPanelSystem(System):
                 if save_pressed:
                     scene: Scene = SceneManager().get_active_scene()
                     scene_serializer: SceneSerializer = SceneSerializer(scene)
-                    scene_serializer.serialize(SCENES_PATH / "EmptyScene1.usda")
-                load_pressed, _ = imgui.menu_item('Load', '', False)
+                    scene_serializer.serialize(SCENES_PATH / f"{scene.name}.usda")
+                load_pressed = imgui.begin_menu('Load')
                 if load_pressed:
-                    pass
-                close_pressed, _ = imgui.menu_item('Close', '', False)
+                    for file in glob.glob(str(SCENES_PATH / "*.usd*")):
+                        path: Path = Path(file)
+                        file_pressed, _ = imgui.menu_item(path.name, '', False)
+                        if file_pressed:
+                            scene: Scene = Scene()
+                            scene_serializer: SceneSerializer = SceneSerializer(scene)
+                            scene_serializer.deserialize(SCENES_PATH / path.name)
+                            SceneManager().open_external_scene(scene)
+                    imgui.end_menu()
+                close_pressed, _ = imgui.menu_item('Close', 'Alt + F4', False)
                 if close_pressed:
                     from pyGandalf.core.application import Application
                     Application().quit()
