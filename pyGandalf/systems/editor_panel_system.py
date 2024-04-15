@@ -2,11 +2,12 @@ from pyGandalf.scene.entity import Entity
 from pyGandalf.core.input_manager import InputManager
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.scene.scene_manager import SceneManager
+from pyGandalf.scene.scene_serializer import SceneSerializer
 from pyGandalf.scene.editor_manager import EditorManager
 from pyGandalf.scene.components import *
 from pyGandalf.scene.editor_components import EditorPanelComponent, EditorVisibleComponent
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
-from pyGandalf.utilities.definitions import ROOT_DIR
+from pyGandalf.utilities.definitions import ROOT_DIR, SCENES_PATH
 from pyGandalf.utilities.entity_presets import *
 
 from imgui_bundle import imgui, imguizmo
@@ -365,8 +366,16 @@ class EditorPanelSystem(System):
     def draw_menu_bar(self):
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu('File'):
-                pressed, _ = imgui.menu_item('Close', '', False)
-                if pressed:
+                save_pressed, _ = imgui.menu_item('Save', '', False)
+                if save_pressed:
+                    scene: Scene = SceneManager().get_active_scene()
+                    scene_serializer: SceneSerializer = SceneSerializer(scene)
+                    scene_serializer.serialize(SCENES_PATH / "EmptyScene1.usda")
+                load_pressed, _ = imgui.menu_item('Load', '', False)
+                if load_pressed:
+                    pass
+                close_pressed, _ = imgui.menu_item('Close', '', False)
+                if close_pressed:
                     from pyGandalf.core.application import Application
                     Application().quit()
                 imgui.end_menu()

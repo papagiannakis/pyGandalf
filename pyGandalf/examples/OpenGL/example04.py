@@ -187,10 +187,6 @@ def main():
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
     scene.register_system(DemoSystem([DemoComponent, TransformComponent, InfoComponent]))
 
-    scene_serializer: SceneSerializer = SceneSerializer(scene)
-    scene_serializer.serialize(SCENES_PATH / "EmptyScene.usda")
-    scene_serializer.deserialize(SCENES_PATH / "EmptyScene.usda")
-
     # Add scene to manager
     SceneManager().add_scene(scene)
 

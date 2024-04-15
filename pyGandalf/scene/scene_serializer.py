@@ -6,7 +6,7 @@ from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 from pyGandalf.utilities.logger import logger
-from pyGandalf.utilities.usd_utilities import convert_type_to_usd, get_or_covert_to_usd_type
+from pyGandalf.utilities.usd_utilities import USDUtilities
 
 import inspect
 from pxr import Usd, UsdGeom, Sdf, Gf
@@ -49,13 +49,28 @@ class SceneSerializer:
                         if not i[0].startswith('_'):                            
                             # To remove other methods that does not start with a underscore
                             if not inspect.ismethod(i[1]):
-                                usd_type = convert_type_to_usd(str(type(i[1])))
+                                usd_type = USDUtilities().convert_type(type(i[1]))
 
                                 if usd_type == None:
                                     continue
                                 
                                 entity_prim_attribute = entity_component_prim.CreateAttribute(i[0], usd_type)
-                                entity_prim_attribute.Set(get_or_covert_to_usd_type(i[1]))
+                                entity_prim_attribute.Set(USDUtilities().convert_value(i[1]))
+
+        self.stage.DefinePrim("/Systems")
+
+        for system in self.scene.get_systems():
+            system_prim = self.stage.DefinePrim("/Systems/" + type(system).__name__)
+
+            system_prim_name = system_prim.CreateAttribute("name", Sdf.ValueTypeNames.String)
+            system_prim_name.Set(type(system).__name__)
+
+            filters = []
+            for filter in system.filters:
+                filters.append(filter.__name__)
+
+            system_prim_filters = system_prim.CreateAttribute("filters", Sdf.ValueTypeNames.StringArray)
+            system_prim_filters.Set(filters)
 
         self.stage.DefinePrim("/Textures")
 
