@@ -12,7 +12,6 @@ from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene import Scene
-from pyGandalf.scene.scene_serializer import SceneSerializer
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
@@ -21,7 +20,7 @@ from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
-from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH, SCENES_PATH
+from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
 from pyGandalf.utilities.logger import logger
 
 from imgui_bundle import imgui
@@ -35,11 +34,9 @@ A custom component is added to the entities to rotate around.
 """
 
 class DemoComponent(Component):
-    def __init__(self, axis, speed, rotate_around, main_camera) -> None:
+    def __init__(self, axis, speed) -> None:
         self.axis = axis
         self.speed = speed
-        self.rotate_around = rotate_around
-        self.main_camera = main_camera
 
 class DemoSystem(System):
     """
@@ -58,15 +55,14 @@ class DemoSystem(System):
         """
         demo, transform, info = components
 
-        if demo.rotate_around == True:
-            if demo.axis[0] == 1:
-                transform.rotation[0] += demo.speed * ts
+        if demo.axis[0] == 1:
+            transform.rotation[0] += demo.speed * ts
 
-            if demo.axis[1] == 1:
-                transform.rotation[1] += demo.speed * ts
+        if demo.axis[1] == 1:
+            transform.rotation[1] += demo.speed * ts
 
-            if demo.axis[2] == 1:
-                transform.rotation[2] += demo.speed * ts
+        if demo.axis[2] == 1:
+            transform.rotation[2] += demo.speed * ts
 
 # Example Usage
 def main():
@@ -142,7 +138,7 @@ def main():
     scene.add_component(monkeh, LinkComponent(root))
     scene.add_component(monkeh, StaticMeshComponent('monkeh_mesh'))
     scene.add_component(monkeh, MaterialComponent('M_Monkeh'))
-    scene.add_component(monkeh, DemoComponent((1, 0, 0), 25, True, False))
+    scene.add_component(monkeh, DemoComponent([1, 0, 0], 25))
 
     # Register components to pistol
     scene.add_component(pistol, InfoComponent("pistol"))
@@ -150,7 +146,7 @@ def main():
     scene.add_component(pistol, LinkComponent(root))
     scene.add_component(pistol, StaticMeshComponent('pistol_mesh'))
     scene.add_component(pistol, MaterialComponent('M_Pistol'))
-    scene.add_component(pistol, DemoComponent((1, 1, 0), 25, True, False))
+    scene.add_component(pistol, DemoComponent([1, 1, 0], 25))
 
     # Register components to rabbit
     scene.add_component(rabbit, InfoComponent("rabbit"))
@@ -158,7 +154,7 @@ def main():
     scene.add_component(rabbit, LinkComponent(root))
     scene.add_component(rabbit, StaticMeshComponent('rabbit_mesh'))
     scene.add_component(rabbit, MaterialComponent('M_Rabbit'))
-    scene.add_component(rabbit, DemoComponent((0, 1, 0), 25, True, False))
+    scene.add_component(rabbit, DemoComponent([0, 1, 0], 25))
 
     # Register components to floor
     scene.add_component(floor, InfoComponent("floor"))

@@ -8,8 +8,9 @@ import re
 import glm
 
 class MaterialInstance:
-    def __init__(self, name, shader_program, textures, shader_params = []):
+    def __init__(self, name, base_template, shader_program, textures, shader_params = []):
         self.name = name
+        self.base_template = base_template
         self.shader_program = shader_program
         self.textures = textures
         self.shader_params = shader_params
@@ -201,8 +202,8 @@ class OpenGLMaterialLib(object):
         shader_params_vertex = OpenGLShaderLib().parse(shader_data.vs_code)
         shader_params_fragment = OpenGLShaderLib().parse(shader_data.fs_code)
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
-        cls.instance.materials[name] = MaterialInstance(name, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
+        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
+        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
 
         return cls.instance.materials[name]
 

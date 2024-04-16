@@ -16,6 +16,7 @@ import numpy as np
 import glfw
 
 from pathlib import Path
+import glob
 import os
 
 class EditorPanelSystem(System):
@@ -207,6 +208,10 @@ class EditorPanelSystem(System):
             if modified_cube:
                 create_cube()
 
+            modified_sphere, _ = imgui.menu_item('Create Sphere', '', False)
+            if modified_sphere:
+                create_sphere()
+
             modified_plane, _ = imgui.menu_item('Create Plane', '', False)
             if modified_plane:
                 create_plane()
@@ -366,7 +371,7 @@ class EditorPanelSystem(System):
     def draw_menu_bar(self):
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu('File'):
-                save_pressed, _ = imgui.menu_item('Save', '', False)
+                save_pressed, _ = imgui.menu_item('Save', 'Ctrl + S', False)
                 if save_pressed:
                     scene: Scene = SceneManager().get_active_scene()
                     scene_serializer: SceneSerializer = SceneSerializer(scene)
@@ -377,6 +382,8 @@ class EditorPanelSystem(System):
                         path: Path = Path(file)
                         file_pressed, _ = imgui.menu_item(path.name, '', False)
                         if file_pressed:
+                            EditorVisibleComponent.SELECTED = False
+                            EditorVisibleComponent.SELECTED_ENTITY = None
                             scene: Scene = Scene()
                             scene_serializer: SceneSerializer = SceneSerializer(scene)
                             scene_serializer.deserialize(SCENES_PATH / path.name)

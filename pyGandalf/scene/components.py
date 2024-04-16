@@ -5,12 +5,11 @@ import glm
 from enum import Enum
 
 class Component(object):
-    def __init__(self):
-        pass
+    pass
 
 class InfoComponent(Component):
-    def __init__(self, name = 'UnnamedEntity'):
-        self.tag = name
+    def __init__(self, tag = 'UnnamedEntity'):
+        self.tag = tag
         self.enabled = True
 
 class TransformComponent(Component):
@@ -31,6 +30,9 @@ class TransformComponent(Component):
 
 class LinkComponent(Component):
     def __init__(self, parent: Entity):
+        self.parent_id = 0
+        if parent != None:
+            self.parent_id = parent.id
         self.parent: Entity = parent
         self.prev_parent: Entity = parent
         self.children: list[Entity] = []

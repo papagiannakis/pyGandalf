@@ -1,16 +1,34 @@
+from pyGandalf.core.application import Application
 from pyGandalf.scene.scene import Scene
-from pyGandalf.scene.components import Component, InfoComponent
+from pyGandalf.systems.system import System
+from pyGandalf.scene.components import Component
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 from pyGandalf.utilities.logger import logger
-from pyGandalf.utilities.usd_utilities import USDUtilities
+from pyGandalf.utilities.definitions import TEXTURES_PATH, SHADERS_PATH, MODELS_PATH
 
 import inspect
 from pxr import Usd, UsdGeom, Sdf, Gf
 from pathlib import Path
+import uuid
+
+import jsonpickle
+import pickle
+
+def to_json(obj):
+    try:
+        return jsonpickle.dumps(obj)
+    except TypeError:  # If jsonpickle fails, try pickle
+        return pickle.dumps(obj).decode('latin1')
+
+def from_json(json_string):
+    try:
+        return jsonpickle.loads(json_string)
+    except ValueError:  # If jsonpickle fails, try pickle
+        return pickle.loads(json_string.encode('latin1'))
 
 class SceneSerializer:
     def __init__(self, scene: Scene) -> None:
@@ -22,15 +40,7 @@ class SceneSerializer:
         self.stage.DefinePrim("/Hierachy")
 
         for entity in self.scene.get_entities():
-            name : str = ""
-            if self.scene.has_component(entity, InfoComponent):
-                info_component : InfoComponent = self.scene.get_component(entity, InfoComponent)
-                name = info_component.tag
-            else:
-                logger.critical(f'Cannot serialize entity: {entity.id}, no InfoComponent is present')
-                continue
-
-            entity_prim = self.stage.DefinePrim("/Hierachy/" + name)
+            entity_prim = self.stage.DefinePrim("/Hierachy/" + "Entity" + entity.id.hex)
             entity_prim_id = entity_prim.CreateAttribute("id", Sdf.ValueTypeNames.String)
             entity_prim_id.Set(entity.id.hex)
             entity_prim_enabled = entity_prim.CreateAttribute("enabled", Sdf.ValueTypeNames.Bool)
@@ -41,21 +51,9 @@ class SceneSerializer:
 
                     component = self.scene.get_component(entity, cls)
 
-                    entity_component_prim = self.stage.DefinePrim("/Hierachy/" + name + "/" + cls.__name__)
-
-                    # getmembers() returns all the members of an object 
-                    for i in inspect.getmembers(component):                        
-                        # to remove private and protected functions
-                        if not i[0].startswith('_'):                            
-                            # To remove other methods that does not start with a underscore
-                            if not inspect.ismethod(i[1]):
-                                usd_type = USDUtilities().convert_type(type(i[1]))
-
-                                if usd_type == None:
-                                    continue
-                                
-                                entity_prim_attribute = entity_component_prim.CreateAttribute(i[0], usd_type)
-                                entity_prim_attribute.Set(USDUtilities().convert_value(i[1]))
+                    entity_component_prim = self.stage.DefinePrim("/Hierachy/" + "Entity" + entity.id.hex + "/" + cls.__name__)
+                    entity_prim_args = entity_component_prim.CreateAttribute("dict", Sdf.ValueTypeNames.String)
+                    entity_prim_args.Set(to_json(component))
 
         self.stage.DefinePrim("/Systems")
 
@@ -128,8 +126,8 @@ class SceneSerializer:
             material_prim_name = material_prim.CreateAttribute("name", Sdf.ValueTypeNames.String)
             material_prim_name.Set(material.name)
 
-            material_prim_shader_program = material_prim.CreateAttribute("shader_program", Sdf.ValueTypeNames.Int)
-            material_prim_shader_program.Set(material.shader_program)
+            material_prim_base_template = material_prim.CreateAttribute("base_template", Sdf.ValueTypeNames.String)
+            material_prim_base_template.Set(material.base_template)
 
             material_prim_textures = material_prim.CreateAttribute("textures", Sdf.ValueTypeNames.StringArray)
             material_prim_textures.Set(material.textures)
@@ -148,20 +146,116 @@ class SceneSerializer:
         self.stage.GetRootLayer().Save()
 
     def deserialize(self, path: Path):
+        Application().set_is_running(False)
+
         self.stage: Usd.Stage = Usd.Stage.Open(str(path))
 
         # Get the root prim of the stage
         root_prim = self.stage.GetPseudoRoot()
 
         # Traverse all prims in the stage
-        all_prims = []
+        entity_prims = []
+        entity_id_attrs = []
         for prim in Usd.PrimRange(root_prim):
-            all_prims.append(prim)
-            print("Prim Path:", prim.GetPath())
+            prim_path: Path = prim.GetPath()
+            if 'Hierachy' in str(prim_path):
+                prims = str(prim_path).split('/')
+                if len(prims) == 3:
+                    entity_prims.append(prim)
+                    entity_id_attrs.append(prim.GetAttribute("id").Get())
 
-            # Print information about each attribute
-            for attribute in prim.GetAttributes():
-                print("\tAttribute Name:", attribute.GetName())
-                print("\tAttribute Type:", attribute.GetTypeName())
-                print("\tAttribute Value:", attribute.Get())
-                print("\t")
+        for i, prim in enumerate(entity_prims):
+            entity = self.scene.enroll_entity_with_uuid(uuid.UUID(entity_id_attrs[i]))
+            for index, component_prim in enumerate(Usd.PrimRange(prim)):
+                # Skip entity prim
+                if index == 0:
+                    continue
+
+                prim_path: Path = component_prim.GetPath()
+                
+                for cls in Component.__subclasses__():
+                    if component_prim.GetName() == cls.__name__:
+                        component = from_json(component_prim.GetAttribute("dict").Get())
+                        self.scene.add_component(entity, component)
+                        break
+        
+        skip_first_system_prim = True
+        for prim in Usd.PrimRange(root_prim):
+            prim_path: Path = prim.GetPath()
+            if 'Systems' in str(prim_path):
+                if skip_first_system_prim:
+                    skip_first_system_prim = False
+                    continue
+
+                name_attr = prim.GetAttribute("name").Get()
+
+                components = []
+                filters_attr = prim.GetAttribute("filters").Get()
+                for filter in filters_attr:
+                    for cls in Component.__subclasses__():
+                        if filter == cls.__name__:
+                            components.append(cls)
+                            break
+
+                for cls in System.__subclasses__():
+                    if name_attr == cls.__name__:
+                        self.scene.register_system(cls(components))
+                        break
+
+        skip_first_texture_prim = True
+        for prim in Usd.PrimRange(root_prim):
+            prim_path: Path = prim.GetPath()
+            if 'Textures' in str(prim_path):
+                if skip_first_texture_prim:
+                    skip_first_texture_prim = False
+                    continue
+
+                name_attr = prim.GetAttribute("name").Get()
+                path_attr = prim.GetAttribute("path").Get()
+                data_attr = prim.GetAttribute("data").Get()
+                dimension_attr = prim.GetAttribute("dimensions").Get()
+
+                texture_path = None if path_attr == None else path_attr
+                texture_data = None if data_attr == None else [bytes([x for x in data_attr]), dimension_attr[0], dimension_attr[1]]
+                OpenGLTextureLib().build(name_attr, TEXTURES_PATH / texture_path, texture_data)
+        
+        skip_first_shader_prim = True
+        for prim in Usd.PrimRange(root_prim):
+            prim_path: Path = prim.GetPath()
+            if 'Shaders' in str(prim_path):
+                if skip_first_shader_prim:
+                    skip_first_shader_prim = False
+                    continue
+
+                name_attr = prim.GetAttribute("name").Get()
+                vs_attr = prim.GetAttribute("vs_path").Get()
+                fs_attr = prim.GetAttribute("fs_path").Get()
+
+                OpenGLShaderLib().build(name_attr, SHADERS_PATH / vs_attr, SHADERS_PATH / fs_attr)
+
+        skip_first_material_prim = True
+        for prim in Usd.PrimRange(root_prim):
+            prim_path: Path = prim.GetPath()
+            if 'Materials' in str(prim_path):
+                if skip_first_material_prim:
+                    skip_first_material_prim = False
+                    continue
+
+                name_attr = prim.GetAttribute("name").Get()
+                base_template_attr = prim.GetAttribute("base_template").Get()
+                textures_attr = prim.GetAttribute("textures").Get()
+
+                OpenGLMaterialLib().build(name_attr, MaterialData(base_template_attr, textures_attr))
+        
+        skip_first_mesh_prim = True
+        for prim in Usd.PrimRange(root_prim):
+            prim_path: Path = prim.GetPath()
+            if 'Meshes' in str(prim_path):
+                if skip_first_mesh_prim:
+                    skip_first_mesh_prim = False
+                    continue
+
+                name_attr = prim.GetAttribute("name").Get()
+                path_attr = prim.GetAttribute("path").Get()
+
+                OpenGLMeshLib().build(name_attr, MODELS_PATH / path_attr)
