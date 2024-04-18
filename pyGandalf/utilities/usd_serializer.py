@@ -37,7 +37,7 @@ class USDSerializer(object):
 """
 Example Usage:
 
-- The custom component should have an attribute by the name: 'custom_serialization' set to True.
+- The custom component should have an attribute by the name: 'custom_serialization' set to True, setting it to False wont make a difference.
 - Define and add the serialization rule for the component
 - Define and add the deserialization rule for the component
 

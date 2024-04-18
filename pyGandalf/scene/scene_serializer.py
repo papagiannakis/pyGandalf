@@ -34,7 +34,6 @@ class SceneSerializer:
 
             for cls in Component.__subclasses__():
                 if self.scene.has_component(entity, cls):
-
                     component = self.scene.get_component(entity, cls)
 
                     entity_component_prim = self.stage.DefinePrim("/Hierachy/" + "Entity" + entity.id.hex + "/" + cls.__name__)
@@ -136,6 +135,8 @@ class SceneSerializer:
         self.stage.GetRootLayer().Save()
 
     def deserialize(self, path: Path):
+        # Set the application running to false to prevent the newly created components
+        # to call the on_create of the sytems that they are involved in.
         Application().set_is_running(False)
 
         self.stage: Usd.Stage = Usd.Stage.Open(str(path))
@@ -178,6 +179,7 @@ class SceneSerializer:
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
             if 'Systems' in str(prim_path):
+                # Skip the system prim
                 if skip_first_system_prim:
                     skip_first_system_prim = False
                     continue
@@ -202,6 +204,7 @@ class SceneSerializer:
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
             if 'Textures' in str(prim_path):
+                # Skip the texture prim
                 if skip_first_texture_prim:
                     skip_first_texture_prim = False
                     continue
@@ -220,6 +223,7 @@ class SceneSerializer:
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
             if 'Shaders' in str(prim_path):
+                # Skip the shader prim
                 if skip_first_shader_prim:
                     skip_first_shader_prim = False
                     continue
@@ -235,6 +239,7 @@ class SceneSerializer:
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
             if 'Materials' in str(prim_path):
+                # Skip the material prim
                 if skip_first_material_prim:
                     skip_first_material_prim = False
                     continue
@@ -250,6 +255,7 @@ class SceneSerializer:
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
             if 'Meshes' in str(prim_path):
+                # Skip the mesh prim
                 if skip_first_mesh_prim:
                     skip_first_mesh_prim = False
                     continue
