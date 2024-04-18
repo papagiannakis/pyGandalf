@@ -9,26 +9,12 @@ from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 from pyGandalf.utilities.logger import logger
 from pyGandalf.utilities.definitions import TEXTURES_PATH, SHADERS_PATH, MODELS_PATH
+from pyGandalf.utilities.usd_serializer import USDSerializer
 
 import inspect
 from pxr import Usd, UsdGeom, Sdf, Gf
 from pathlib import Path
 import uuid
-
-import jsonpickle
-import pickle
-
-def to_json(obj):
-    try:
-        return jsonpickle.dumps(obj)
-    except TypeError:  # If jsonpickle fails, try pickle
-        return pickle.dumps(obj).decode('latin1')
-
-def from_json(json_string):
-    try:
-        return jsonpickle.loads(json_string)
-    except ValueError:  # If jsonpickle fails, try pickle
-        return pickle.loads(json_string.encode('latin1'))
 
 class SceneSerializer:
     def __init__(self, scene: Scene) -> None:
@@ -52,8 +38,12 @@ class SceneSerializer:
                     component = self.scene.get_component(entity, cls)
 
                     entity_component_prim = self.stage.DefinePrim("/Hierachy/" + "Entity" + entity.id.hex + "/" + cls.__name__)
-                    entity_prim_args = entity_component_prim.CreateAttribute("dict", Sdf.ValueTypeNames.String)
-                    entity_prim_args.Set(str(to_json(component)))
+
+                    if hasattr(component, "custom_serialization"):
+                        entity_component_prim = USDSerializer().serialize(entity_component_prim, component)
+                    else:
+                        entity_prim_args = entity_component_prim.CreateAttribute("dict", Sdf.ValueTypeNames.String)
+                        entity_prim_args.Set(str(USDSerializer().to_json(component)))
 
         self.stage.DefinePrim("/Systems")
 
@@ -153,7 +143,7 @@ class SceneSerializer:
         # Get the root prim of the stage
         root_prim = self.stage.GetPseudoRoot()
 
-        # Traverse all prims in the stage
+        # Traverse all Hierachy prims in the stage
         entity_prims = []
         entity_id_attrs = []
         for prim in Usd.PrimRange(root_prim):
@@ -175,10 +165,15 @@ class SceneSerializer:
                 
                 for cls in Component.__subclasses__():
                     if component_prim.GetName() == cls.__name__:
-                        component = from_json(str(component_prim.GetAttribute("dict").Get()))
+                        component = None
+                        if self.has_custom_serialization(cls):
+                            component = USDSerializer().deserialize(component_prim, cls)
+                        else:
+                            component = USDSerializer().from_json(str(component_prim.GetAttribute("dict").Get()))
                         self.scene.add_component(entity, component)
                         break
         
+        # Traverse all Systems prims in the stage
         skip_first_system_prim = True
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
@@ -201,7 +196,8 @@ class SceneSerializer:
                     if name_attr == cls.__name__:
                         self.scene.register_system(cls(components))
                         break
-
+        
+        # Traverse all Textures prims in the stage
         skip_first_texture_prim = True
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
@@ -219,6 +215,7 @@ class SceneSerializer:
                 texture_data = None if data_attr == None else [bytes([x for x in data_attr]), int(dimension_attr[0]), int(dimension_attr[1])]
                 OpenGLTextureLib().build(name_attr, TEXTURES_PATH / texture_path, texture_data)
         
+        # Traverse all Shaders prims in the stage
         skip_first_shader_prim = True
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
@@ -233,6 +230,7 @@ class SceneSerializer:
 
                 OpenGLShaderLib().build(name_attr, SHADERS_PATH / vs_attr, SHADERS_PATH / fs_attr)
 
+        # Traverse all Materials prims in the stage
         skip_first_material_prim = True
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
@@ -247,6 +245,7 @@ class SceneSerializer:
 
                 OpenGLMaterialLib().build(name_attr, MaterialData(base_template_attr, textures_attr))
         
+        # Traverse all Meshes prims in the stage
         skip_first_mesh_prim = True
         for prim in Usd.PrimRange(root_prim):
             prim_path: Path = prim.GetPath()
@@ -259,3 +258,17 @@ class SceneSerializer:
                 path_attr = str(prim.GetAttribute("path").Get())
 
                 OpenGLMeshLib().build(name_attr, MODELS_PATH / path_attr)
+    
+    def has_custom_serialization(self, cls):
+        try:
+            # Get constructor signature
+            constructor_signature = inspect.signature(cls.__init__)
+
+            # Generate arguments dynamically
+            args = [None] * (len(constructor_signature.parameters) - 1)  # Subtract 1 for 'self' parameter
+            instance = cls(*args)
+
+            # Check if the instance has the 'custom_serialization' attribute
+            return hasattr(instance, 'custom_serialization')
+        except (TypeError, ValueError, AttributeError):
+            return False

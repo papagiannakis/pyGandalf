@@ -21,6 +21,7 @@ from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
+from pyGandalf.utilities.usd_serializer import USDSerializer
 from pyGandalf.utilities.logger import logger
 
 from imgui_bundle import imgui
@@ -28,10 +29,30 @@ import OpenGL.GL as gl
 import numpy as np
 import glm
 
+from pxr import Sdf
+
 """
 Showcase of obj model loading with textures and basic Blinn-Phong lighting.
 A custom component is added to the entities to rotate around.
 """
+
+class MyComponent(Component):
+    def __init__(self, name: str):
+        self.name = name
+        self.custom_serialization = True
+
+def serialize_my_component(prim, component):
+    component_prim_name = prim.CreateAttribute("name", Sdf.ValueTypeNames.String)
+    component_prim_name.Set(component.name)
+    return prim
+
+USDSerializer().add_serialization_rule(MyComponent, serialize_my_component)
+
+def deserialize_my_component(prim):
+    name = prim.GetAttribute("name").Get()
+    return MyComponent(str(name))
+
+USDSerializer().add_deserialization_rule(MyComponent, deserialize_my_component)
 
 class DemoComponent(Component):
     def __init__(self, axis, speed) -> None:
@@ -48,6 +69,7 @@ class DemoSystem(System):
         Gets called once in the first frame for every entity that the system operates on.
         """
         demo, transform, info = components
+        print(info.name)
 
     def on_update(self, ts, entity: Entity, components):
         """
@@ -139,6 +161,7 @@ def main():
     scene.add_component(monkeh, StaticMeshComponent('monkeh_mesh'))
     scene.add_component(monkeh, MaterialComponent('M_Monkeh'))
     scene.add_component(monkeh, DemoComponent([1, 0, 0], 25))
+    scene.add_component(monkeh, MyComponent('My name is monkeh'))
 
     # Register components to pistol
     scene.add_component(pistol, InfoComponent("pistol"))
@@ -147,6 +170,7 @@ def main():
     scene.add_component(pistol, StaticMeshComponent('pistol_mesh'))
     scene.add_component(pistol, MaterialComponent('M_Pistol'))
     scene.add_component(pistol, DemoComponent([1, 1, 0], 25))
+    scene.add_component(pistol, MyComponent('My name is pistol'))
 
     # Register components to rabbit
     scene.add_component(rabbit, InfoComponent("rabbit"))
@@ -155,6 +179,7 @@ def main():
     scene.add_component(rabbit, StaticMeshComponent('rabbit_mesh'))
     scene.add_component(rabbit, MaterialComponent('M_Rabbit'))
     scene.add_component(rabbit, DemoComponent([0, 1, 0], 25))
+    scene.add_component(rabbit, MyComponent('My name is rabbit'))
 
     # Register components to floor
     scene.add_component(floor, InfoComponent("floor"))
@@ -181,7 +206,7 @@ def main():
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(DemoSystem([DemoComponent, TransformComponent, InfoComponent]))
+    scene.register_system(DemoSystem([DemoComponent, TransformComponent, MyComponent]))
 
     # Add scene to manager
     SceneManager().add_scene(scene)
