@@ -55,7 +55,7 @@ class OpenGLShaderLib(object):
         Args:
             name (str): The name of the shader
             vs_path (Path): The path to the vertex shader code
-            fs_path (Path): _desThe path to the fragment shader codecription_
+            fs_path (Path): The path to the fragment shader code
 
         Returns:
             int: The shader program

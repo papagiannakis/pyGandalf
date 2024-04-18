@@ -53,7 +53,7 @@ class SceneSerializer:
 
                     entity_component_prim = self.stage.DefinePrim("/Hierachy/" + "Entity" + entity.id.hex + "/" + cls.__name__)
                     entity_prim_args = entity_component_prim.CreateAttribute("dict", Sdf.ValueTypeNames.String)
-                    entity_prim_args.Set(to_json(component))
+                    entity_prim_args.Set(str(to_json(component)))
 
         self.stage.DefinePrim("/Systems")
 
@@ -175,7 +175,7 @@ class SceneSerializer:
                 
                 for cls in Component.__subclasses__():
                     if component_prim.GetName() == cls.__name__:
-                        component = from_json(component_prim.GetAttribute("dict").Get())
+                        component = from_json(str(component_prim.GetAttribute("dict").Get()))
                         self.scene.add_component(entity, component)
                         break
         
@@ -210,13 +210,13 @@ class SceneSerializer:
                     skip_first_texture_prim = False
                     continue
 
-                name_attr = prim.GetAttribute("name").Get()
-                path_attr = prim.GetAttribute("path").Get()
+                name_attr = str(prim.GetAttribute("name").Get())
+                path_attr = str(prim.GetAttribute("path").Get())
                 data_attr = prim.GetAttribute("data").Get()
                 dimension_attr = prim.GetAttribute("dimensions").Get()
 
                 texture_path = None if path_attr == None else path_attr
-                texture_data = None if data_attr == None else [bytes([x for x in data_attr]), dimension_attr[0], dimension_attr[1]]
+                texture_data = None if data_attr == None else [bytes([x for x in data_attr]), int(dimension_attr[0]), int(dimension_attr[1])]
                 OpenGLTextureLib().build(name_attr, TEXTURES_PATH / texture_path, texture_data)
         
         skip_first_shader_prim = True
@@ -227,9 +227,9 @@ class SceneSerializer:
                     skip_first_shader_prim = False
                     continue
 
-                name_attr = prim.GetAttribute("name").Get()
-                vs_attr = prim.GetAttribute("vs_path").Get()
-                fs_attr = prim.GetAttribute("fs_path").Get()
+                name_attr = str(prim.GetAttribute("name").Get())
+                vs_attr = str(prim.GetAttribute("vs_path").Get())
+                fs_attr = str(prim.GetAttribute("fs_path").Get())
 
                 OpenGLShaderLib().build(name_attr, SHADERS_PATH / vs_attr, SHADERS_PATH / fs_attr)
 
@@ -241,9 +241,9 @@ class SceneSerializer:
                     skip_first_material_prim = False
                     continue
 
-                name_attr = prim.GetAttribute("name").Get()
-                base_template_attr = prim.GetAttribute("base_template").Get()
-                textures_attr = prim.GetAttribute("textures").Get()
+                name_attr = str(prim.GetAttribute("name").Get())
+                base_template_attr = str(prim.GetAttribute("base_template").Get())
+                textures_attr = [str(texture) for texture in prim.GetAttribute("textures").Get()]
 
                 OpenGLMaterialLib().build(name_attr, MaterialData(base_template_attr, textures_attr))
         
@@ -255,7 +255,7 @@ class SceneSerializer:
                     skip_first_mesh_prim = False
                     continue
 
-                name_attr = prim.GetAttribute("name").Get()
-                path_attr = prim.GetAttribute("path").Get()
+                name_attr = str(prim.GetAttribute("name").Get())
+                path_attr = str(prim.GetAttribute("path").Get())
 
                 OpenGLMeshLib().build(name_attr, MODELS_PATH / path_attr)

@@ -78,6 +78,7 @@ class StaticMeshComponent(Component):
         self.vbo = []
         self.ebo = 0
         self.batch = -1
+        self.load_from_file = True if attributes == None else False
 
 class LightComponent(Component):
     def __init__(self, color, intensity, static = True):

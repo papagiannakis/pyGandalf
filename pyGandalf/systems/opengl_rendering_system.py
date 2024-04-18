@@ -20,9 +20,13 @@ class OpenGLStaticMeshRenderingSystem(System):
         """
         mesh, material, transform = components
 
+        mesh.vao = 0
+        mesh.ebo = 0
+        mesh.vbo.clear()
+
         material.instance = OpenGLMaterialLib().get(material.name)
 
-        if mesh.attributes is None:
+        if mesh.load_from_file == True:
             mesh_instance = OpenGLMeshLib().get(mesh.name)
             mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
             mesh.indices = mesh_instance.indices
