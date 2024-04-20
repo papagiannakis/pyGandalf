@@ -201,28 +201,35 @@ class EditorPanelSystem(System):
     def draw_hierachy_panel(self):
         if imgui.begin_popup_context_window('Right click options', imgui.PopupFlags_.no_open_over_items | imgui.PopupFlags_.mouse_button_right):
             modified_empty, _ = imgui.menu_item('Create Empty', '', False)
+
+            entity: Entity = None
+
             if modified_empty:
-                create_empty()
+                entity = create_empty()
 
             modified_cube, _ = imgui.menu_item('Create Cube', '', False)
             if modified_cube:
-                create_cube()
+                entity = create_cube()
 
             modified_sphere, _ = imgui.menu_item('Create Sphere', '', False)
             if modified_sphere:
-                create_sphere()
+                entity = create_sphere()
 
             modified_plane, _ = imgui.menu_item('Create Plane', '', False)
             if modified_plane:
-                create_plane()
+                entity = create_plane()
 
             modified_camera, _ = imgui.menu_item('Create Camera', '', False)
             if modified_camera:
-                create_camera()
+                entity = create_camera()
             
             modified_light, _ = imgui.menu_item('Create Light', '', False)
             if modified_light:
-                create_light()
+                entity = create_light()
+
+            if entity != None:
+                EditorVisibleComponent.SELECTED = True
+                EditorVisibleComponent.SELECTED_ENTITY = entity
 
             imgui.end_popup()
         
@@ -367,6 +374,33 @@ class EditorPanelSystem(System):
                     
                     imgui.tree_pop()
                 imgui.separator()
+
+            if imgui.begin_menu('Add Component'):
+                modified_info, _ = imgui.menu_item('Info Component', '', False)
+                if modified_info:
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, InfoComponent())
+                modified_transform, _ = imgui.menu_item('Transform Component', '', False)
+                if modified_transform:
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+                modified_link, _ = imgui.menu_item('Link Component', '', False)
+                if modified_link:
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, LinkComponent(None))
+                modified_camera, _ = imgui.menu_item('Camera Component', '', False)
+                if modified_camera:
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, CameraComponent(45, 1.778, 0.1, 1000, 5.0, CameraComponent.Type.PERSPECTIVE))
+                modified_light, _ = imgui.menu_item('Light Component', '', False)
+                if modified_light:
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, LightComponent(glm.vec3(1, 1, 1), 1.0))
+                modified_static_mesh, _ = imgui.menu_item('Static Mesh Component', '', False)
+                if modified_static_mesh:
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, StaticMeshComponent('empty', [], None))
+
+                    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+                    OpenGLShaderLib().build('default_lit', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+                    OpenGLMaterialLib().build('M_Lit', MaterialData('default_lit', ['white_texture']))
+
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent('M_Lit', glm.vec3(1, 1, 1)))
+                imgui.end_menu()
 
     def draw_menu_bar(self):
         if imgui.begin_main_menu_bar():
