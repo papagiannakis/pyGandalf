@@ -7,8 +7,9 @@ from pyGandalf.scene.editor_manager import EditorManager
 from pyGandalf.scene.components import *
 from pyGandalf.scene.editor_components import EditorPanelComponent, EditorVisibleComponent
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
-from pyGandalf.utilities.definitions import ROOT_DIR, SCENES_PATH
+from pyGandalf.utilities.definitions import ROOT_DIR, SCENES_PATH, MODELS_PATH
 from pyGandalf.utilities.entity_presets import *
+from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 from imgui_bundle import imgui, imguizmo
 import OpenGL.GL as gl
@@ -33,6 +34,7 @@ class EditorPanelSystem(System):
         self.wireframe_value = False
         self.vsync_value = False
         self.gizmo_operation: imguizmo.im_guizmo.OPERATION = imguizmo.im_guizmo.OPERATION.translate
+        self.drag_and_drop_mesh = None
 
     def on_create(self, entity: Entity, components):
         """
@@ -340,6 +342,43 @@ class EditorPanelSystem(System):
                     static_mesh: StaticMeshComponent = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, StaticMeshComponent)
 
                     imgui.label_text('name', static_mesh.name)
+
+                    def init_drag_and_drop_mesh(instance):
+                        static_mesh.name = instance.name
+                        static_mesh.vbo.clear()
+                        static_mesh.ebo = 0
+                        static_mesh.vao = 0
+                        static_mesh.load_from_file = True
+                        static_mesh.attributes = [instance.vertices, instance.normals, instance.texcoords]
+                        static_mesh.indices = instance.indices
+
+                        material = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent)
+                        static_mesh.batch = OpenGLRenderer().add_batch(static_mesh, material)
+                        
+                        # Set up matrices for projection and view
+                        camera = SceneManager().get_main_camera()
+                        if camera != None:
+                            material.instance.set_uniform('u_Projection', camera.projection)
+                            material.instance.set_uniform('u_View', camera.view)
+                            material.instance.set_uniform('u_Model', glm.mat4(1.0))
+
+                    if imgui.begin_drag_drop_target():
+                        payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('models')
+                        if payload != None:
+                            mesh_already_built = False
+                            for mesh_instance in OpenGLMeshLib().get_meshes().values():
+                                if self.drag_and_drop_mesh == str(MODELS_PATH / mesh_instance.path):
+                                    instance = OpenGLMeshLib().get(mesh_instance.name)
+                                    init_drag_and_drop_mesh(instance)
+                                    mesh_already_built = True
+                                    break
+
+                            if not mesh_already_built:
+                                path: Path = Path(self.drag_and_drop_mesh)
+                                instance = OpenGLMeshLib().build(path.name, path)
+                                init_drag_and_drop_mesh(instance)
+
+                        imgui.end_drag_drop_target()
                     
                     imgui.tree_pop()
                 imgui.separator()
@@ -477,7 +516,9 @@ class EditorPanelSystem(System):
                 if imgui.is_item_hovered() and imgui.is_mouse_double_clicked(0):
                     self.current_directory = self.current_directory.parent
                 # imgui.pop_style_color()
-                # imgui.text_wrapped('Back')
+                # imgui.text_wrapped('Back')    
+                        
+            self.drag_and_drop_mesh = None
 
             id = 0
             # Loop through directory items
@@ -487,6 +528,14 @@ class EditorPanelSystem(System):
                 # Display directory item
                 # imgui.push_style_color(imgui.Col_.button, imgui.ImVec4(0, 0, 0, 0))
                 imgui.button(entry, imgui.ImVec2(thumbnail_size, thumbnail_size))
+
+                if 'models' in str(self.current_directory):
+                    if imgui.begin_drag_drop_source():
+                        payload_id = id
+                        if imgui.set_drag_drop_payload_py_id("models", payload_id):
+                            self.drag_and_drop_mesh = str(MODELS_PATH / entry)
+                        imgui.end_drag_drop_source()
+
                 # imgui.image_button(f'{entry}{id}', tex_id, imgui.ImVec2(thumbnail_size, thumbnail_size), imgui.ImVec2(0, 1), imgui.ImVec2(1, 0))
                 # imgui.pop_style_color()
                 if imgui.is_item_hovered() and imgui.is_mouse_double_clicked(0):
@@ -494,7 +543,8 @@ class EditorPanelSystem(System):
                     if os.path.isdir(new_path):
                         self.current_directory = new_path
                 # imgui.text_wrapped(entry)
-                imgui.pop_id()
+                imgui.pop_id()               
+
                 id += 1
             imgui.end_table()
 

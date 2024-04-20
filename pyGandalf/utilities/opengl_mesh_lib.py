@@ -45,8 +45,16 @@ class OpenGLMeshLib(object):
 
         return cls.instance.meshes[filename]
 
-    def get(cls, name: str) -> MeshInstance:
-        return cls.instance.meshes[cls.instance.meshes_names[name]]
+    def get(cls, name: str) -> MeshInstance | None:
+        if name not in cls.instance.meshes_names.keys():
+            return None
+        
+        filename = cls.instance.meshes_names[name]
+
+        if filename not in cls.instance.meshes.keys():
+            return None
+        
+        return cls.instance.meshes[filename]
     
     def get_meshes(cls) -> dict[str, MeshInstance]:
         return cls.instance.meshes
