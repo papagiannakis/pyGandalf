@@ -35,6 +35,7 @@ class EditorPanelSystem(System):
         self.vsync_value = False
         self.gizmo_operation: imguizmo.im_guizmo.OPERATION = imguizmo.im_guizmo.OPERATION.translate
         self.drag_and_drop_mesh = None
+        self.drag_and_drop_scene = None
 
     def on_create(self, entity: Entity, components):
         """
@@ -129,6 +130,17 @@ class EditorPanelSystem(System):
             OpenGLRenderer().invalidate_framebuffer(self.viewport_panel_size.x, self.viewport_panel_size.y)
             self.viewport_size = imgui.ImVec2(self.viewport_panel_size.x, self.viewport_panel_size.y)
         imgui.image(OpenGLRenderer().get_color_attachment(), imgui.ImVec2(self.viewport_size.x, self.viewport_size.y), imgui.ImVec2(0, 1), imgui.ImVec2(1, 0))
+
+        if imgui.begin_drag_drop_target():
+            payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('scenes')
+            if payload != None:
+                EditorVisibleComponent.SELECTED = False
+                EditorVisibleComponent.SELECTED_ENTITY = None
+                path: Path = Path(self.drag_and_drop_scene)
+                scene: Scene = Scene(path.stem)
+                scene_serializer: SceneSerializer = SceneSerializer(scene)
+                scene_serializer.deserialize(path)
+                SceneManager().open_external_scene(scene)
 
         # Gizmos
         camera: CameraComponent = SceneManager().get_main_camera()
@@ -375,9 +387,8 @@ class EditorPanelSystem(System):
 
                             if not mesh_already_built:
                                 path: Path = Path(self.drag_and_drop_mesh)
-                                instance = OpenGLMeshLib().build(path.name, path)
+                                instance = OpenGLMeshLib().build(path.stem, path)
                                 init_drag_and_drop_mesh(instance)
-
                         imgui.end_drag_drop_target()
                     
                     imgui.tree_pop()
@@ -534,6 +545,13 @@ class EditorPanelSystem(System):
                         payload_id = id
                         if imgui.set_drag_drop_payload_py_id("models", payload_id):
                             self.drag_and_drop_mesh = str(MODELS_PATH / entry)
+                        imgui.end_drag_drop_source()
+
+                if 'scenes' in str(self.current_directory):
+                    if imgui.begin_drag_drop_source():
+                        payload_id = id
+                        if imgui.set_drag_drop_payload_py_id("scenes", payload_id):
+                            self.drag_and_drop_scene = str(SCENES_PATH / entry)
                         imgui.end_drag_drop_source()
 
                 # imgui.image_button(f'{entry}{id}', tex_id, imgui.ImVec2(thumbnail_size, thumbnail_size), imgui.ImVec2(0, 1), imgui.ImVec2(1, 0))
