@@ -213,6 +213,10 @@ class EditorPanelSystem(System):
                 camera_transform.scale = glm.vec3(view_matrix_components.scale[0], view_matrix_components.scale[1], view_matrix_components.scale[2])
 
     def draw_hierachy_panel(self):
+        modified, text = imgui.input_text('Scene', SceneManager().get_active_scene().name)
+        if modified:
+            SceneManager().get_active_scene().name = text
+
         if imgui.begin_popup_context_window('Right click options', imgui.PopupFlags_.no_open_over_items | imgui.PopupFlags_.mouse_button_right):
             modified_empty, _ = imgui.menu_item('Create Empty', '', False)
 
@@ -530,6 +534,7 @@ class EditorPanelSystem(System):
                 # imgui.text_wrapped('Back')    
                         
             self.drag_and_drop_mesh = None
+            self.drag_and_drop_scene = None
 
             id = 0
             # Loop through directory items
@@ -568,8 +573,8 @@ class EditorPanelSystem(System):
 
     def draw_systems_panel(self):
         for system in SceneManager().get_active_scene().get_systems():
-            imgui.text(str(type(system)))
-            imgui.same_line()
+            imgui.text_wrapped(type(system).__name__)
+            imgui.same_line(imgui.get_window_width() - 55)
             if system.state == SystemState.PAUSE:
                 imgui.button('Resume')
                 if imgui.is_item_clicked():
