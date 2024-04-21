@@ -4,7 +4,6 @@ from pyGandalf.utilities.definitions import MODELS_PATH
 import numpy as np
 import trimesh
 from pxr import Usd, UsdGeom
-# import kaolin
 
 import os
 from pathlib import Path
@@ -38,33 +37,33 @@ class OpenGLMeshLib(object):
         texcoords = None
 
         if '.usd' in path.name:
-            # kaolin.io.usd.import_mesh(filename, with_normals=True)
-            # mesh: kaolin.rep.SurfaceMesh = kaolin.io.usd.import_mesh(filename, with_normals=True)
-            stage = Usd.Stage.Open(filename)
-            flattened_stage = stage.Flatten().ExportToString()
-            logger.debug(flattened_stage)
+            if False:
+                stage = Usd.Stage.Open(filename)
+                flattened_stage = stage.Flatten().ExportToString()
+                logger.debug(flattened_stage)
 
-            meshes, face_vertex_count = cls.instance._parse_usd(name, filename)
-            mesh: MeshInstance = meshes[0]
+                meshes, face_vertex_count = cls.instance._parse_usd(name, filename)
+                mesh: MeshInstance = meshes[0]
 
-            vertices = np.asarray(mesh.vertices, dtype=np.float32)
+                vertices = np.asarray(mesh.vertices, dtype=np.float32)
 
-            if face_vertex_count == 3:
-                indices = np.asarray(mesh.indices, dtype=np.uint32).reshape(-1, 3)
-            elif face_vertex_count == 4:
-                result = []
-                indices = np.asarray(mesh.indices, dtype=np.uint32)
-                for i in range(0, len(indices), 4):
-                    sub_array = indices[i:i+4]
-                    extracted_elements = np.array([
-                        [sub_array[0], sub_array[1], sub_array[2]],
-                        [sub_array[2], sub_array[3], sub_array[0]]
-                    ])
-                    result.extend(extracted_elements)
-                indices = np.array(result)
+                if face_vertex_count == 3:
+                    indices = np.asarray(mesh.indices, dtype=np.uint32).reshape(-1, 3)
+                elif face_vertex_count == 4:
+                    result = []
+                    indices = np.asarray(mesh.indices, dtype=np.uint32)
+                    for i in range(0, len(indices), 4):
+                        sub_array = indices[i:i+4]
+                        extracted_elements = np.array([
+                            [sub_array[0], sub_array[1], sub_array[2]],
+                            [sub_array[2], sub_array[3], sub_array[0]]
+                        ])
+                        result.extend(extracted_elements)
+                    indices = np.array(result)
 
-            normals = np.asarray(mesh.normals, dtype=np.float32)
-            texcoords = np.asarray(mesh.texcoords, dtype=np.float32)
+                normals = np.asarray(mesh.normals, dtype=np.float32)
+                texcoords = np.asarray(mesh.texcoords, dtype=np.float32)
+            raise NotImplementedError()
         else:
             mesh: trimesh.Trimesh = trimesh.load(filename, force='mesh')
             vertices = np.asarray(mesh.vertices, dtype=np.float32)
