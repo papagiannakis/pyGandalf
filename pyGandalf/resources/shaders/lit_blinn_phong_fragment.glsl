@@ -1,8 +1,7 @@
 #version 330 core
 out vec4 FragColor;
 
-uniform sampler2D u_Textures[16];
-uniform float u_TextureId;
+uniform sampler2D u_AlbedoMap;
 uniform vec3 u_Color = vec3(1.0, 1.0, 1.0);
 
 in vec3 v_Position;
@@ -26,27 +25,7 @@ void main()
 {
     vec3 textureColor;
 
-    int textureID = int(u_TextureId + 0.1);
-
-    switch (textureID)
-	{
-	case  0: textureColor = texture(u_Textures[0],  v_TexCoord).rgb; break;
-	case  1: textureColor = texture(u_Textures[1],  v_TexCoord).rgb; break;
-	case  2: textureColor = texture(u_Textures[2],  v_TexCoord).rgb; break;
-	case  3: textureColor = texture(u_Textures[3],  v_TexCoord).rgb; break;
-	case  4: textureColor = texture(u_Textures[4],  v_TexCoord).rgb; break;
-	case  5: textureColor = texture(u_Textures[5],  v_TexCoord).rgb; break;
-	case  6: textureColor = texture(u_Textures[6],  v_TexCoord).rgb; break;
-	case  7: textureColor = texture(u_Textures[7],  v_TexCoord).rgb; break;
-	case  8: textureColor = texture(u_Textures[8],  v_TexCoord).rgb; break;
-	case  9: textureColor = texture(u_Textures[9],  v_TexCoord).rgb; break;
-	case 10: textureColor = texture(u_Textures[10], v_TexCoord).rgb; break;
-	case 11: textureColor = texture(u_Textures[11], v_TexCoord).rgb; break;
-	case 12: textureColor = texture(u_Textures[12], v_TexCoord).rgb; break;
-	case 13: textureColor = texture(u_Textures[13], v_TexCoord).rgb; break;
-	case 14: textureColor = texture(u_Textures[14], v_TexCoord).rgb; break;
-	case 15: textureColor = texture(u_Textures[15], v_TexCoord).rgb; break;
-    }
+    textureColor = texture(u_AlbedoMap,  v_TexCoord).rgb;
 
     float ambientCoefficient = 0.1;
     vec3 normal = normalize(v_Normal);

@@ -7,7 +7,7 @@ from pyGandalf.scene.editor_manager import EditorManager
 from pyGandalf.scene.components import *
 from pyGandalf.scene.editor_components import EditorPanelComponent, EditorVisibleComponent
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
-from pyGandalf.utilities.definitions import ROOT_DIR, SCENES_PATH, MODELS_PATH
+from pyGandalf.utilities.definitions import ROOT_DIR, SCENES_PATH, MODELS_PATH, TEXTURES_PATH
 from pyGandalf.utilities.entity_presets import *
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
@@ -36,6 +36,7 @@ class EditorPanelSystem(System):
         self.gizmo_operation: imguizmo.im_guizmo.OPERATION = imguizmo.im_guizmo.OPERATION.translate
         self.drag_and_drop_mesh = None
         self.drag_and_drop_scene = None
+        self.drag_and_drop_texture = None
 
     def on_create(self, entity: Entity, components):
         """
@@ -357,7 +358,9 @@ class EditorPanelSystem(System):
                 if imgui.tree_node_ex('StaticMeshComponent', flags):
                     static_mesh: StaticMeshComponent = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, StaticMeshComponent)
 
-                    imgui.label_text('name', static_mesh.name)
+                    imgui.begin_disabled()
+                    imgui.input_text('name', static_mesh.name)
+                    imgui.end_disabled()
 
                     def init_drag_and_drop_mesh(instance):
                         static_mesh.name = instance.name
@@ -421,6 +424,31 @@ class EditorPanelSystem(System):
                     if material.instance.has_uniform('u_Color'):
                         color_changed, new_color = imgui.color_edit3('color', material.color)
                         if color_changed: material.color = glm.vec3(new_color[0], new_color[1], new_color[2])
+
+                    if material.instance.has_uniform('u_AlbedoMap'):
+                        imgui.begin_disabled()
+                        albedo_changed, new_albedo = imgui.input_text('albedo', material.instance.textures[0])
+                        imgui.end_disabled()
+                        if albedo_changed: material.instance.textures[0] = new_albedo
+
+                    if imgui.begin_drag_drop_target():
+                        payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('textures')
+                        if payload != None:
+                            texture_already_built = False
+                            for texture in OpenGLTextureLib().get_textures().values():
+                                if texture.path == None:
+                                    continue
+
+                                if self.drag_and_drop_texture == str(TEXTURES_PATH / texture.path):
+                                    material.instance.textures[0] = texture.name
+                                    texture_already_built = True
+                                    break
+
+                            if not texture_already_built:
+                                path: Path = Path(self.drag_and_drop_texture)
+                                instance = OpenGLTextureLib().build(path.stem, path)
+                                material.instance.textures[0] = path.stem
+                        imgui.end_drag_drop_target()
                     
                     if material.instance.has_uniform('u_Glossiness'):
                         glossiness_changed, new_glossiness = imgui.drag_float('glossiness', material.glossiness, 0.1)
@@ -535,6 +563,7 @@ class EditorPanelSystem(System):
                         
             self.drag_and_drop_mesh = None
             self.drag_and_drop_scene = None
+            self.drag_and_drop_texture = None
 
             id = 0
             # Loop through directory items
@@ -557,6 +586,13 @@ class EditorPanelSystem(System):
                         payload_id = id
                         if imgui.set_drag_drop_payload_py_id("scenes", payload_id):
                             self.drag_and_drop_scene = str(SCENES_PATH / entry)
+                        imgui.end_drag_drop_source()
+
+                if 'textures' in str(self.current_directory):
+                    if imgui.begin_drag_drop_source():
+                        payload_id = id
+                        if imgui.set_drag_drop_payload_py_id("textures", payload_id):
+                            self.drag_and_drop_texture = str(TEXTURES_PATH / entry)
                         imgui.end_drag_drop_source()
 
                 # imgui.image_button(f'{entry}{id}', tex_id, imgui.ImVec2(thumbnail_size, thumbnail_size), imgui.ImVec2(0, 1), imgui.ImVec2(1, 0))

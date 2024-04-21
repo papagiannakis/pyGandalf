@@ -50,7 +50,7 @@ class OpenGLShaderLib(object):
         return shader_program
     
     def build(cls, name: str, vs_path: Path, fs_path: Path) -> int:
-        """Builds a new shader (if not already exists) and returns its shader program.
+        """Builds a new shader (if one does not already exists with that name) and returns its shader program.
 
         Args:
             name (str): The name of the shader

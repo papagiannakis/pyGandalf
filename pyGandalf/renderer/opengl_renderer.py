@@ -74,12 +74,6 @@ class OpenGLRenderer(BaseRenderer):
         # Use the shader program
         gl.glUseProgram(material.instance.shader_program)
 
-        # Create samplers if texture is in use
-        samplers = []
-        for i in range(0, 16):
-            samplers.append(i)
-        material.instance.set_uniform("u_Textures", np.asarray(samplers, dtype=np.int32))
-
         return 0
 
     def begin_frame(cls):
@@ -137,9 +131,6 @@ class OpenGLRenderer(BaseRenderer):
                 if camera_transform != None:
                     material.instance.set_uniform('u_ViewPosition', camera_transform.get_world_position())
 
-        if len(material.instance.textures) > 0:
-            material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
-
         if material.instance.has_uniform('u_Color'):
             material.instance.set_uniform('u_Color', material.color)
     
@@ -148,7 +139,9 @@ class OpenGLRenderer(BaseRenderer):
         gl.glUseProgram(material.instance.shader_program)
         
         # Bind textures
-        OpenGLTextureLib().bind_textures()
+        for texture_name in material.instance.textures:
+            OpenGLTextureLib().bind(texture_name)
+            material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
 
         # Set Uniforms
         cls.instance.update_uniforms(model, material)
@@ -173,7 +166,8 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBindVertexArray(0)
 
         # Unbind textures
-        OpenGLTextureLib().unbind_textures()
+        for texture_name in material.instance.textures:
+            OpenGLTextureLib().unbind(texture_name)
 
         # Unbind shader program
         gl.glUseProgram(0)
@@ -183,7 +177,9 @@ class OpenGLRenderer(BaseRenderer):
         gl.glUseProgram(material.instance.shader_program)
         
         # Bind textures
-        OpenGLTextureLib().bind_textures()
+        for texture_name in material.instance.textures:
+            OpenGLTextureLib().bind(texture_name)
+            material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
 
         # Set Uniforms
         cls.instance.update_uniforms(model, material)
@@ -212,7 +208,8 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, 0)
 
         # Unbind textures
-        OpenGLTextureLib().unbind_textures()
+        for texture_name in material.instance.textures:
+            OpenGLTextureLib().unbind(texture_name)
 
         # Unbind shader program
         gl.glUseProgram(0)

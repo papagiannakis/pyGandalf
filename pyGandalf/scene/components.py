@@ -1,4 +1,5 @@
 from pyGandalf.scene.entity import Entity
+from pyGandalf.utilities.opengl_material_lib import MaterialInstance
 
 import glm
 
@@ -38,9 +39,9 @@ class LinkComponent(Component):
         self.children: list[Entity] = []
 
 class MaterialComponent(Component):
-    def __init__(self, name, color = glm.vec3(1.0, 1.0, 1.0)):
+    def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0)):
         self.name = name
-        self.instance = None
+        self.instance: MaterialInstance = None
         self.color = color
         self.glossiness = 5.0
         self.metallicness = 0.0
