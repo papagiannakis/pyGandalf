@@ -574,12 +574,12 @@ class EditorPanelSystem(System):
     def draw_systems_panel(self):
         for system in SceneManager().get_active_scene().get_systems():
             imgui.text_wrapped(type(system).__name__)
-            imgui.same_line(imgui.get_window_width() - 55)
+            imgui.same_line(imgui.get_window_width() - 80)
             if system.state == SystemState.PAUSE:
-                imgui.button('Resume')
+                imgui.button('Resume', imgui.ImVec2(60, 20))
                 if imgui.is_item_clicked():
                     system.set_state(SystemState.PLAY)
             elif system.state == SystemState.PLAY:
-                imgui.button('Pause')
+                imgui.button('Pause', imgui.ImVec2(60, 20))
                 if imgui.is_item_clicked():
                     system.set_state(SystemState.PAUSE)

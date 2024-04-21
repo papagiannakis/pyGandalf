@@ -22,7 +22,7 @@ class OpenGLTextureLib(object):
             cls.instance.current_slot = 0
         return cls.instance
     
-    def build(cls, name: str, path: Path = None, img_data: tuple[bytes, int, int] = None):
+    def build(cls, name: str, path: Path = None, img_data: tuple[bytes, int, int] = None, flip = False):
         if cls.instance.textures.get(name) != None:
             return cls.instance.textures[name].slot
 
@@ -31,7 +31,8 @@ class OpenGLTextureLib(object):
 
         if path is not None:
             img = Image.open(path)
-            img = img.transpose(Image.FLIP_TOP_BOTTOM)
+            if flip:
+                img = img.transpose(Image.FLIP_TOP_BOTTOM)
             img_bytes = img.convert("RGBA").tobytes("raw", "RGBA", 0, -1)
 
         texture_id = gl.glGenTextures(1)        
