@@ -1,5 +1,6 @@
 from pyGandalf.scene.entity import Entity
 from pyGandalf.core.input_manager import InputManager
+from pyGandalf.core.event_manager import EventManager, EventType
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.scene_serializer import SceneSerializer
@@ -134,6 +135,7 @@ class EditorPanelSystem(System):
             OpenGLRenderer().invalidate_framebuffer(self.viewport_panel_size.x, self.viewport_panel_size.y)
             self.viewport_size = imgui.ImVec2(self.viewport_panel_size.x, self.viewport_panel_size.y)
             camera.aspect_ratio = self.viewport_panel_size.x / self.viewport_panel_size.y
+
         imgui.image(OpenGLRenderer().get_color_attachment(), imgui.ImVec2(self.viewport_size.x, self.viewport_size.y), imgui.ImVec2(0, 1), imgui.ImVec2(1, 0))
 
         if imgui.begin_drag_drop_target():
@@ -485,6 +487,12 @@ class EditorPanelSystem(System):
                 imgui.end_menu()
 
     def draw_menu_bar(self):
+        if InputManager().get_key_down(glfw.KEY_LEFT_CONTROL):
+            if InputManager().get_key_down(glfw.KEY_S):
+                scene: Scene = SceneManager().get_active_scene()
+                scene_serializer: SceneSerializer = SceneSerializer(scene)
+                scene_serializer.serialize(SCENES_PATH / f"{scene.name}.usda")
+
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu('File'):
                 save_pressed, _ = imgui.menu_item('Save', 'Ctrl + S', False)
