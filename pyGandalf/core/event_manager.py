@@ -56,7 +56,7 @@ class EventManager:
                         callback(event.data["width"], event.data["height"])
                     cls.instance._handle_callback_flush(event.type)
                     display_w, display_h = glfw.get_framebuffer_size(cls.instance.window)
-                    cls.instance.renderer.resize(0, 0, display_w, display_h)
+                    cls.instance.renderer().resize(display_w, display_h)
                 case EventType.CURSOR_ENTER:
                     for callback, _ in cls.instance.event_callbacks[EventType.CURSOR_ENTER]:
                         callback(event.data["enter"])

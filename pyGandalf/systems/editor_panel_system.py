@@ -135,8 +135,8 @@ class EditorPanelSystem(System):
             OpenGLRenderer().invalidate_framebuffer(self.viewport_panel_size.x, self.viewport_panel_size.y)
             self.viewport_size = imgui.ImVec2(self.viewport_panel_size.x, self.viewport_panel_size.y)
             camera.aspect_ratio = self.viewport_panel_size.x / self.viewport_panel_size.y
-
-        imgui.image(OpenGLRenderer().get_color_attachment(), imgui.ImVec2(self.viewport_size.x, self.viewport_size.y), imgui.ImVec2(0, 1), imgui.ImVec2(1, 0))
+        else:
+            imgui.image(OpenGLRenderer().get_color_attachment(), imgui.ImVec2(self.viewport_size.x, self.viewport_size.y), imgui.ImVec2(0, 1), imgui.ImVec2(1, 0))
 
         if imgui.begin_drag_drop_target():
             payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('scenes')
