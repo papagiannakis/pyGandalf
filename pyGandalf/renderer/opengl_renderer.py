@@ -2,7 +2,7 @@ from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 
 from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import TransformComponent
+from pyGandalf.scene.components import TransformComponent, CameraComponent
 
 from pyGandalf.systems.system import SystemState
 from pyGandalf.systems.light_system import LightSystem
@@ -128,7 +128,7 @@ class OpenGLRenderer(BaseRenderer):
             camera_entity = SceneManager().get_main_camera_entity()
             if camera_entity != None:
                 camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
-                if camera_transform != None:
+                if camera_transform != None and not camera_transform.static:
                     material.instance.set_uniform('u_ViewPosition', camera_transform.get_world_position())
 
         if material.instance.has_uniform('u_Color'):
@@ -223,10 +223,8 @@ class OpenGLRenderer(BaseRenderer):
 
         if cls.instance.framebuffer_id:
             gl.glDeleteFramebuffers(1, np.array(cls.instance.framebuffer_id, dtype=np.uint))
-            if cls.instance.color_attachment > -1:
-                gl.glDeleteTextures(1, np.array(cls.instance.color_attachment, dtype=np.uint))
-            if cls.instance.depth_attachment > -1:
-                gl.glDeleteTextures(1, np.array(cls.instance.depth_attachment, dtype=np.uint))
+            gl.glDeleteTextures(1, np.array(cls.instance.color_attachment, dtype=np.uint))
+            gl.glDeleteTextures(1, np.array(cls.instance.depth_attachment, dtype=np.uint))
 
         # Build the texture that will serve as the color attachment for the framebuffer.
         cls.instance.color_attachment = gl.glGenTextures(1)

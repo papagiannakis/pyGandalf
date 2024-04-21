@@ -4,7 +4,7 @@ from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.renderer.imgui_renderer import ImGuiRenderer, ImGuiTheme
 from pyGandalf.core.base_window import BaseWindow
 from pyGandalf.core.input_manager import InputManager
-from pyGandalf.core.event_manager import EventManager
+from pyGandalf.core.event_manager import EventManager, EventType
 
 import glfw
 
@@ -39,7 +39,7 @@ class Application(object):
         cls.instance.is_editor_attached = attach_editor
         cls.instance.window.create()
         InputManager().initialize(cls.instance.window.get_handle())
-        EventManager().initialize(cls.instance.window.get_handle())
+        EventManager().initialize(cls.instance.window.get_handle(), renderer=cls.instance.renderer)
         renderer().initialize(attach_editor)
         if cls.instance.is_imgui_attached:
             ImGuiRenderer().initialize(cls.instance.window.get_handle(), ImGuiTheme.DARK, attach_editor)

@@ -51,7 +51,7 @@ class CameraComponent(Component):
         PERSPECTIVE = 1
         ORTHOGRAPHIC = 2
 
-    def __init__(self, fov, aspect_ratio, near, far, zoom_level, type: Type, primary = True, static = False):
+    def __init__(self, fov, aspect_ratio, near, far, zoom_level, type: Type, primary = True):
         self.zoom_level = zoom_level
         self.fov = fov
         self.near = near
@@ -67,7 +67,6 @@ class CameraComponent(Component):
         self.view_projection = glm.mat4(1.0)
 
         self.primary = primary
-        self.static = static
 
 class StaticMeshComponent(Component):
     def __init__(self, name, attributes = None, indices = None, primitive = None):
@@ -82,7 +81,6 @@ class StaticMeshComponent(Component):
         self.load_from_file = True if attributes == None else False
 
 class LightComponent(Component):
-    def __init__(self, color, intensity, static = True):
+    def __init__(self, color, intensity):
         self.color = color
         self.intensity = intensity
-        self.static = static

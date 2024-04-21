@@ -1,4 +1,5 @@
 from pyGandalf.utilities.logger import logger
+from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.core.events import Event, PollEventAndFlush, EventType
 
 import glfw
@@ -11,15 +12,18 @@ class EventManager:
             cls.instance = super(EventManager, cls).__new__(cls)
             cls.instance.window = None
             cls.instance.event_callbacks = {}
+            cls.instance.renderer: BaseRenderer = None # type: ignore
         return cls.instance
     
-    def initialize(cls, window):
+    def initialize(cls, window, renderer: BaseRenderer):
         """Initializes the event manager.
 
         Args:
             window (GLFWWindow*): The application window.
+            window (BaseRenderer): The application window.
         """
         cls.instance.window = window
+        cls.instance.renderer = renderer
         for event_type in EventType:
             cls.instance.event_callbacks[event_type] = []
 
@@ -51,7 +55,8 @@ class EventManager:
                     for callback, _ in cls.instance.event_callbacks[EventType.FRAMEBUFFER_SIZE]:
                         callback(event.data["width"], event.data["height"])
                     cls.instance._handle_callback_flush(event.type)
-                    # TODO: Resize viewport.
+                    display_w, display_h = glfw.get_framebuffer_size(cls.instance.window)
+                    cls.instance.renderer.resize(0, 0, display_w, display_h)
                 case EventType.CURSOR_ENTER:
                     for callback, _ in cls.instance.event_callbacks[EventType.CURSOR_ENTER]:
                         callback(event.data["enter"])

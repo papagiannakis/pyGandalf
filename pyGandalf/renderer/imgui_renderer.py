@@ -47,8 +47,8 @@ class ImGuiRenderer(BaseRenderer):
     
     def end_frame(cls):
         imgui.render()
-        display_w, display_h = glfw.get_framebuffer_size(cls.instance.window)
-        gl.glViewport(0, 0, display_w, display_h)
+        # display_w, display_h = glfw.get_framebuffer_size(cls.instance.window)
+        # gl.glViewport(0, 0, display_w, display_h)
         imgui.backends.opengl3_render_draw_data(imgui.get_draw_data())
     
     def resize(cls, width, height):

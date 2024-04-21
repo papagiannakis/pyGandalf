@@ -125,11 +125,15 @@ class EditorPanelSystem(System):
             imgui.tree_pop()
     
     def draw_viewport_panel(self):
+        camera: CameraComponent = SceneManager().get_main_camera()
+        camera_entity: CameraComponent = SceneManager().get_main_camera_entity()
+
         # Viewport
         self.viewport_panel_size = imgui.get_content_region_avail()
         if self.viewport_size.x != self.viewport_panel_size.x or self.viewport_size.y != self.viewport_panel_size.y:
             OpenGLRenderer().invalidate_framebuffer(self.viewport_panel_size.x, self.viewport_panel_size.y)
             self.viewport_size = imgui.ImVec2(self.viewport_panel_size.x, self.viewport_panel_size.y)
+            camera.aspect_ratio = self.viewport_panel_size.x / self.viewport_panel_size.y
         imgui.image(OpenGLRenderer().get_color_attachment(), imgui.ImVec2(self.viewport_size.x, self.viewport_size.y), imgui.ImVec2(0, 1), imgui.ImVec2(1, 0))
 
         if imgui.begin_drag_drop_target():
@@ -144,8 +148,6 @@ class EditorPanelSystem(System):
                 SceneManager().open_external_scene(scene)
 
         # Gizmos
-        camera: CameraComponent = SceneManager().get_main_camera()
-        camera_entity: CameraComponent = SceneManager().get_main_camera_entity()
         if camera != None and camera_entity != None:
             context = SceneManager().get_active_scene()
             selected_entity: Entity = EditorVisibleComponent.SELECTED_ENTITY
@@ -283,6 +285,8 @@ class EditorPanelSystem(System):
                     moved, move_amount = imgui.drag_float3('Translation', transform.translation.to_list(), 0.25)
                     rotated, rotate_amount = imgui.drag_float3('Rotation', transform.rotation.to_list(), 0.25)
                     scaled, scale_amount = imgui.drag_float3('Scale', transform.scale.to_list(), 0.25)
+                    static_changed, new_static = imgui.checkbox('static', transform.static)
+                    if static_changed: transform.static = new_static
 
                     if moved:
                         transform.translation.x = move_amount[0]
@@ -311,7 +315,6 @@ class EditorPanelSystem(System):
                     far_changed, new_far = imgui.drag_float('far', camera.far)
                     aspect_ratio_changed, new_aspect_ratio = imgui.drag_float('aspect_ratio', camera.aspect_ratio, 0.1)
                     primary_changed, new_primary = imgui.checkbox('primary', camera.primary)
-                    static_changed, new_static = imgui.checkbox('static', camera.static)
 
                     selected_projection = 'Orthographic' if camera.type == CameraComponent.Type.ORTHOGRAPHIC else 'Perspective'
                     projections = ['Perspective', 'Orthographic']
@@ -332,7 +335,6 @@ class EditorPanelSystem(System):
                     if far_changed: camera.far = new_far
                     if aspect_ratio_changed: camera.aspect_ratio = new_aspect_ratio
                     if primary_changed: camera.primary = new_primary
-                    if static_changed: camera.static = new_static
 
                     camera.type = CameraComponent.Type.ORTHOGRAPHIC if selected_projection == 'Orthographic' else CameraComponent.Type.PERSPECTIVE
                     
@@ -345,11 +347,9 @@ class EditorPanelSystem(System):
 
                     color_changed, new_color = imgui.color_edit3('color', light.color)
                     intensity_changed, new_intensity = imgui.drag_float('intensity', light.intensity, 0.1)
-                    static_changed, new_static = imgui.checkbox('static', light.static)
 
                     if color_changed: light.color = glm.vec3(new_color[0], new_color[1], new_color[2])
                     if intensity_changed: light.intensity = new_intensity
-                    if static_changed: light.static = new_static
                     
                     imgui.tree_pop()
                 imgui.separator()
