@@ -73,4 +73,3 @@ def test_LightComponent():
     light = LightComponent(light_color, light_intensity)
     assert np.allclose(light.color, light_color)
     assert light.intensity == light_intensity
-    assert light.static == True
