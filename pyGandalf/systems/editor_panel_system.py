@@ -12,6 +12,8 @@ from pyGandalf.utilities.definitions import ROOT_DIR, SCENES_PATH, MODELS_PATH, 
 from pyGandalf.utilities.entity_presets import *
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
+from pyGandalf.utilities.logger import logger
+
 from imgui_bundle import imgui, imguizmo
 import OpenGL.GL as gl
 import numpy as np
@@ -396,8 +398,11 @@ class EditorPanelSystem(System):
 
                             if not mesh_already_built:
                                 path: Path = Path(self.drag_and_drop_mesh)
-                                instance = OpenGLMeshLib().build(path.stem, path)
-                                init_drag_and_drop_mesh(instance)
+                                try:
+                                    instance = OpenGLMeshLib().build(path.stem, path)
+                                    init_drag_and_drop_mesh(instance)
+                                except ValueError:
+                                    logger.error('Error loading mesh, file type not supported')
                         imgui.end_drag_drop_target()
                     
                     imgui.tree_pop()
