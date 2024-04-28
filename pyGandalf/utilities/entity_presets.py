@@ -201,7 +201,7 @@ def create_light() -> Entity:
     scene: Scene = SceneManager().get_active_scene()
     entity_light = scene.enroll_entity()
     scene.add_component(entity_light, InfoComponent('Light'))
-    scene.add_component(entity_light, TransformComponent(glm.vec3(0, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_light, TransformComponent(glm.vec3(0, 2, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity_light, LinkComponent(None))
     scene.add_component(entity_light, LightComponent(glm.vec3(1, 1, 1), 0.75))
     return entity_light

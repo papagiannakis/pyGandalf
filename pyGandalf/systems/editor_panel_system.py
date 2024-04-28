@@ -110,7 +110,7 @@ class EditorPanelSystem(System):
             return
         
         flags: imgui.TreeNodeFlags_ = (imgui.TreeNodeFlags_.selected if EditorVisibleComponent.SELECTED and EditorVisibleComponent.SELECTED_ENTITY == entt else 0) | (imgui.TreeNodeFlags_.open_on_arrow if link != None and len(link.children) != 0 else imgui.TreeNodeFlags_.bullet)
-        opened = imgui.tree_node_ex(info_entt.tag, flags)
+        opened = imgui.tree_node_ex(f'{info_entt.tag}##{entt.id}', flags)
 
         if imgui.is_item_clicked():
             EditorVisibleComponent.SELECTED = True
