@@ -207,7 +207,7 @@ class EditorPanelSystem(System):
             camera_transform: TransformComponent = context.get_component(camera_entity, TransformComponent)
             new_view: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.view_manipulate(
                 np.asmatrix(camera.view, dtype=np.float32),
-                camera_transform.translation.z,
+                10.0,
                 imgui.ImVec2(view_manipulate_right - 128, view_manipulate_top),
                 imgui.ImVec2(128, 128),
                 0x10101010,
