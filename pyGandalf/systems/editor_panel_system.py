@@ -251,6 +251,7 @@ class EditorPanelSystem(System):
                     moved, move_amount = imgui.drag_float3('Translation', transform.translation.to_list(), 0.25)
                     rotated, rotate_amount = imgui.drag_float3('Rotation', transform.rotation.to_list(), 0.25)
                     scaled, scale_amount = imgui.drag_float3('Scale', transform.scale.to_list(), 0.25)
+                    static_changed, new_static = imgui.checkbox('static', transform.static)
 
                     if moved:
                         transform.translation.x = move_amount[0]
@@ -267,6 +268,9 @@ class EditorPanelSystem(System):
                         transform.scale.y = scale_amount[1]
                         transform.scale.z = scale_amount[2]
 
+                    if static_changed:
+                        transform.static = new_static
+
                     imgui.tree_pop()
                 imgui.separator()
 
@@ -279,7 +283,6 @@ class EditorPanelSystem(System):
                     far_changed, new_far = imgui.drag_float('far', camera.far)
                     aspect_ratio_changed, new_aspect_ratio = imgui.drag_float('aspect_ratio', camera.aspect_ratio, 0.1)
                     primary_changed, new_primary = imgui.checkbox('primary', camera.primary)
-                    static_changed, new_static = imgui.checkbox('static', camera.static)
 
                     selected_projection = 'Orthographic' if camera.type == CameraComponent.Type.ORTHOGRAPHIC else 'Perspective'
                     projections = ['Perspective', 'Orthographic']
@@ -300,7 +303,6 @@ class EditorPanelSystem(System):
                     if far_changed: camera.far = new_far
                     if aspect_ratio_changed: camera.aspect_ratio = new_aspect_ratio
                     if primary_changed: camera.primary = new_primary
-                    if static_changed: camera.static = new_static
 
                     camera.type = CameraComponent.Type.ORTHOGRAPHIC if selected_projection == 'Orthographic' else CameraComponent.Type.PERSPECTIVE
                     
@@ -312,12 +314,10 @@ class EditorPanelSystem(System):
                     light: LightComponent = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, LightComponent)
 
                     color_changed, new_color = imgui.color_edit3('color', light.color)
-                    intensity_changed, new_intensity = imgui.drag_float('intensity', light.intensity, 0.1)
-                    static_changed, new_static = imgui.checkbox('static', light.static)
+                    intensity_changed, new_intensity = imgui.drag_float('intensity', light.intensity, 0.1)                    
 
                     if color_changed: light.color = glm.vec3(new_color[0], new_color[1], new_color[2])
                     if intensity_changed: light.intensity = new_intensity
-                    if static_changed: light.static = new_static
                     
                     imgui.tree_pop()
                 imgui.separator()

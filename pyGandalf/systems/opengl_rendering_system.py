@@ -32,8 +32,7 @@ class OpenGLStaticMeshRenderingSystem(System):
         # Set up matrices for projection and view
         camera = SceneManager().get_main_camera()
         if camera != None:
-            material.instance.set_uniform('u_Projection', camera.projection)
-            material.instance.set_uniform('u_View', camera.view)
+            material.instance.set_uniform('u_ViewProjection', camera.view_projection)
             material.instance.set_uniform('u_Model', glm.mat4(1.0))
 
     def on_update(self, ts, entity: Entity, components):

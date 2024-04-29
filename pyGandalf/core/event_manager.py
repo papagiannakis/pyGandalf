@@ -10,16 +10,18 @@ class EventManager:
         if not hasattr(cls, 'instance'):
             cls.instance = super(EventManager, cls).__new__(cls)
             cls.instance.window = None
+            cls.instance.renderer = None
             cls.instance.event_callbacks = {}
         return cls.instance
     
-    def initialize(cls, window):
+    def initialize(cls, window, renderer):
         """Initializes the event manager.
 
         Args:
             window (GLFWWindow*): The application window.
         """
         cls.instance.window = window
+        cls.instance.renderer = renderer
         for event_type in EventType:
             cls.instance.event_callbacks[event_type] = []
 
@@ -51,7 +53,7 @@ class EventManager:
                     for callback, _ in cls.instance.event_callbacks[EventType.FRAMEBUFFER_SIZE]:
                         callback(event.data["width"], event.data["height"])
                     cls.instance._handle_callback_flush(event.type)
-                    # TODO: Resize viewport.
+                    cls.instance.renderer.resize(event.data["width"], event.data["height"])
                 case EventType.CURSOR_ENTER:
                     for callback, _ in cls.instance.event_callbacks[EventType.CURSOR_ENTER]:
                         callback(event.data["enter"])

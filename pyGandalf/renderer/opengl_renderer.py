@@ -122,12 +122,10 @@ class OpenGLRenderer(BaseRenderer):
 
         camera = SceneManager().get_main_camera()
         if camera != None:
-            material.instance.set_uniform('u_Projection', camera.projection)
-            material.instance.set_uniform('u_View', camera.view)
+            material.instance.set_uniform('u_ViewProjection', camera.projection * camera.view)
             material.instance.set_uniform('u_Model', model)
         else:
-            material.instance.set_uniform('u_Projection', glm.mat4(1.0))
-            material.instance.set_uniform('u_View', glm.mat4(1.0))
+            material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
             material.instance.set_uniform('u_Model', glm.mat4(1.0))
 
         if material.instance.has_uniform('u_ViewPosition'):
