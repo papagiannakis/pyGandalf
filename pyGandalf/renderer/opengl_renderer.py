@@ -167,7 +167,7 @@ class OpenGLRenderer(BaseRenderer):
 
         primitive = render_data.primitive if render_data.primitive != None else gl.GL_TRIANGLES
 
-        gl.glDrawArrays(primitive, 0, len(render_data.attributes[0]) * 3)
+        gl.glDrawArrays(primitive, 0, render_data.attributes[0].size)
 
         # Unbind vao
         gl.glBindVertexArray(0)
@@ -205,7 +205,7 @@ class OpenGLRenderer(BaseRenderer):
 
         primitive = render_data.primitive if render_data.primitive != None else gl.GL_TRIANGLES
 
-        gl.glDrawElements(primitive, len(render_data.indices) * 3, gl.GL_UNSIGNED_INT, None)
+        gl.glDrawElements(primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
 
         # Unbind vao
         gl.glBindVertexArray(0)

@@ -109,7 +109,10 @@ class System:
     def on_update_base(self, ts):
         """Calls the on_update method of the system for each entity and its filtered components.
         """
-        if hasattr(self, 'on_update') and callable(getattr(self, 'on_update')):
+        if hasattr(self, 'on_update_all') and callable(getattr(self, 'on_update_all')):
+            if self.state is SystemState.PLAY:
+                self.on_update_all(ts)
+        elif hasattr(self, 'on_update') and callable(getattr(self, 'on_update')):
             if self.state is SystemState.PLAY:
                 for entity, components in zip(self.filtered_entities, self.filtered_components):
                     if (len(components) == 1):
@@ -131,10 +134,10 @@ class System:
                         self.on_gui_update(ts, entity, components)
 
     def filtered_data(self):
-        """Returns the entities and components that the system operates on zipped.
+        """Returns the entities and components that the system operates on, zipped.
 
         Returns:
-            _type_: The entities and components that the system operates on zipped.
+            _type_: The entities and components that the system operates on, zipped.
         """
         return zip(self.filtered_entities, self.filtered_components)
     

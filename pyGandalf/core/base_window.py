@@ -36,6 +36,9 @@ class BaseWindow:
 
     def dispatch_main_loop(self, main_loop):
         raise NotImplementedError()
+    
+    def get_context(self):
+        raise NotImplementedError()
 
     def destroy(self):
         glfw.destroy_window(self.handle)

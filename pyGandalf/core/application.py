@@ -1,10 +1,12 @@
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.editor_manager import EditorManager
 from pyGandalf.renderer.base_renderer import BaseRenderer
+from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
+from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 from pyGandalf.renderer.imgui_renderer import ImGuiRenderer, ImGuiTheme
 from pyGandalf.core.base_window import BaseWindow
 from pyGandalf.core.input_manager import InputManager
-from pyGandalf.core.event_manager import EventManager
+from pyGandalf.core.event_manager import EventManager, EventType
 
 import glfw
 
@@ -39,8 +41,13 @@ class Application(object):
         cls.instance.is_editor_attached = attach_editor
         cls.instance.window.create()
         InputManager().initialize(cls.instance.window.get_handle())
-        EventManager().initialize(cls.instance.window.get_handle())
-        renderer().initialize(attach_editor)
+        EventManager().initialize(cls.instance.window.get_handle(), renderer=cls.instance.renderer)
+        
+        if type(renderer()) == OpenGLRenderer:
+            renderer().initialize(attach_editor)
+        elif type(renderer()) == WebGPURenderer:
+            renderer().initialize(cls.instance.window, "high-performance")
+
         if cls.instance.is_imgui_attached:
             ImGuiRenderer().initialize(cls.instance.window.get_handle(), ImGuiTheme.DARK, attach_editor)
 

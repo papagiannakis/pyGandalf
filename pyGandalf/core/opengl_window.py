@@ -26,7 +26,7 @@ class OpenGLWindow(BaseWindow):
         # Create a windowed mode window and its OpenGL context
         self.handle = glfw.create_window(self.width, self.height, self.title, None, None)
         if not self.handle:
-            logger.critical("Window could not be created!")
+            logger.critical("OpenGL Window could not be created!")
             glfw.terminate()
             exit(-1)
 
@@ -48,3 +48,6 @@ class OpenGLWindow(BaseWindow):
             glfw.poll_events()
             main_loop()
             glfw.swap_buffers(self.handle)
+
+    def get_context(self):
+        return glfw.get_current_context()
