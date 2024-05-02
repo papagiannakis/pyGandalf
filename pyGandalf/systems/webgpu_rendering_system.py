@@ -2,7 +2,7 @@ from pyGandalf.systems.system import System
 from pyGandalf.scene.entity import Entity
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPassDescription, ColorAttachmentDescription
 
-from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib
+from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialInstance, CPUBuffer
 
 import glm
 import wgpu
@@ -98,13 +98,13 @@ class WebGPUStaticMeshRenderingSystem(System):
 
                 WebGPURenderer().set_pipeline(mesh)
                 WebGPURenderer().set_buffers(mesh)
-                WebGPURenderer().set_bind_group(material)
+                WebGPURenderer().set_bind_groups(material)
 
                 if mesh_group_size == 1:
                     if (mesh.indices is None):
-                        WebGPURenderer().draw(mesh, mesh_group_size+1, 0)
+                        WebGPURenderer().draw(mesh, mesh_group_size, 0)
                     else:
-                        WebGPURenderer().draw_indexed(mesh, mesh_group_size+1, 0)
+                        WebGPURenderer().draw_indexed(mesh, mesh_group_size, 0)
                 else:
                     if (mesh.indices is None):
                         WebGPURenderer().draw(mesh, mesh_group_size)
@@ -113,48 +113,36 @@ class WebGPUStaticMeshRenderingSystem(System):
 
         WebGPURenderer().end_render_pass()
     
-    def set_uniforms(self, material_instance, meshes):
-        uniform_dtype = np.dtype([
-            ("view", np.float32, (4, 4)),
-            ("proj", np.float32, (4, 4)),
-        ])
+    def set_uniforms(self, material_instance: MaterialInstance, meshes):
+        if material_instance.has_uniform('u_UniformData'):
+            uniform_data = CPUBuffer(
+                ("viewMatrix", np.float32, (4, 4)),
+                ("projectionMatrix", np.float32, (4, 4)),
+            )
 
-        from pyGandalf.scene.scene_manager import SceneManager
-        camera = SceneManager().get_main_camera()
-        if camera != None:
-            uniform_data = np.array((
-                np.asarray(glm.transpose(camera.view)),
-                np.asarray(glm.transpose(glm.perspectiveLH_ZO(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far))),
-            ), dtype=uniform_dtype)
-        else:
-            uniform_data = np.array((
-                np.identity(4),
-                np.identity(4),
-            ), dtype=uniform_dtype)
+            from pyGandalf.scene.scene_manager import SceneManager
+            camera = SceneManager().get_main_camera()
+            if camera != None:
+                uniform_data["viewMatrix"] = np.asarray(glm.transpose(camera.view))
+                uniform_data["projectionMatrix"] = np.asarray(glm.transpose(glm.perspectiveLH_ZO(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)))
+            else:
+                uniform_data["viewMatrix"] = np.identity(4)
+                uniform_data["projectionMatrix"] = np.identity(4)
 
-        WebGPURenderer().write_buffer(material_instance.uniform_buffer, uniform_data)
+            material_instance.set_uniform('u_UniformData', uniform_data)
 
         object_data = []
 
         for mesh in meshes:
             for components in mesh:
                 _, _, transform = components
-                model = np.array(glm.transpose(transform.world_matrix), dtype=np.float32)
-                object_data.append(model)
+                storage_data = CPUBuffer(("modelMatrix", np.float32, (4, 4)))
+                storage_data["modelMatrix"] = glm.transpose(transform.world_matrix)
+                object_data.append(storage_data.mem)
 
         object_data = np.asarray(object_data)
 
-        # temporary_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer_with_data(
-        #     data=object_data, usage=wgpu.BufferUsage.COPY_SRC
-        # )
-
-        # WebGPURenderer().get_command_encoder().copy_buffer_to_buffer(
-        #     temporary_buffer, 0, material_instance.storage_buffer, 0, object_data.nbytes
-        # )
-
-        # temporary_buffer.destroy()
-
-        WebGPURenderer().write_buffer(material_instance.storage_buffer, object_data)
+        material_instance.set_storage('u_ModelData', object_data)
 
     
 

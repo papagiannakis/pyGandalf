@@ -2,22 +2,101 @@ from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
 from pyGandalf.utilities.logger import logger
 
-import OpenGL.GL as gl
 import wgpu
 import numpy as np
 
 import re
 import glm
+import ctypes
+
+class UniformArray:
+    """Convenience class to create a uniform array.
+
+    Maybe we can make it a public util at some point.
+    Ensure that the order matches structs in the shader code.
+    See https://www.w3.org/TR/WGSL/#alignment-and-size for reference on alignment.
+    """
+
+    def __init__(self, *args):
+        # Analyse incoming fields
+        fields = []
+        byte_offset = 0
+        for name, format, n in args:
+            assert format in ("f", "i", "I")
+            field = name, format, byte_offset, byte_offset + n * 4
+            fields.append(field)
+            byte_offset += n * 4
+        # Get padding
+        nbytes = byte_offset
+        while nbytes % 16:
+            nbytes += 1
+        # Construct memoryview object and a view for each field
+        self._mem = memoryview((ctypes.c_uint8 * nbytes)()).cast("B")
+        self._views = {}
+        for name, format, i1, i2 in fields:
+            self._views[name] = self._mem[i1:i2].cast(format)
+
+    @property
+    def mem(self):
+        return self._mem
+
+    @property
+    def nbytes(self):
+        return self._mem.nbytes
+
+    def __getitem__(self, key):
+        v = self._views[key].tolist()
+        return v[0] if len(v) == 1 else v
+
+    def __setitem__(self, key, val):
+        m = self._views[key]
+        n = m.shape[0]
+        if n == 1:
+            assert isinstance(val, (float, int))
+            m[0] = val
+        else:
+            assert isinstance(val, (tuple, list))
+            for i in range(n):
+                m[i] = val[i]
+
+class CPUBuffer:
+    def __init__(self, *args):
+        fields = []
+        # TODO: Handle padding
+        for name, format, size in args:
+            fields.append((name, format, size))
+
+        self.type = np.dtype(fields)
+        self.data = np.empty((1,), self.type)
+
+    @property
+    def nbytes(self):
+        return self.data.nbytes
+    
+    @property
+    def mem(self):
+        return self.data
+    
+    @property
+    def dtype(self):
+        return self.type
+    
+    def __getitem__(self, key):
+        return self.data[key]
+    
+    def __setitem__(self, key, val):
+        self.data[key] = val
+
 
 class MaterialInstance:
-    def __init__(self, name, base_template, shader_module, pipeline_layout, bind_group, uniform_buffer, storage_buffer, textures, shader_params = []):
+    def __init__(self, name, base_template, shader_module, pipeline_layout, bind_groups, uniform_buffers, storage_buffers, textures, shader_params = []):
         self.name = name
         self.base_template = base_template
         self.shader_module = shader_module
         self.pipeline_layout = pipeline_layout
-        self.bind_group = bind_group
-        self.uniform_buffer = uniform_buffer
-        self.storage_buffer = storage_buffer
+        self.bind_groups = bind_groups
+        self.uniform_buffers = uniform_buffers
+        self.storage_buffers = storage_buffers
         self.textures = textures
         self.shader_params = shader_params
 
@@ -30,160 +109,36 @@ class MaterialInstance:
         Returns:
             bool: True if the material has the uniform with the given name, otherwise False.
         """
-        return gl.glGetUniformLocation(self.shader_program, uniform_name) != -1
+        return uniform_name in self.uniform_buffers.keys()
 
-    def set_uniform(self, uniform_name: str, uniform_data):
-        """Stes the uniform with the provided name (if valid), with the provided data.
-
-        Args:
-            uniform_name (str): The name of the uniform to set.
-            uniform_data (Any): The new data for the unform.
-        """
-        uniform_location = gl.glGetUniformLocation(self.shader_program, uniform_name)
-        if uniform_location != -1:
-            self.update_uniform(uniform_location, uniform_name, uniform_data)
-        else:
-            self.uniform_not_found(uniform_name)
-
-    def update_uniform(self, uniform_location: int, uniform_name: str, uniform_data):
-        """Updates the uniform at specfied location and the given name with the given data.
+    def set_uniform(self, uniform_name: str, uniform_data: CPUBuffer):
+        """Sets the uniform buffer with the provided name (if valid), with the provided data.
 
         Args:
-            uniform_location (int): The uniform location.
-            uniform_name (str): The uniform name.
-            uniform_data (Any): The new uniform data.
+            uniform_name (str): The name of the uniform buffer to set.
+            uniform_data (CPUBuffer): The new data for the uniform buffer.
         """
-        uniform_type = self.shader_params[uniform_name]
-        match uniform_type:
-            case 'float':
-                assert isinstance(uniform_data, float), f"Uniform type with name: {uniform_name} is not a floating point number"
-                gl.glUniform1f(uniform_location, uniform_data)
-                return
-            case 'int':
-                assert isinstance(uniform_data, int), f"Uniform type with name: {uniform_name} is not an integer number"
-                gl.glUniform1i(uniform_location, uniform_data)
-                return
-            case 'sampler2D':
-                assert isinstance(uniform_data, int), f"Uniform type with name: {uniform_name} is not an integer number"
-                gl.glUniform1i(uniform_location, uniform_data)
-                return
-            case 'vec2':
-                assert isinstance(uniform_data, glm.vec2), f"Uniform type with name: {uniform_name} is not a 2x1 glm array of float32 type"
-                gl.glUniform2f(uniform_location, uniform_data.x, uniform_data.y)
-                return
-            case 'vec3':
-                assert isinstance(uniform_data, glm.vec3), f"Uniform type with name: {uniform_name} is not a 3x1 glm array of float32 type"
-                gl.glUniform3f(uniform_location, uniform_data.x, uniform_data.y, uniform_data.z)
-                return
-            case 'vec4':
-                assert isinstance(uniform_data, glm.vec4), f"Uniform type with name: {uniform_name} is not a 4x1 glm array of float32 type"
-                gl.glUniform4f(uniform_location, uniform_data.x, uniform_data.y, uniform_data.z, uniform_data.w)
-                return
-            case 'ivec2':
-                assert isinstance(uniform_data, glm.ivec2), f"Uniform type with name: {uniform_name} is not a 2x1 glm array of int32 type"
-                gl.glUniform2i(uniform_location, uniform_data.x, uniform_data.y)
-                return
-            case 'ivec3':
-                assert isinstance(uniform_data, glm.ivec3), f"Uniform type with name: {uniform_name} is not a 3x1 glm array of int32 type"
-                gl.glUniform3i(uniform_location, uniform_data.x, uniform_data.y, uniform_data.z)
-                return
-            case 'ivec4':
-                assert isinstance(uniform_data, glm.ivec4), f"Uniform type with name: {uniform_name} is not a 4x1 glm array of int32 type"
-                gl.glUniform4ui(uniform_location, uniform_data.x, uniform_data.y, uniform_data.z, uniform_data.w)
-                return
-            case 'uvec2':
-                assert isinstance(uniform_data, glm.uvec2), f"Uniform type with name: {uniform_name} is not a 2x1 glm array of uint32 type"
-                gl.glUniform2ui(uniform_location, uniform_data.x, uniform_data.y)
-                return
-            case 'uvec3':
-                assert isinstance(uniform_data, glm.uvec3), f"Uniform type with name: {uniform_name} is not a 3x1 glm array of uint32 type"
-                gl.glUniform3ui(uniform_location, uniform_data.x, uniform_data.y, uniform_data.z)
-                return
-            case 'uvec4':
-                assert isinstance(uniform_data, glm.uvec4), f"Uniform type with name: {uniform_name} is not a 4x1 glm array of uint32 type"
-                gl.glUniform4ui(uniform_location, uniform_data.x, uniform_data.y, uniform_data.z, uniform_data.w)
-                return
-            case 'dvec2':
-                assert isinstance(uniform_data, glm.dvec2), f"Uniform type with name: {uniform_name} is not a 2x1 glm array of double type"
-                gl.glUniform2d(uniform_location, uniform_data.x, uniform_data.y)
-                return
-            case 'dvec3':
-                assert isinstance(uniform_data, glm.dvec3), f"Uniform type with name: {uniform_name} is not a 3x1 glm array of double type"
-                gl.glUniform3d(uniform_location, uniform_data.x, uniform_data.y, uniform_data.z)
-                return
-            case 'dvec4':
-                assert isinstance(uniform_data, glm.dvec4), f"Uniform type with name: {uniform_name} is not a 4x1 glm array of double type"
-                gl.glUniform4d(uniform_location, uniform_data.x, uniform_data.y, uniform_data.z, uniform_data.w)
-                return
-            case 'mat2':
-                assert isinstance(uniform_data, glm.mat2), f"Uniform type with name: {uniform_name} is not a 2x2 glm matrix type"
-                gl.glUniformMatrix2fv(uniform_location, 1, gl.GL_FALSE, glm.value_ptr(uniform_data))
-                return
-            case 'mat3':
-                assert isinstance(uniform_data, glm.mat3), f"Uniform type with name: {uniform_name} is not a 3x3 glm matrix type"
-                gl.glUniformMatrix3fv(uniform_location, 1, gl.GL_FALSE, glm.value_ptr(uniform_data))
-                return
-            case 'mat4':
-                assert isinstance(uniform_data, glm.mat4), f"Uniform type with name: {uniform_name} is not a 4x4 glm matrix type"
-                gl.glUniformMatrix4fv(uniform_location, 1, gl.GL_FALSE, glm.value_ptr(uniform_data))
-                return
+        uniform_buffer = self.uniform_buffers[uniform_name]
+        WebGPURenderer().write_buffer(uniform_buffer, uniform_data.mem)
 
-        if 'int[' in uniform_type or 'sampler2D[' in uniform_type:
-            number_pattern = re.compile(r'\[(\d+)\]')
-            match = number_pattern.search(uniform_type)
-            if match:
-                count = int(match.group(1))
-                assert len(uniform_data) <= count and isinstance(uniform_data[0], np.int32), f"Uniform type with name: {uniform_name} is not a NumPy array of {count} integers"
-                gl.glUniform1iv(uniform_location, len(uniform_data), uniform_data)
-        elif 'float[' in uniform_type:
-            number_pattern = re.compile(r'\[(\d+)\]')
-            match = number_pattern.search(uniform_type)
-            if match:
-                count = int(match.group(1))
-                assert len(uniform_data) <= count and isinstance(uniform_data[0], np.float32), f"Uniform type with name: {uniform_name} is not a NumPy array of {count} floats"
-                gl.glUniform1fv(uniform_location, len(uniform_data), uniform_data)
-        elif 'mat2[' in uniform_type:
-            number_pattern = re.compile(r'\[(\d+)\]')
-            match = number_pattern.search(uniform_type)
-            if match:
-                count = int(match.group(1))
-                assert len(uniform_data) <= count and isinstance(uniform_data[0], glm.mat2), f"Uniform type with name: {uniform_name} is not a NumPy array of {count} 2x2 glm matrices"
-                gl.glUniformMatrix2fv(uniform_location, len(uniform_data), gl.GL_FALSE, uniform_data.ptr)
-        elif 'mat3[' in uniform_type:
-            number_pattern = re.compile(r'\[(\d+)\]')
-            match = number_pattern.search(uniform_type)
-            if match:
-                count = int(match.group(1))
-                assert len(uniform_data) <= count and isinstance(uniform_data[0], glm.mat3), f"Uniform type with name: {uniform_name} is not an array of {count} 3x3 glm matrices"
-                gl.glUniformMatrix3fv(uniform_location, len(uniform_data), gl.GL_FALSE, uniform_data.ptr)
-        elif 'mat4[' in uniform_type:
-            number_pattern = re.compile(r'\[(\d+)\]')
-            match = number_pattern.search(uniform_type)
-            if match:
-                count = int(match.group(1))
-                assert len(uniform_data) <= count and isinstance(uniform_data[0], glm.mat4), f"Uniform type with name: {uniform_name} is not an array of {count} 4x4 glm matrices"
-                gl.glUniformMatrix4fv(uniform_location, len(uniform_data), gl.GL_FALSE, uniform_data.ptr)
-        elif 'vec2[' in uniform_type:
-            number_pattern = re.compile(r'\[(\d+)\]')
-            match = number_pattern.search(uniform_type)
-            if match:
-                count = int(match.group(1))
-                assert len(uniform_data) <= count and isinstance(uniform_data[0], glm.vec2), f"Uniform type with name: {uniform_name} is not an array of {count} 2x1 glm array of float"
-                gl.glUniform2fv(uniform_location, len(uniform_data), uniform_data.ptr)
-        elif 'vec3[' in uniform_type:
-            number_pattern = re.compile(r'\[(\d+)\]')
-            match = number_pattern.search(uniform_type)
-            if match:
-                count = int(match.group(1))
-                assert len(uniform_data) <= count and isinstance(uniform_data[0], glm.vec3), f"Uniform type with name: {uniform_name} is not an array of {count} 3x1 glm array of float"
-                gl.glUniform3fv(uniform_location, len(uniform_data), uniform_data.ptr)
-        elif 'vec4[' in uniform_type:
-            number_pattern = re.compile(r'\[(\d+)\]')
-            match = number_pattern.search(uniform_type)
-            if match:
-                count = int(match.group(1))
-                assert len(uniform_data) <= count and isinstance(uniform_data[0], glm.vec4), f"Uniform type with name: {uniform_name} is not an array of {count} 4x1 glm array of float"
-                gl.glUniform4fv(uniform_location, len(uniform_data), uniform_data.ptr)
+    def set_storage(self, storage_name: str, storage_data):
+        """Sets the storage buffer with the provided name (if valid), with the provided data.
+
+        Args:
+            uniform_name (str): The name of the storage buffer to set.
+            uniform_data (Any): The new data for the storage buffer.
+        """
+        storage_buffer = self.storage_buffers[storage_name]
+
+        temporary_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer_with_data(
+            data=storage_data, usage=wgpu.BufferUsage.COPY_SRC
+        )
+
+        WebGPURenderer().get_command_encoder().copy_buffer_to_buffer(
+            temporary_buffer, 0, storage_buffer, 0, storage_data.nbytes
+        )
+
+        temporary_buffer.destroy()
 
     def uniform_not_found(self, uniform_name: str):
         """Prints a message stating that the uniform with the provided name was not found.
@@ -242,73 +197,122 @@ class WebGPUMaterialLib(object):
         shader_data = WebGPUShaderLib().get(data.base_template)
 
         # TODO: Parse shader params
-        uniform_buffers, storage_buffers = WebGPUShaderLib().parse(shader_data.shader_code)
+        uniform_buffers_data, storage_buffers_data, read_only_storage_buffers_data = WebGPUShaderLib().parse(shader_data.shader_code)
 
         # Use this to find the padding: https://eliemichel.github.io/WebGPU-AutoLayout/
-        uniform_dtype = np.dtype([
-            ("view", np.float32, (4, 4)),
-            ("proj", np.float32, (4, 4)),
-        ])
 
-        uniform_data = np.array((
-            np.identity(4),
-            np.identity(4),
-        ), dtype=uniform_dtype)
+        uniform_buffers = {}
+        storage_buffers = {}
+        
+        bind_groups_entries = [[]]
+        for buffer_name in uniform_buffers_data.keys():
+            uniform_buffer_data = uniform_buffers_data[buffer_name]
 
-        # Create uniform buffer - data is uploaded each frame
-        uniform_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
-            size=uniform_data.nbytes, usage=wgpu.BufferUsage.UNIFORM | wgpu.BufferUsage.COPY_DST
-        )
+            # Find uniform buffer layout and fields from shader reflection.
+            fields = []
+            for member_name in uniform_buffer_data['type']['members']:
+                member_type = uniform_buffer_data['type']['members'][member_name]
+                match member_type:
+                    case 'mat4x4f':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<mat4x4f>':
+                        fields.append((member_name, np.float32, (4, 4)))
 
-        storage_dtype = np.dtype([
-            ("model", np.float32, (4, 4))
-        ])
+            # Instantiate a struct for the uniform buffer data with the given fields
+            uniform_data = CPUBuffer(*fields)
 
-        # Create storage buffer - data is uploaded each frame
-        storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
-            size=64*512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
-        )
+            # Create a uniform buffer
+            uniform_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
+                size=uniform_data.nbytes, usage=wgpu.BufferUsage.UNIFORM | wgpu.BufferUsage.COPY_DST
+            )
 
-        bind_group: wgpu.GPUBindGroup = WebGPURenderer().get_device().create_bind_group(
-            layout=shader_data.bind_group_layouts[0],
-            entries=[
-                {
-                    "binding": 0,
-                    "resource": {
-                        "buffer": uniform_buffer,
-                        "offset": 0,
-                        "size": uniform_buffer.size,
-                    },
+            # Append uniform buffer to dictionary holding all uniform buffers
+            uniform_buffers[buffer_name] = uniform_buffer
+
+            # Create a bind group entry for the uniform buffer
+            bind_groups_entries[uniform_buffers_data[buffer_name]['group']].append({
+                "binding": uniform_buffers_data[buffer_name]['binding'],
+                "resource": {
+                    "buffer": uniform_buffer,
+                    "offset": 0,
+                    "size": uniform_buffer.size,
                 },
-                {
-                    "binding": 1,
-                    "resource": {
-                        "buffer": storage_buffer,
-                        "offset": 0,
-                        "size": storage_buffer.size,
-                    },
+            })
+
+        for buffer_name in storage_buffers_data.keys():
+            storage_buffer_data = storage_buffers_data[buffer_name]
+
+            # Find storage buffer layout and fields from shader reflection.
+            fields = []
+            for member_name in storage_buffer_data['type']['members']:
+                member_type = storage_buffer_data['type']['members'][member_name]
+                match member_type:
+                    case 'mat4x4f':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<mat4x4f>':
+                        fields.append((member_name, np.float32, (4, 4)))
+
+            # Instantiate a struct for the uniform buffer data with the given fields
+            storage_data = CPUBuffer(*fields)
+
+            # Create storage buffer - data is uploaded each frame
+            storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
+                size=storage_data.nbytes * 512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
+            )
+
+            # Append storage buffer to dictionary holding all storage buffers
+            storage_buffers[buffer_name] = storage_buffer
+
+            bind_groups_entries[storage_buffer_data['group']].append({
+                "binding": storage_buffer_data['binding'],
+                "resource": {
+                    "buffer": storage_buffer,
+                    "offset": 0,
+                    "size": storage_buffer.size,
                 },
-            ]
-        )
+            })
+        
+        for buffer_name in read_only_storage_buffers_data.keys():
+            read_only_storage_buffer_data = read_only_storage_buffers_data[buffer_name]
 
-        # for index, uniform_name in enumerate(uniform_buffers.keys()):
-        #     uniform_buffer_data = uniform_buffers[uniform_name]
-        #     bind_group = WebGPURenderer().get_device().create_bind_group(
-        #         layout=shader_data.bind_group_layouts[index],
-        #         entries=[
-        #             {
-        #                 "binding": uniform_buffer_data['binding'],
-        #                 "resource": {
-        #                     "buffer": uniform_buffer,
-        #                     "offset": 0,
-        #                     "size": uniform_buffer.size,
-        #                 },
-        #             }
-        #         ]
-        #     )
+            # Find storage buffer layout and fields from shader reflection.
+            fields = []
+            for member_name in read_only_storage_buffer_data['type']['members']:
+                member_type = read_only_storage_buffer_data['type']['members'][member_name]
+                match member_type:
+                    case 'mat4x4f':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<mat4x4f>':
+                        fields.append((member_name, np.float32, (4, 4)))
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_group, uniform_buffer, storage_buffer, data.textures, [])
-        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_group, uniform_buffer, storage_buffer, data.textures, [])
+            # Instantiate a struct for the uniform buffer data with the given fields
+            storage_data = CPUBuffer(*fields)
+
+            # Create storage buffer - data is uploaded each frame
+            storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
+                size=storage_data.nbytes * 512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
+            )
+
+            # Append storage buffer to dictionary holding all storage buffers
+            storage_buffers[buffer_name] = storage_buffer
+            bind_groups_entries[read_only_storage_buffer_data['group']].append({
+                "binding": read_only_storage_buffer_data['binding'],
+                "resource": {
+                    "buffer": storage_buffer,
+                    "offset": 0,
+                    "size": storage_buffer.size,
+                },
+            })
+
+        bind_groups: list[wgpu.GPUBindGroup] = []
+        for index, bind_group_entry in enumerate(bind_groups_entries):
+            bind_groups.append(WebGPURenderer().get_device().create_bind_group(
+                layout=shader_data.bind_group_layouts[index],
+                entries=bind_group_entry
+            ))
+
+        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, storage_buffers, data.textures, [])
+        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, storage_buffers, data.textures, [])
 
         return cls.instance.materials[name]
 

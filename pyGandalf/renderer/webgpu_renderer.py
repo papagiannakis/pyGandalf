@@ -180,7 +180,7 @@ class WebGPURenderer(BaseRenderer):
 
         depth_texture : wgpu.GPUTexture = cls.instance.device.create_texture(
             label="depth_texture",
-            size=[1280, 720, 1],
+            size=[1600, 900, 1],
             mip_level_count=1,
             sample_count=1,
             dimension="2d",
@@ -255,8 +255,8 @@ class WebGPURenderer(BaseRenderer):
         assert cls.instance.current_render_pass != None, 'Submiting commands to None render pass, call begin_render_pass() first.'
         cls.instance.current_render_pass.set_bind_group(0, material.instance.bind_group, [], 0, 1)
 
-    def write_buffer(cls, buffer, uniform_data):
-        cls.instance.device.queue.write_buffer(buffer, 0, uniform_data, 0)
+    def write_buffer(cls, buffer, uniform_data, size=0):
+        cls.instance.device.queue.write_buffer(buffer, 0, uniform_data, 0, size)
 
     def draw(cls, render_data, instance_count=1, first_instance=0):
         assert cls.instance.current_render_pass != None, 'Submiting commands to None render pass, call begin_render_pass() first.'

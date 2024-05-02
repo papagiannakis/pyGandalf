@@ -8,56 +8,6 @@ import re
 from pathlib import Path
 import ctypes
 
-class UniformArray:
-    """Convenience class to create a uniform array.
-
-    Maybe we can make it a public util at some point.
-    Ensure that the order matches structs in the shader code.
-    See https://www.w3.org/TR/WGSL/#alignment-and-size for reference on alignment.
-    """
-
-    def __init__(self, *args):
-        # Analyse incoming fields
-        fields = []
-        byte_offset = 0
-        for name, format, n in args:
-            assert format in ("f", "i", "I")
-            field = name, format, byte_offset, byte_offset + n * 4
-            fields.append(field)
-            byte_offset += n * 4
-        # Get padding
-        nbytes = byte_offset
-        while nbytes % 16:
-            nbytes += 1
-        # Construct memoryview object and a view for each field
-        self._mem = memoryview((ctypes.c_uint8 * nbytes)()).cast("B")
-        self._views = {}
-        for name, format, i1, i2 in fields:
-            self._views[name] = self._mem[i1:i2].cast(format)
-
-    @property
-    def mem(self):
-        return self._mem
-
-    @property
-    def nbytes(self):
-        return self._mem.nbytes
-
-    def __getitem__(self, key):
-        v = self._views[key].tolist()
-        return v[0] if len(v) == 1 else v
-
-    def __setitem__(self, key, val):
-        m = self._views[key]
-        n = m.shape[0]
-        if n == 1:
-            assert isinstance(val, (float, int))
-            m[0] = val
-        else:
-            assert isinstance(val, (tuple, list))
-            for i in range(n):
-                m[i] = val[i]
-
 class ShaderData:
     def __init__(self, name: str, shader_module, pipeline_layout, bind_group_layouts, shader_path: Path, shader_code: str):
         self.name = name
@@ -77,23 +27,32 @@ class WebGPUShaderLib(object):
     def create_shader_module(cls, shader_source):
         shader_module: wgpu.GPUShaderModule = WebGPURenderer().get_device().create_shader_module(code=shader_source)
 
-        uniform_buffers, storage_buffers = cls.instance.parse(shader_source)
+        uniform_buffers, storage_buffers, read_only_storage_buffers = cls.instance.parse(shader_source)
 
         # TODO: Handle bind groups.
         # Create the wgpu binding objects
         bind_groups_layout_entries = [[]]
-        for index, name in enumerate(uniform_buffers.keys()):
-            bind_groups_layout_entries[index].append({
-                "binding": uniform_buffers[name]['binding'],
+        for buffer_name in uniform_buffers.keys():
+            bind_groups_layout_entries[uniform_buffers[buffer_name]['group']].append({
+                "binding": uniform_buffers[buffer_name]['binding'],
                 "visibility": wgpu.ShaderStage.VERTEX,
                 "buffer": {
                     "type": wgpu.BufferBindingType.uniform
                 },
             })
+
+        for buffer_name in storage_buffers.keys():
+            bind_groups_layout_entries[storage_buffers[buffer_name]['group']].append({
+                "binding": storage_buffers[buffer_name]['binding'],
+                "visibility": wgpu.ShaderStage.VERTEX,
+                "buffer": {
+                    "type": wgpu.BufferBindingType.storage
+                },
+            })
         
-        for index, name in enumerate(storage_buffers.keys()):
-            bind_groups_layout_entries[index].append({
-                "binding": storage_buffers[name]['binding'],
+        for buffer_name in read_only_storage_buffers.keys():
+            bind_groups_layout_entries[read_only_storage_buffers[buffer_name]['group']].append({
+                "binding": read_only_storage_buffers[buffer_name]['binding'],
                 "visibility": wgpu.ShaderStage.VERTEX,
                 "buffer": {
                     "type": wgpu.BufferBindingType.read_only_storage
@@ -141,101 +100,46 @@ class WebGPUShaderLib(object):
         Returns:
             dict: A dictionary holding the uniform name as a key and the uniform type as a value
         """
-        uniform_pattern = re.compile(r"@group\((\d+)\) @binding\((\d+)\) var<uniform> (\w+): (\w+);")
-        uniform_matches = uniform_pattern.findall(shader_code)
+        def parse_buffer(buffer_type: str):
+            pattern = re.compile(r"@group\((\d+)\) @binding\((\d+)\) var<" + re.escape(buffer_type) + r"> (\w+): (\w+);")
+            matches = pattern.findall(shader_code)
 
-        uniform_buffers = {}
-        uniform_buffer_members = {}
-        for match in uniform_matches:
-            group, binding, uniform_name, uniform_type = match
-            print(f"Uniform: {uniform_name}")
-            print(f" Group: {group}")
-            print(f" Binding: {binding}")
-            print(f" Type: {uniform_type}")
-            struct_pattern = r"struct " + re.escape(uniform_type) + r" \{([^}]*)\}"
-            struct_match = re.search(struct_pattern, shader_code)
-            if struct_match:
-                uniform_buffer_members.clear()
-                struct_body = struct_match.group(1)
-                member_pattern = r"(\w+): (\w+)"
-                members = re.findall(member_pattern, struct_body)
-                print(f" Members:")
-                for member in members:
-                    print(f" {member[0]}: {member[1]}")
-                    uniform_buffer_members[member[0]] = member[1]
+            buffers = {}
+            buffer_members = {}
+            for match in matches:
+                group, binding, name, type = match
+                print(f"Buffer: {name}")
+                print(f" Group: {group}")
+                print(f" Binding: {binding}")
+                print(f" Type: {type}")
+                struct_pattern = r"struct " + re.escape(type) + r" \{([^}]*)\}"
+                struct_match = re.search(struct_pattern, shader_code)
+                if struct_match:
+                    buffer_members.clear()
+                    struct_body = struct_match.group(1)
+                    member_pattern = r"(\w+)\s*:\s*(\w+(?:\<.*?\>)?)"
+                    members = re.findall(member_pattern, struct_body)
+                    print(f" Members:")
+                    for member in members:
+                        print(f" {member[0]}: {member[1]}")
+                        buffer_members[member[0]] = member[1]
 
-            uniform_buffers[uniform_name] = {
-                'group': group,
-                'binding': binding,
-                'type': {
-                    'name': uniform_type,
-                    'members': uniform_buffer_members
-                },
-            }
+                buffers[name] = {
+                    'group': int(group),
+                    'binding': int(binding),
+                    'type': {
+                        'name': type,
+                        'members': buffer_members
+                    },
+                }
 
-        storage_pattern = re.compile(r"@group\((\d+)\) @binding\((\d+)\) var<storage, read> (\w+): (\w+);")
-        storage_matches = storage_pattern.findall(shader_code)
-
-        storage_buffers = {}
-        storage_buffer_members = {}
-        for match in storage_matches:
-            group, binding, storage_name, storage_type = match
-            print(f"Storage: {storage_name}")
-            print(f" Group: {group}")
-            print(f" Binding: {binding}")
-            print(f" Type: {storage_type}")
-            struct_pattern = r"struct " + re.escape(storage_type) + r" \{([^}]*)\}"
-            struct_match = re.search(struct_pattern, shader_code)
-            if struct_match:
-                storage_buffer_members.clear()
-                struct_body = struct_match.group(1)
-                member_pattern = r"(\w+): (\w+)"
-                members = re.findall(member_pattern, struct_body)
-                print(f" Members:")
-                for member in members:
-                    print(f" {member[0]}: {member[1]}")
-                    storage_buffer_members[member[0]] = member[1]
-
-            storage_buffers[storage_name] = {
-                'group': group,
-                'binding': binding,
-                'type': {
-                    'name': storage_type,
-                    'members': storage_buffer_members
-                },
-            }
-
-        return uniform_buffers, storage_buffers
-
-        uniform_pattern = re.compile(r'uniform\s+(\w+)\s+(\w+)\s*')
-        uniform_buffer_pattern = re.compile(r'layout\s*\(\s*std140\s*\)\s*uniform\s+(\w+)\s*{([^}]*)\s*};')
-        uniform_array_pattern = re.compile(r'uniform\s+(\w+)\s+(\w+)\s*\[\s*(\d+)\s*\]\s*')
-
-        uniforms = {}
-        matches = uniform_pattern.findall(shader_code)
-        for match in matches:
-            uniforms[match[1]] = match[0]
-
-        array_matches = uniform_array_pattern.findall(shader_code)
-        for match in array_matches:
-            array_type = match[0]
-            array_name = match[1]
-            array_size = int(match[2])
-            uniforms[array_name] = f'{array_type}[{array_size}]'
-
-        matches = uniform_buffer_pattern.findall(shader_code)
-        for match in matches:
-            buffer_name = match[0]
-            buffer_content = match[1]
-            buffer_uniforms = {}
-            buffer_matches = uniform_pattern.findall(buffer_content)
-            for buffer_match in buffer_matches:
-                buffer_uniforms[buffer_match[1]] = buffer_match[0]
-            uniforms[buffer_name] = buffer_uniforms
+            return buffers
         
-        return uniforms
-    
+        uniform_buffers = parse_buffer('uniform')
+        storage_buffers = parse_buffer('storage')
+        read_only_storage_buffers = parse_buffer('storage, read')
 
+        return uniform_buffers, storage_buffers, read_only_storage_buffers   
 
     def get(cls, name: str) -> ShaderData:
         """Gets the shader data of the given shader name.

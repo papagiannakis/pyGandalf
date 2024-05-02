@@ -115,7 +115,7 @@ def main():
     scene.add_component(entity2, InfoComponent('e2'))
     scene.add_component(entity2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity2, WebGPUStaticMeshComponent('triangle_2', [vertex_data_2]))
-    scene.add_component(entity2, WebGPUMaterialComponent('M_Simple_1'))
+    scene.add_component(entity2, WebGPUMaterialComponent('M_Simple_2'))
     scene.add_component(entity2, MovementComponent())
 
     # Register components to camera
