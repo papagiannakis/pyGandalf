@@ -64,7 +64,7 @@ class WebGPUStaticMeshRenderingSystem(System):
         
         WebGPURenderer().set_pipeline(mesh)
         WebGPURenderer().set_buffers(mesh)
-        WebGPURenderer().set_bind_group(material)
+        WebGPURenderer().set_bind_groups(material)
         self.set_uniforms(transform.world_matrix, material)
         
         # Draw the mesh
@@ -110,7 +110,6 @@ class WebGPUStaticMeshRenderingSystem(System):
                         WebGPURenderer().draw(mesh, mesh_group_size)
                     else:
                         WebGPURenderer().draw_indexed(mesh, mesh_group_size)
-
         WebGPURenderer().end_render_pass()
     
     def set_uniforms(self, material_instance: MaterialInstance, meshes):
@@ -129,7 +128,7 @@ class WebGPUStaticMeshRenderingSystem(System):
                 uniform_data["viewMatrix"] = np.identity(4)
                 uniform_data["projectionMatrix"] = np.identity(4)
 
-            material_instance.set_uniform('u_UniformData', uniform_data)
+            material_instance.set_uniform_buffer('u_UniformData', uniform_data)
 
         object_data = []
 
@@ -142,7 +141,7 @@ class WebGPUStaticMeshRenderingSystem(System):
 
         object_data = np.asarray(object_data)
 
-        material_instance.set_storage('u_ModelData', object_data)
+        material_instance.set_storage_buffer('u_ModelData', object_data)
 
-    
-
+        if material_instance.has_uniform('u_Texture'):
+            material_instance.set_uniform('u_Texture')

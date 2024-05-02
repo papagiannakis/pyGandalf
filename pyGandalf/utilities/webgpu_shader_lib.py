@@ -27,12 +27,15 @@ class WebGPUShaderLib(object):
     def create_shader_module(cls, shader_source):
         shader_module: wgpu.GPUShaderModule = WebGPURenderer().get_device().create_shader_module(code=shader_source)
 
-        uniform_buffers, storage_buffers, read_only_storage_buffers = cls.instance.parse(shader_source)
+        uniform_buffers, storage_buffers, read_only_storage_buffers, other = cls.instance.parse(shader_source)
 
         # TODO: Handle bind groups.
         # Create the wgpu binding objects
         bind_groups_layout_entries = [[]]
         for buffer_name in uniform_buffers.keys():
+            if len(bind_groups_layout_entries) <= uniform_buffers[buffer_name]['group']:
+                bind_groups_layout_entries.append([])
+
             bind_groups_layout_entries[uniform_buffers[buffer_name]['group']].append({
                 "binding": uniform_buffers[buffer_name]['binding'],
                 "visibility": wgpu.ShaderStage.VERTEX,
@@ -42,6 +45,9 @@ class WebGPUShaderLib(object):
             })
 
         for buffer_name in storage_buffers.keys():
+            if len(bind_groups_layout_entries) <= storage_buffers[buffer_name]['group']:
+                bind_groups_layout_entries.append([])
+
             bind_groups_layout_entries[storage_buffers[buffer_name]['group']].append({
                 "binding": storage_buffers[buffer_name]['binding'],
                 "visibility": wgpu.ShaderStage.VERTEX,
@@ -51,6 +57,9 @@ class WebGPUShaderLib(object):
             })
         
         for buffer_name in read_only_storage_buffers.keys():
+            if len(bind_groups_layout_entries) <= read_only_storage_buffers[buffer_name]['group']:
+                bind_groups_layout_entries.append([])
+
             bind_groups_layout_entries[read_only_storage_buffers[buffer_name]['group']].append({
                 "binding": read_only_storage_buffers[buffer_name]['binding'],
                 "visibility": wgpu.ShaderStage.VERTEX,
@@ -58,6 +67,30 @@ class WebGPUShaderLib(object):
                     "type": wgpu.BufferBindingType.read_only_storage
                 },
             })
+
+        for uniform_name in other.keys():
+            if len(bind_groups_layout_entries) <= other[uniform_name]['group']:
+                bind_groups_layout_entries.append([])
+
+            match other[uniform_name]['type']['name']:
+                case 'texture_2d<f32>':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.FRAGMENT,
+                        "texture": {  
+                            "sample_type": wgpu.TextureSampleType.float,
+                            "view_dimension": wgpu.TextureViewDimension.d2,
+                        }
+                    })
+                case 'sampler':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.FRAGMENT,
+                        "sampler": {
+                            "type": wgpu.SamplerBindingType.filtering
+                        },
+                    })
+            
 
         # Create the wgou binding objects
         bind_group_layouts = []
@@ -101,7 +134,7 @@ class WebGPUShaderLib(object):
             dict: A dictionary holding the uniform name as a key and the uniform type as a value
         """
         def parse_buffer(buffer_type: str):
-            pattern = re.compile(r"@group\((\d+)\) @binding\((\d+)\) var<" + re.escape(buffer_type) + r"> (\w+): (\w+);")
+            pattern = re.compile(r"@group\((\d+)\) @binding\((\d+)\) var" + re.escape(buffer_type) + r" (\w+):\s*(\w+(?:\<.*?\>)?);")
             matches = pattern.findall(shader_code)
 
             buffers = {}
@@ -135,11 +168,12 @@ class WebGPUShaderLib(object):
 
             return buffers
         
-        uniform_buffers = parse_buffer('uniform')
-        storage_buffers = parse_buffer('storage')
-        read_only_storage_buffers = parse_buffer('storage, read')
+        uniform_buffers = parse_buffer('<uniform>')
+        storage_buffers = parse_buffer('<storage>')
+        read_only_storage_buffers = parse_buffer('<storage, read>')
+        other = parse_buffer('')
 
-        return uniform_buffers, storage_buffers, read_only_storage_buffers   
+        return uniform_buffers, storage_buffers, read_only_storage_buffers, other  
 
     def get(cls, name: str) -> ShaderData:
         """Gets the shader data of the given shader name.

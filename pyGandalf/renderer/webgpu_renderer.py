@@ -40,14 +40,13 @@ class WebGPURenderer(BaseRenderer):
         cls.instance.adapter = wgpu.gpu.request_adapter(power_preference=power_preference)
         cls.instance.device = cls.instance.adapter.request_device(required_limits={})
 
-        # from pyGandalf.core.application import Application
         cls.instance.present_context = cls.instance.canvas.get_context()
         cls.instance.render_texture_format = cls.instance.present_context.get_preferred_format(cls.instance.device.adapter)
         cls.instance.present_context.configure(device=cls.instance.device, format=cls.instance.render_texture_format)
 
         cls.instance.command_queue = []
-        cls.instance.command_encoder = None
-        cls.instance.current_render_pass = None
+        cls.instance.command_encoder: wgpu.GPUCommandEncoder = None # type: ignore
+        cls.instance.current_render_pass: wgpu.GPURenderPassEncoder = None # type: ignore
         cls.instance.current_texture = None
         cls.instance.depth_texture_view = None
 
@@ -251,12 +250,29 @@ class WebGPURenderer(BaseRenderer):
         for index, buffer in enumerate(render_data.buffers):
             cls.instance.current_render_pass.set_vertex_buffer(index, buffer)
 
-    def set_bind_group(cls, material):
+    def set_bind_groups(cls, material):
         assert cls.instance.current_render_pass != None, 'Submiting commands to None render pass, call begin_render_pass() first.'
-        cls.instance.current_render_pass.set_bind_group(0, material.instance.bind_group, [], 0, 1)
+        for index, bind_group in enumerate(material.instance.bind_groups):
+            cls.instance.current_render_pass.set_bind_group(index, bind_group, [], 0, 1)
 
     def write_buffer(cls, buffer, uniform_data, size=0):
         cls.instance.device.queue.write_buffer(buffer, 0, uniform_data, 0, size)
+
+    def write_texture(cls, uniform_data):
+        cls.instance.device.queue.write_texture(
+            {
+                "texture": uniform_data.texture,
+                "mip_level": 0,
+                "origin": (0, 0, 0)
+            },
+            uniform_data.data.image_bytes,
+            {
+                "offset": 0,
+                "bytes_per_row": uniform_data.data.width * 4,
+                "rows_per_image": uniform_data.data.height
+            },
+            [uniform_data.data.width, uniform_data.data.width, 1]
+        )
 
     def draw(cls, render_data, instance_count=1, first_instance=0):
         assert cls.instance.current_render_pass != None, 'Submiting commands to None render pass, call begin_render_pass() first.'
