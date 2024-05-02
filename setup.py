@@ -33,6 +33,7 @@ setup(
         "imgui-bundle>=1.3.0",
         "usd-core>=23.5",
         "jsonpickle>=3.0.4",
+        "wgpu==0.14",
     ],    
 
     classifiers=[

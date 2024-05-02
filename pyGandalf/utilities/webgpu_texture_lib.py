@@ -10,14 +10,12 @@ class TextureData:
     width: int = 0
     height: int = 0
 
-
 @dataclass
-class TextureDescriptor:
+class TextureInstance:
     texture: wgpu.GPUTexture = None
     view: wgpu.GPUTextureView = None
     sampler: wgpu.GPUSampler = None
     data: TextureData = None
-    
 
 class WebGPUTextureLib(object):
     def __new__(cls):
@@ -71,7 +69,7 @@ class WebGPUTextureLib(object):
             size
         )
 
-        cls.instance.textures[name] = TextureDescriptor(texture, view, sampler, TextureData(img_bytes, width, height))
+        cls.instance.textures[name] = TextureInstance(texture, view, sampler, TextureData(img_bytes, width, height))
         cls.instance.slots[name] = cls.instance.current_slot
 
         cls.instance.current_slot += 1
@@ -83,21 +81,3 @@ class WebGPUTextureLib(object):
     
     def get_slot(cls, name: str):
         return float(cls.instance.slots.get(name))
-    
-    def bind(cls, name):
-        gl.glActiveTexture(cls.instance.get_slot(name) + gl.GL_TEXTURE0)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, cls.instance.get_id(name))
-
-    def unbind(cls, name):
-        gl.glActiveTexture(cls.instance.get_slot(name) + gl.GL_TEXTURE0)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
-
-    def bind_textures(cls):
-        for slot, id in zip(cls.instance.slots.values(), cls.instance.textures.values()):
-            gl.glActiveTexture(slot + gl.GL_TEXTURE0)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, id)
-
-    def unbind_textures(cls):
-        for slot in cls.instance.slots.values():
-            gl.glActiveTexture(slot + gl.GL_TEXTURE0)
-            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)

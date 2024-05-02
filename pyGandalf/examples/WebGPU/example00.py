@@ -12,10 +12,11 @@ from pyGandalf.systems.webgpu_rendering_system import WebGPUStaticMeshRenderingS
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
+from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib
 
 from pyGandalf.core.input_manager import InputManager
 
-from pyGandalf.utilities.definitions import SHADERS_PATH
+from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
 
 from pyGandalf.utilities.logger import logger
 
@@ -76,29 +77,42 @@ def main():
     # Create application
     Application().create(WebGPUWindow('Hello World', 1280, 720, True), WebGPURenderer)
 
+    # Build textures
+    WebGPUTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png')
+    WebGPUTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
+
     # Build shaders 
-    WebGPUShaderLib().build('simple_yellow', SHADERS_PATH / 'web_gpu' / 'simple_uniforms.wgsl')
-    WebGPUShaderLib().build('simple_red', SHADERS_PATH / 'web_gpu' / 'simple_uniforms.wgsl')
+    WebGPUShaderLib().build('unlit', SHADERS_PATH / 'web_gpu' / 'unlit.wgsl')
+    WebGPUShaderLib().build('unlit_textured', SHADERS_PATH / 'web_gpu' / 'unlit_textured.wgsl')
 
     # Build Materials
-    WebGPUMaterialLib().build('M_Simple_1', MaterialData('simple_yellow', []))
-    WebGPUMaterialLib().build('M_Simple_2', MaterialData('simple_red', []))
+    WebGPUMaterialLib().build('M_Unlit', MaterialData('unlit', []))
+    WebGPUMaterialLib().build('M_Unlit_Textured', MaterialData('unlit_textured', ['dark_wood_texture']))
 
     vertex_data_1 = np.array([
-        [-0.5, 0.0, 0.0],
-        [ 0.5, 0.0, 0.0],
-        [ 0.0, 0.5, 0.0],
-        [-0.5, 0.5, 0.0],
+        [-0.5, -0.5, 0.0],
+        [ 0.5, -0.5, 0.0],
+        [ 0.5,  0.5, 0.0],
+        [-0.5,  0.5, 0.0],
     ], np.float32)
 
-    vertex_data_2 = np.array([
-        [-0.25, -0.25, 0.0],
-        [ 0.25, -0.25, 0.0],
-        [ 0.0,   0.25, 0.0],
-        [-0.25, -0.25, 0.0],
-        [ 0.0,   0.25, 0.0],
-        [-0.25,  0.25, 0.0],
-    ], np.float32)
+    vertices = np.array([
+        [-0.5, -0.5, 0.0], #0
+        [ 0.5, -0.5, 0.0], #1
+        [ 0.5,  0.5, 0.0], #2
+        [ 0.5,  0.5, 0.0], #2
+        [-0.5,  0.5, 0.0], #3
+        [-0.5, -0.5, 0.0]  #0
+    ], dtype=np.float32)
+
+    texture_coords = np.array([
+        [0.0, 1.0], #0
+        [1.0, 1.0], #1
+        [1.0, 0.0], #2
+        [1.0, 0.0], #2
+        [0.0, 0.0], #3
+        [0.0, 1.0]  #0
+    ], dtype=np.float32)
 
     index_data = np.array([
         [0,1,2],
@@ -107,21 +121,21 @@ def main():
 
     # Add components
     scene.add_component(entity1, InfoComponent('e1'))
-    scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(0.5, 0.5, 0.5)))
     scene.add_component(entity1, WebGPUStaticMeshComponent('triangle_1', [vertex_data_1], index_data))
-    scene.add_component(entity1, WebGPUMaterialComponent('M_Simple_1'))
+    scene.add_component(entity1, WebGPUMaterialComponent('M_Unlit'))
     scene.add_component(entity1, MovementComponent())
 
     scene.add_component(entity2, InfoComponent('e2'))
     scene.add_component(entity2, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(entity2, WebGPUStaticMeshComponent('triangle_2', [vertex_data_2]))
-    scene.add_component(entity2, WebGPUMaterialComponent('M_Simple_2'))
+    scene.add_component(entity2, WebGPUStaticMeshComponent('triangle_2', [vertices, texture_coords]))
+    scene.add_component(entity2, WebGPUMaterialComponent('M_Unlit_Textured'))
     scene.add_component(entity2, MovementComponent())
 
     # Register components to camera
     scene.add_component(camera, InfoComponent('camera'))
     scene.add_component(camera, TransformComponent(glm.vec3(0.0, 0, -2.0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(camera, CameraComponent(60, 1.778, 0.001, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
+    scene.add_component(camera, CameraComponent(75, 1.778, 0.001, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
 
     # Create Register systems
     scene.register_system(TransformSystem([TransformComponent]))

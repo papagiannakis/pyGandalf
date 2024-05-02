@@ -1,6 +1,6 @@
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
-from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureDescriptor
+from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureInstance
 from pyGandalf.utilities.logger import logger
 
 import wgpu
@@ -67,7 +67,7 @@ class MaterialInstance:
         """
         uniform = self.other_uniforms[uniform_name]
 
-        if isinstance(uniform, TextureDescriptor):
+        if isinstance(uniform, TextureInstance):
             WebGPURenderer().write_texture(uniform)
 
     def set_uniform_buffer(self, uniform_name: str, uniform_data: CPUBuffer):
@@ -282,7 +282,7 @@ class WebGPUMaterialLib(object):
             match other_data['type']['name']:
                 case 'texture_2d<f32>':
                     # Retrieve texture, TODO: Fix hardcoded texture index.
-                    texture_desc: TextureDescriptor = WebGPUTextureLib().get_descriptor(data.textures[0])
+                    texture_desc: TextureInstance = WebGPUTextureLib().get_descriptor(data.textures[0])
 
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_desc
@@ -294,7 +294,7 @@ class WebGPUMaterialLib(object):
                     })
                 case 'sampler':
                     # Retrieve texture, TODO: Fix hardcoded texture index.
-                    texture_desc: TextureDescriptor = WebGPUTextureLib().get_descriptor(data.textures[0])
+                    texture_desc: TextureInstance = WebGPUTextureLib().get_descriptor(data.textures[0])
 
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_desc
