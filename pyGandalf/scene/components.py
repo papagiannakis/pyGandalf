@@ -76,11 +76,15 @@ class StaticMeshComponent(Component):
         self.attributes = attributes
         self.indices = indices
         self.primitive = primitive
+
         self.vao = 0
         self.vbo = []
         self.ebo = 0
+
         self.batch = -1
         self.load_from_file = True if attributes == None else False
+
+        self.hash = uuid.uuid4()
 
 class WebGPUStaticMeshComponent(Component):
     def __init__(self, name, attributes = None, indices = None, primitive = None):
@@ -89,12 +93,13 @@ class WebGPUStaticMeshComponent(Component):
         self.indices = indices
         self.primitive = primitive
 
-        self.batch = -1
-        self.load_from_file = True if attributes == None else False
-
         self.render_pipeline = None
         self.buffers = []
         self.index_buffer = None
+
+        self.batch = -1
+        self.load_from_file = True if attributes == None else False
+
         self.hash = uuid.uuid4()
 
 class WebGPUMaterialComponent(Component):
