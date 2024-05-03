@@ -29,7 +29,6 @@ class WebGPUShaderLib(object):
 
         uniform_buffers, storage_buffers, read_only_storage_buffers, other = cls.instance.parse(shader_source)
 
-        # TODO: Handle bind groups.
         # Create the wgpu binding objects
         bind_groups_layout_entries = [[]]
         for buffer_name in uniform_buffers.keys():
@@ -38,7 +37,7 @@ class WebGPUShaderLib(object):
 
             bind_groups_layout_entries[uniform_buffers[buffer_name]['group']].append({
                 "binding": uniform_buffers[buffer_name]['binding'],
-                "visibility": wgpu.ShaderStage.VERTEX,
+                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.FRAGMENT,
                 "buffer": {
                     "type": wgpu.BufferBindingType.uniform
                 },

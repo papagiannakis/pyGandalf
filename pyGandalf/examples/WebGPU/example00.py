@@ -84,6 +84,7 @@ def main():
     # Build textures
     WebGPUTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png')
     WebGPUTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
+    WebGPUTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
 
     # Build shaders 
     WebGPUShaderLib().build('unlit', SHADERS_PATH / 'web_gpu' / 'unlit.wgsl')

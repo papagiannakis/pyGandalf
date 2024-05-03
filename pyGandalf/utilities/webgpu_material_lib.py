@@ -155,7 +155,7 @@ class WebGPUMaterialLib(object):
 
         shader_data = WebGPUShaderLib().get(data.base_template)
 
-        # TODO: Parse shader params
+        # Parse shader params
         uniform_buffers_data, storage_buffers_data, read_only_storage_buffers_data, other = WebGPUShaderLib().parse(shader_data.shader_code)
 
         # Use this to find the padding: https://eliemichel.github.io/WebGPU-AutoLayout/
@@ -176,6 +176,10 @@ class WebGPUMaterialLib(object):
             for member_name in uniform_buffer_data['type']['members']:
                 member_type = uniform_buffer_data['type']['members'][member_name]
                 match member_type:
+                    case 'vec4f':
+                        fields.append((member_name, np.float32, (4,)))
+                    case 'vec4<f32>':
+                        fields.append((member_name, np.float32, (4,)))
                     case 'mat4x4f':
                         fields.append((member_name, np.float32, (4, 4)))
                     case 'array<mat4x4f>':
@@ -213,6 +217,10 @@ class WebGPUMaterialLib(object):
             for member_name in storage_buffer_data['type']['members']:
                 member_type = storage_buffer_data['type']['members'][member_name]
                 match member_type:
+                    case 'vec4f':
+                        fields.append((member_name, np.float32, (4,)))
+                    case 'vec4<f32>':
+                        fields.append((member_name, np.float32, (4,)))
                     case 'mat4x4f':
                         fields.append((member_name, np.float32, (4, 4)))
                     case 'array<mat4x4f>':
@@ -249,6 +257,10 @@ class WebGPUMaterialLib(object):
             for member_name in read_only_storage_buffer_data['type']['members']:
                 member_type = read_only_storage_buffer_data['type']['members'][member_name]
                 match member_type:
+                    case 'vec4f':
+                        fields.append((member_name, np.float32, (4,)))
+                    case 'vec4<f32>':
+                        fields.append((member_name, np.float32, (4,)))
                     case 'mat4x4f':
                         fields.append((member_name, np.float32, (4, 4)))
                     case 'array<mat4x4f>':

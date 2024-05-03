@@ -117,6 +117,7 @@ class WebGPUStaticMeshRenderingSystem(System):
             uniform_data = CPUBuffer(
                 ("viewMatrix", np.float32, (4, 4)),
                 ("projectionMatrix", np.float32, (4, 4)),
+                ("color", np.float32, (4,)),
             )
 
             from pyGandalf.scene.scene_manager import SceneManager
@@ -127,6 +128,8 @@ class WebGPUStaticMeshRenderingSystem(System):
             else:
                 uniform_data["viewMatrix"] = np.identity(4)
                 uniform_data["projectionMatrix"] = np.identity(4)
+
+            uniform_data["color"] = np.asarray(glm.vec4(1.0, 1.0, 1.0, 1.0))
 
             material_instance.set_uniform_buffer('u_UniformData', uniform_data)
 
