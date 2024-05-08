@@ -11,7 +11,7 @@ import numpy as np
 class ColorAttachmentDescription:
     view: wgpu.GPUTextureView = None
     resolve_target: wgpu.GPUTextureView = None
-    clear_value: tuple = (0, 0, 0, 1)
+    clear_value: tuple = (0.8, 0.5, 0.3, 1.0)
     color_load_op: wgpu.LoadOp = wgpu.LoadOp.clear
     color_store_op: wgpu.StoreOp = wgpu.StoreOp.store
 

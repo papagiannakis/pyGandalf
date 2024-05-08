@@ -28,7 +28,7 @@ class TransformComponent(Component):
         self.dirty = True
         self.static = False
     
-    def get_world_position(self):
+    def get_world_position(self) -> glm.vec3:
         return (self.world_matrix * glm.vec4(self.translation, 1.0)).xyz
 
 class LinkComponent(Component):

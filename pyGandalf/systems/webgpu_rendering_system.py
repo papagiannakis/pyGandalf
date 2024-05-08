@@ -1,8 +1,10 @@
 from pyGandalf.systems.system import System
 from pyGandalf.scene.entity import Entity
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPassDescription, ColorAttachmentDescription
+from pyGandalf.scene.components import TransformComponent
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialInstance, CPUBuffer
+from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 import glm
 import wgpu
@@ -38,6 +40,11 @@ class WebGPUStaticMeshRenderingSystem(System):
         mesh, material, transform = components
 
         material.instance = WebGPUMaterialLib().get(material.name)
+
+        if mesh.attributes is None:
+            mesh_instance = OpenGLMeshLib().get(mesh.name)
+            mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
+            mesh.indices = mesh_instance.indices
 
         if len(mesh.attributes) == 0:
             return
@@ -118,18 +125,25 @@ class WebGPUStaticMeshRenderingSystem(System):
                 ("viewMatrix", np.float32, (4, 4)),
                 ("projectionMatrix", np.float32, (4, 4)),
                 ("color", np.float32, (4,)),
+                ("viewPosition", np.float32, (4,)),
             )
 
             from pyGandalf.scene.scene_manager import SceneManager
             camera = SceneManager().get_main_camera()
             if camera != None:
                 uniform_data["viewMatrix"] = np.asarray(glm.transpose(camera.view))
-                uniform_data["projectionMatrix"] = np.asarray(glm.transpose(glm.perspectiveLH_ZO(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)))
+                uniform_data["projectionMatrix"] = np.asarray(glm.transpose(glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)))
             else:
                 uniform_data["viewMatrix"] = np.identity(4)
                 uniform_data["projectionMatrix"] = np.identity(4)
 
             uniform_data["color"] = np.asarray(glm.vec4(1.0, 1.0, 1.0, 1.0))
+
+            camera_entity = SceneManager().get_main_camera_entity()
+            if camera_entity != None:
+                camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
+                if camera_transform != None:
+                    uniform_data["viewPosition"] = np.asarray(glm.vec4(camera_transform.get_world_position(), 1.0))
 
             material_instance.set_uniform_buffer('u_UniformData', uniform_data)
 
