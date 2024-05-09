@@ -81,69 +81,9 @@ class DemoSystem(System):
         if demo.axis[2] == 1:
             transform.rotation[2] += demo.speed * ts
 
-from pxr import Usd, UsdGeom
-import numpy as np
-
-class Mesh:
-    def __init__(self, vertices, indices, normals, uvs) -> None:
-        self.vertices = vertices
-        self.indices = indices
-        self.normals = normals
-        self.uvs = uvs
-        self.albedo_map = ''
-        self.metallic_map = ''
-        self.normal_map = ''
-
-def parse_usd(file_path) -> list[Mesh]:
-    logger.debug(file_path)
-    stage = Usd.Stage.Open(file_path)
-
-    submeshes: list[Mesh] = []
-
-    # Iterate over all prims in the stage
-    for prim in stage.Traverse():
-        if prim.IsA(UsdGeom.Mesh):
-            mesh = UsdGeom.Mesh(prim)
-
-            # Get vertices
-            points_attr = mesh.GetPointsAttr()
-            vertices = np.array(points_attr.Get())
-
-            # Get vertex indices (faces) if available
-            indices_attr = mesh.GetFaceVertexIndicesAttr()
-            indices = np.array(indices_attr.Get()) if indices_attr else None    
-
-            # Get normals if available
-            normals_attr = mesh.GetNormalsAttr()
-            normals = np.array(normals_attr.Get()) if normals_attr else None
-
-            # Get UVs if available
-            uvs = None
-            primvar_names = prim.GetAttributes()
-            for primvar in primvar_names:
-                if primvar.GetTypeName() == 'texCoord2f[]':
-                    uvs = np.array(primvar.Get())
-
-            submeshes.append(Mesh(vertices, indices, normals, uvs))
-    
-    return submeshes
-
-
 # Example Usage
 def main():
     logger.setLevel(logger.DEBUG)
-
-    # submeshes = parse_usd(str(MODELS_PATH/'HumanFemale.usd'))
-
-    # logger.debug(f'submeshes len: {len(submeshes)}')
-    # logger.debug('Vertices:')
-    # logger.debug(submeshes[0].vertices)
-    # logger.debug('Indeces:')
-    # logger.debug(submeshes[0].indices)
-    # logger.debug('Normals:')
-    # logger.debug(submeshes[0].normals)
-    # logger.debug('UVs:')
-    # logger.debug(submeshes[0].uvs)
 
     scene = Scene()
 
@@ -190,7 +130,6 @@ def main():
     OpenGLTextureLib().build('rabbit_albedo', TEXTURES_PATH/'fg_spkRabbit_albedo.jpg')
     OpenGLTextureLib().build('flintlockPistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
     OpenGLTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
-    OpenGLTextureLib().build('FruitCakeSlice_texture', TEXTURES_PATH/'FruitCakeSlice_u1_v1_baseColor.png')
 
     # Build shaders
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
@@ -199,25 +138,22 @@ def main():
     OpenGLMaterialLib().build('M_Rabbit', MaterialData('default_mesh', ['rabbit_albedo']))
     OpenGLMaterialLib().build('M_Monkeh', MaterialData('default_mesh', ['white_texture']))
     OpenGLMaterialLib().build('M_Floor', MaterialData('default_mesh', ['dark_wood_texture']))
-    OpenGLMaterialLib().build('M_FruitCakeSlice', MaterialData('default_mesh', ['white_texture']))
+    OpenGLMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo']))
 
     # Load models
     OpenGLMeshLib().build('rabbit_mesh', MODELS_PATH/'fg_spkRabbit.obj')
-    OpenGLMeshLib().build('FruitCakeSlice_mesh', MODELS_PATH/'FruitCakeSlice.usdz')
-    # OpenGLMeshLib().build('PegasusTrail_mesh', MODELS_PATH/'PegasusTrail.usdz')
-    # OpenGLMeshLib().build('Honey_Dipper_Ornament_mesh', MODELS_PATH/'Honey_Dipper_Ornament_-_Object_Capture.usdz')
-    # OpenGLMeshLib().build('Mosque_mesh', MODELS_PATH/'Mosque.usdc')
+    OpenGLMeshLib().build('pistol_mesh', MODELS_PATH/'fa_flintlockPistol.obj')
 
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(root, InfoComponent('root'))
     scene.add_component(root, LinkComponent(None))
 
     # Register components to pistol
-    scene.add_component(pistol, InfoComponent("FruitCakeSlice"))
-    scene.add_component(pistol, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(pistol, InfoComponent("pistol"))
+    scene.add_component(pistol, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(15, 15, 15)))
     scene.add_component(pistol, LinkComponent(root))
-    scene.add_component(pistol, StaticMeshComponent('FruitCakeSlice_mesh'))
-    scene.add_component(pistol, MaterialComponent('M_FruitCakeSlice'))
+    scene.add_component(pistol, StaticMeshComponent('pistol_mesh'))
+    scene.add_component(pistol, MaterialComponent('M_Pistol'))
 
     # Register components to rabbit
     scene.add_component(rabbit, InfoComponent("rabbit"))
