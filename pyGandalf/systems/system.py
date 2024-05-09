@@ -1,3 +1,6 @@
+from pyGandalf.scene.entity import Entity
+from pyGandalf.scene.components import Component
+
 from pyGandalf.core.events import Event, PushEvent, EventType
 from pyGandalf.utilities.logger import logger
 
@@ -94,44 +97,93 @@ class System:
         return True
 
     def on_create_base(self):
-        """Calls the on_create method of the system for each entity and its filtered components.
+        """Calls the `on_create_entity` and `on_create_system` method of the system for each entity and its filtered components.
         """
-        if hasattr(self, 'on_create') and callable(getattr(self, 'on_create')):
-            if self.state is SystemState.PLAY:
-                for entity, components in zip(self.filtered_entities, self.filtered_components):
-                    if (len(components) == 1):
-                        self.on_create(entity, components[0])
-                    else:
-                        self.on_create(entity, components)
-        else:
-            logger.error("on_update method not implemented")
+        if self.state is SystemState.PLAY:
+            self.on_create_system()
 
-    def on_update_base(self, ts):
-        """Calls the on_update method of the system for each entity and its filtered components.
-        """
-        if hasattr(self, 'on_update_all') and callable(getattr(self, 'on_update_all')):
-            if self.state is SystemState.PLAY:
-                self.on_update_all(ts)
-        elif hasattr(self, 'on_update') and callable(getattr(self, 'on_update')):
-            if self.state is SystemState.PLAY:
-                for entity, components in zip(self.filtered_entities, self.filtered_components):
-                    if (len(components) == 1):
-                        self.on_update(ts, entity, components[0])
-                    else:
-                        self.on_update(ts, entity, components)
-        else:
-            logger.error("on_update method not implemented")
+        if self.state is SystemState.PLAY:
+            for entity, components in zip(self.filtered_entities, self.filtered_components):
+                if (len(components) == 1):
+                    self.on_create_entity(entity, components[0])
+                else:
+                    self.on_create_entity(entity, components)
 
-    def on_gui_update_base(self, ts):
-        """Calls the on_update method of the system for each entity and its filtered components.
+    def on_update_base(self, ts: float):
+        """Calls the `on_update_entity` and `on_update_system` methods of the system for each entity and its filtered components.
         """
-        if hasattr(self, 'on_gui_update') and callable(getattr(self, 'on_gui_update')):
-            if self.state is SystemState.PLAY:
-                for entity, components in zip(self.filtered_entities, self.filtered_components):
-                    if (len(components) == 1):
-                        self.on_gui_update(ts, entity, components[0])
-                    else:
-                        self.on_gui_update(ts, entity, components)
+        if self.state is SystemState.PLAY:
+            self.on_update_system(ts)
+
+        if self.state is SystemState.PLAY:
+            for entity, components in zip(self.filtered_entities, self.filtered_components):
+                if (len(components) == 1):
+                    self.on_update_entity(ts, entity, components[0])
+                else:
+                    self.on_update_entity(ts, entity, components)
+
+    def on_gui_update_base(self, ts: float):
+        """Calls the `on_gui_update_entity` and `on_gui_update_system` methods of the system for each entity and its filtered components.
+        """
+        if self.state is SystemState.PLAY:
+            self.on_gui_update_system(ts)
+
+        if self.state is SystemState.PLAY:
+            for entity, components in zip(self.filtered_entities, self.filtered_components):
+                if (len(components) == 1):
+                    self.on_gui_update_entity(ts, entity, components[0])
+                else:
+                    self.on_gui_update_entity(ts, entity, components)
+    
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
+        """Gets called once in the first frame for each entity that the system operates on.
+
+        Args:
+            entity (Entity): The current entity to process.
+            components (Component | tuple[Component]): The component(s) of the current entity that are manipulated by the system.
+        """
+        pass
+
+    def on_update_entity(self, ts: float, entity: Entity, components: Component | tuple[Component]):
+        """Gets called every frame for each entity that the system operates on.
+
+        Args:
+            ts (float): The application time step (delta time).
+            entity (Entity): The current entity to process.
+            components (Component | tuple[Component]): The component(s) of the current entity that are manipulated by the system.
+        """
+        pass
+
+    def on_gui_update_entity(self, ts: float, entity: Entity, components: Component | tuple[Component]):
+        """Gets called every frame for each entity that the system operates on and responsible for drawing gui elements.
+
+        Args:
+            ts (float): The application time step (delta time).
+            entity (Entity): The current entity to process.
+            components (Component | tuple[Component]): The component(s) of the current entity that are manipulated by the system.
+        """
+        pass
+
+    def on_create_system(self):
+        """Gets called once in the first frame and initializes the system (filtered entities and their components).
+        """
+        pass
+
+    def on_update_system(self, ts: float):
+        """Gets called every frame to update the system (filtered entities and their components).
+
+        Args:
+            ts (float): The application time step (delta time).
+        """
+        pass
+
+    def on_gui_update_system(self, ts: float):
+        """Gets called every frame to update the system gui (gui for filtered entities and their components).
+
+        Args:
+            ts (float): The application time step (delta time).
+        """
+        pass
 
     def filtered_data(self):
         """Returns the entities and components that the system operates on, zipped.

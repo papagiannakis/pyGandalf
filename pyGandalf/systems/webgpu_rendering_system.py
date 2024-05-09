@@ -1,7 +1,7 @@
 from pyGandalf.systems.system import System
 from pyGandalf.scene.entity import Entity
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPassDescription, ColorAttachmentDescription
-from pyGandalf.scene.components import TransformComponent
+from pyGandalf.scene.components import Component, TransformComponent
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialInstance, CPUBuffer
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
@@ -33,10 +33,7 @@ class WebGPUStaticMeshRenderingSystem(System):
 
         return hash_value
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
 
         material.instance = WebGPUMaterialLib().get(material.name)
@@ -60,27 +57,7 @@ class WebGPUStaticMeshRenderingSystem(System):
         
         self.batches[material.name][mesh.hash].append(components)
 
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
-        mesh, material, transform = components
-
-        if len(mesh.attributes) == 0:
-            return
-        
-        WebGPURenderer().set_pipeline(mesh)
-        WebGPURenderer().set_buffers(mesh)
-        WebGPURenderer().set_bind_groups(material)
-        self.set_uniforms(transform.world_matrix, material)
-        
-        # Draw the mesh
-        if (mesh.indices is None):
-            WebGPURenderer().draw(mesh)
-        else:
-            WebGPURenderer().draw_indexed(mesh)
-
-    def on_update_all(self, ts):
+    def on_update_system(self, ts):
         base_pass_desc: RenderPassDescription = RenderPassDescription()
         color_attachment: ColorAttachmentDescription = ColorAttachmentDescription()
         color_attachment.view = WebGPURenderer().get_current_texture().create_view()
@@ -121,12 +98,7 @@ class WebGPUStaticMeshRenderingSystem(System):
     
     def set_uniforms(self, material_instance: MaterialInstance, meshes):
         if material_instance.has_uniform('u_UniformData'):
-            uniform_data = CPUBuffer(
-                ("viewMatrix", np.float32, (4, 4)),
-                ("projectionMatrix", np.float32, (4, 4)),
-                ("color", np.float32, (4,)),
-                ("viewPosition", np.float32, (4,)),
-            )
+            uniform_data = material_instance.get_cpu_buffer_type('u_UniformData')
 
             from pyGandalf.scene.scene_manager import SceneManager
             camera = SceneManager().get_main_camera()
@@ -137,13 +109,15 @@ class WebGPUStaticMeshRenderingSystem(System):
                 uniform_data["viewMatrix"] = np.identity(4)
                 uniform_data["projectionMatrix"] = np.identity(4)
 
-            uniform_data["color"] = np.asarray(glm.vec4(1.0, 1.0, 1.0, 1.0))
+            if uniform_data.has_member("objectColor"):
+                uniform_data["objectColor"] = np.asarray(glm.vec4(1.0, 1.0, 1.0, 1.0))
 
-            camera_entity = SceneManager().get_main_camera_entity()
-            if camera_entity != None:
-                camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
-                if camera_transform != None:
-                    uniform_data["viewPosition"] = np.asarray(glm.vec4(camera_transform.get_world_position(), 1.0))
+            if uniform_data.has_member("viewPosition"):
+                camera_entity = SceneManager().get_main_camera_entity()
+                if camera_entity != None:
+                    camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
+                    if camera_transform != None:
+                        uniform_data["viewPosition"] = np.asarray(glm.vec4(camera_transform.get_world_position(), 1.0))
 
             material_instance.set_uniform_buffer('u_UniformData', uniform_data)
 

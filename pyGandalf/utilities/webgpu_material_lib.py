@@ -9,7 +9,7 @@ import numpy as np
 class CPUBuffer:
     def __init__(self, *args):
         fields = []
-        # TODO: Handle padding
+        # TODO: Handle padding.
         for name, format, size in args:
             fields.append((name, format, size))
 
@@ -27,6 +27,9 @@ class CPUBuffer:
     @property
     def dtype(self):
         return self.type
+
+    def has_member(self, member):
+        return member in self.data.dtype.names
     
     def __getitem__(self, key):
         return self.data[key]
@@ -36,14 +39,16 @@ class CPUBuffer:
 
 
 class MaterialInstance:
-    def __init__(self, name, base_template, shader_module, pipeline_layout, bind_groups, uniform_buffers, storage_buffers, other_uniforms, textures, shader_params = []):
+    def __init__(self, name, base_template, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, textures, shader_params = []):
         self.name = name
         self.base_template = base_template
         self.shader_module = shader_module
         self.pipeline_layout = pipeline_layout
         self.bind_groups = bind_groups
         self.uniform_buffers = uniform_buffers
+        self.uniform_buffer_types = uniform_buffer_types
         self.storage_buffers = storage_buffers
+        self.storage_buffer_types = storage_buffer_types
         self.other_uniforms = other_uniforms
         self.textures = textures
         self.shader_params = shader_params
@@ -98,6 +103,13 @@ class MaterialInstance:
         )
 
         temporary_buffer.destroy()
+
+    def get_cpu_buffer_type(self, buffer_name: str) -> CPUBuffer | None:
+        if buffer_name in self.uniform_buffer_types.keys():
+            return self.uniform_buffer_types[buffer_name]
+        if buffer_name in self.storage_buffer_types.keys():
+            return self.storage_buffer_types[buffer_name]
+        return None
 
     def uniform_not_found(self, uniform_name: str):
         """Prints a message stating that the uniform with the provided name was not found.
@@ -161,7 +173,9 @@ class WebGPUMaterialLib(object):
         # Use this to find the padding: https://eliemichel.github.io/WebGPU-AutoLayout/
 
         uniform_buffers = {}
+        uniform_buffer_types = {}
         storage_buffers = {}
+        storage_buffer_types = {}
         other_uniforms = {}
 
         bind_groups_entries = [[]]
@@ -187,6 +201,7 @@ class WebGPUMaterialLib(object):
 
             # Instantiate a struct for the uniform buffer data with the given fields
             uniform_data = CPUBuffer(*fields)
+            uniform_buffer_types[buffer_name] = uniform_data
 
             # Create a uniform buffer
             uniform_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
@@ -229,6 +244,8 @@ class WebGPUMaterialLib(object):
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
 
+            storage_buffer_types[buffer_name] = storage_data
+
             # Create storage buffer - data is uploaded each frame
             storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
                 size=storage_data.nbytes * 512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
@@ -269,6 +286,8 @@ class WebGPUMaterialLib(object):
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
 
+            storage_buffer_types[buffer_name] = storage_data
+
             # Create storage buffer - data is uploaded each frame
             storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
                 size=storage_data.nbytes * 512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
@@ -297,29 +316,29 @@ class WebGPUMaterialLib(object):
             match other_data['type']['name']:
                 case 'texture_2d<f32>':
                     # Retrieve texture.
-                    texture_desc: TextureInstance = WebGPUTextureLib().get_descriptor(data.textures[texture_index])
+                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
 
                     # Append uniform buffer to dictionary holding all uniform buffers
-                    other_uniforms[uniform_name] = texture_desc
+                    other_uniforms[uniform_name] = texture_inst
 
                     # Create a bind group entry for the uniform buffer
                     bind_groups_entries[other_data['group']].append({
                         "binding": other_data['binding'],
-                        "resource": texture_desc.view
+                        "resource": texture_inst.view
                     })
                     texture_index_use_count += 1
 
                 case 'sampler':
                     # Retrieve texture.
-                    texture_desc: TextureInstance = WebGPUTextureLib().get_descriptor(data.textures[texture_index])
+                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
 
                     # Append uniform buffer to dictionary holding all uniform buffers
-                    other_uniforms[uniform_name] = texture_desc
+                    other_uniforms[uniform_name] = texture_inst
 
                     # Create a bind group entry for the uniform buffer
                     bind_groups_entries[other_data['group']].append({
                         "binding": other_data['binding'],
-                        "resource": texture_desc.sampler
+                        "resource": texture_inst.sampler
                     })
                     texture_index_use_count += 1
             
@@ -334,8 +353,8 @@ class WebGPUMaterialLib(object):
                 entries=bind_group_entry
             ))
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, storage_buffers, other_uniforms, data.textures, [])
-        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, storage_buffers, other_uniforms, data.textures, [])
+        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
+        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
 
         return cls.instance.materials[name]
 

@@ -179,7 +179,7 @@ class WebGPURenderer(BaseRenderer):
 
         depth_texture : wgpu.GPUTexture = cls.instance.device.create_texture(
             label="depth_texture",
-            size=[1600, 900, 1],
+            size=[1280, 720, 1],
             mip_level_count=1,
             sample_count=1,
             dimension="2d",

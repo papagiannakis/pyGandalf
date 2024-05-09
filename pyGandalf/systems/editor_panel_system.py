@@ -41,22 +41,7 @@ class EditorPanelSystem(System):
         self.drag_and_drop_scene = None
         self.drag_and_drop_texture = None
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
-        pass
-
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
-        pass
-
-    def on_gui_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_gui_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         editor_panel = components
 
         if editor_panel.enabled:

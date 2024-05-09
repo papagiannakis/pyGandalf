@@ -76,7 +76,7 @@ class WebGPUTextureLib(object):
 
         return cls.instance.slots[name]
 
-    def get_descriptor(cls, name: str):
+    def get_instance(cls, name: str):
         return cls.instance.textures.get(name)
     
     def get_slot(cls, name: str):

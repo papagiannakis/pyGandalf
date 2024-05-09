@@ -1,3 +1,4 @@
+from pyGandalf.scene.components import Component
 from pyGandalf.systems.system import System
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
@@ -14,10 +15,7 @@ class OpenGLStaticMeshRenderingSystem(System):
     The system responsible for rendering.
     """
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
 
         mesh.vao = 0
@@ -42,10 +40,7 @@ class OpenGLStaticMeshRenderingSystem(System):
             material.instance.set_uniform('u_ViewProjection', camera.view_projection)
             material.instance.set_uniform('u_Model', glm.mat4(1.0))
 
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
 
         if len(mesh.attributes) == 0:

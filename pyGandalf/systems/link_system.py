@@ -1,5 +1,5 @@
 from pyGandalf.scene.entity import Entity
-from pyGandalf.scene.components import LinkComponent, TransformComponent
+from pyGandalf.scene.components import Component, LinkComponent, TransformComponent
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.systems.system import System
 
@@ -11,10 +11,7 @@ class LinkSystem(System):
     The system responsible for the scene hierachy.
     """
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         link, transform = components
 
         if link.parent_id != 0:
@@ -30,10 +27,7 @@ class LinkSystem(System):
 
         self.add_children(entity, link)
 
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         link, transform = components
 
         if not transform.static:

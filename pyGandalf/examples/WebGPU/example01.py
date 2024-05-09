@@ -35,17 +35,7 @@ class MovementSystem(System):
     The system responsible for moving.
     """
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
-        movement, transform, info = components
-        pass
-
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         movement, transform, info = components
 
         if InputManager().get_key_down(glfw.KEY_1):

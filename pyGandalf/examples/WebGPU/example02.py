@@ -16,7 +16,7 @@ from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import InfoComponent, TransformComponent, LinkComponent, WebGPUMaterialComponent, CameraComponent, WebGPUStaticMeshComponent, LightComponent
+from pyGandalf.scene.components import Component, InfoComponent, TransformComponent, LinkComponent, WebGPUMaterialComponent, CameraComponent, WebGPUStaticMeshComponent, LightComponent
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib
@@ -51,16 +51,7 @@ class DemoSystem(System):
     The system responsible showcasing new features.
     """
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
-        demo, transform, info = components
-
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         demo, transform, info = components
 
         if demo.rotate_around == True:
