@@ -620,3 +620,4 @@ class EditorPanelSystem(System):
                 imgui.button('Pause', imgui.ImVec2(60, 20))
                 if imgui.is_item_clicked():
                     system.set_state(SystemState.PAUSE)
+            imgui.separator()
