@@ -25,6 +25,21 @@ class Scene():
         self.add_component(entity, EditorVisibleComponent())
         return entity
     
+    def enroll_entity_with_uuid(self, uuid) -> Entity:
+        """Creates and enrolls a new entity to the scene with the given uuid as id.
+
+        Args:
+            uuid (_type_): The uuid to set to the entitys' id.
+
+        Returns:
+            Entity: The newly created entity.
+        """
+        entity = Entity()
+        entity.id = uuid
+        self.entities.append(entity)
+        self.add_component(entity, EditorVisibleComponent())
+        return entity
+    
     def destroy_entity(self, entity: Entity):
         """Destroy the given entity from the scene. If the entity has children, recursively destroys them all.
 

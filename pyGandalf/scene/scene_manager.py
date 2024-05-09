@@ -36,7 +36,7 @@ class SceneManager(object):
 
     def on_update(cls, ts):
         if cls.instance.active_scene is None:
-            logger.critical('There is no active scene currenlty')
+            logger.critical('There is no active scene currently')
             return
         
         cls.instance.active_scene.on_update(ts)
@@ -46,7 +46,7 @@ class SceneManager(object):
 
     def on_gui_update(cls, ts):
         if cls.instance.active_scene is None:
-            logger.critical('There is no active scene currenlty')
+            logger.critical('There is no active scene currently')
             return
         
         cls.instance.active_scene.on_gui_update(ts)
@@ -66,6 +66,11 @@ class SceneManager(object):
         
         cls.instance.scene_change_requested = True
 
+    def open_external_scene(cls, scene: Scene):
+        cls.instance.new_scene_to_loaded = scene        
+        cls.instance.record_scene_change_event(cls.instance.active_scene, cls.instance.new_scene_to_loaded)        
+        cls.instance.scene_change_requested = True
+
     def change_scene_deffered(cls):
         if cls.instance.new_scene_to_loaded is None:
             if len(cls.instance.scenes) <= cls.instance.active_scene_index:
@@ -80,6 +85,9 @@ class SceneManager(object):
         if cls.instance.active_scene is None:
             logger.critical(f'New scene is none, exiting.')
             exit(-1)
+
+        cls.instance.main_camera = None
+        cls.instance.main_camera_entity = None
 
         cls.instance.active_scene.on_create()
         cls.instance.new_scene_to_loaded = None

@@ -4,6 +4,7 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.systems.system import System
 
 import glm
+import uuid
 
 class LinkSystem(System):
     """
@@ -15,6 +16,16 @@ class LinkSystem(System):
         Gets called once in the first frame for every entity that the system operates on.
         """
         link, transform = components
+
+        if link.parent_id != 0:
+            for entt in SceneManager().get_active_scene().get_entities():
+                if entt.id == link.parent_id:
+                    link.parent = entt
+                    link.prev_parent = entt
+                    break
+        
+        link.children.clear()
+
         transform.world_matrix = self.get_world_space_transform(entity, link)
 
         self.add_children(entity, link)

@@ -2,7 +2,7 @@ from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 
 from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import TransformComponent
+from pyGandalf.scene.components import TransformComponent, CameraComponent
 
 from pyGandalf.systems.system import SystemState
 from pyGandalf.systems.light_system import LightSystem
@@ -74,12 +74,6 @@ class OpenGLRenderer(BaseRenderer):
         # Use the shader program
         gl.glUseProgram(material.instance.shader_program)
 
-        # Create samplers if texture is in use
-        samplers = []
-        for i in range(0, 16):
-            samplers.append(i)
-        material.instance.set_uniform("u_Textures", np.asarray(samplers, dtype=np.int32))
-
         return 0
 
     def begin_frame(cls):
@@ -132,11 +126,8 @@ class OpenGLRenderer(BaseRenderer):
             camera_entity = SceneManager().get_main_camera_entity()
             if camera_entity != None:
                 camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
-                if camera_transform != None:
+                if camera_transform != None and not camera_transform.static:
                     material.instance.set_uniform('u_ViewPosition', camera_transform.get_world_position())
-
-        if len(material.instance.textures) > 0:
-            material.instance.set_uniform('u_TextureId', OpenGLTextureLib().get_slot(material.instance.textures[0]))
 
         if material.instance.has_uniform('u_Color'):
             material.instance.set_uniform('u_Color', material.color)
@@ -146,7 +137,9 @@ class OpenGLRenderer(BaseRenderer):
         gl.glUseProgram(material.instance.shader_program)
         
         # Bind textures
-        OpenGLTextureLib().bind_textures()
+        for texture_name in material.instance.textures:
+            OpenGLTextureLib().bind(texture_name)
+            material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
 
         # Set Uniforms
         cls.instance.update_uniforms(model, material)
@@ -171,7 +164,8 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBindVertexArray(0)
 
         # Unbind textures
-        OpenGLTextureLib().unbind_textures()
+        for texture_name in material.instance.textures:
+            OpenGLTextureLib().unbind(texture_name)
 
         # Unbind shader program
         gl.glUseProgram(0)
@@ -181,7 +175,9 @@ class OpenGLRenderer(BaseRenderer):
         gl.glUseProgram(material.instance.shader_program)
         
         # Bind textures
-        OpenGLTextureLib().bind_textures()
+        for texture_name in material.instance.textures:
+            OpenGLTextureLib().bind(texture_name)
+            material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
 
         # Set Uniforms
         cls.instance.update_uniforms(model, material)
@@ -210,7 +206,8 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, 0)
 
         # Unbind textures
-        OpenGLTextureLib().unbind_textures()
+        for texture_name in material.instance.textures:
+            OpenGLTextureLib().unbind(texture_name)
 
         # Unbind shader program
         gl.glUseProgram(0)
@@ -224,10 +221,8 @@ class OpenGLRenderer(BaseRenderer):
 
         if cls.instance.framebuffer_id:
             gl.glDeleteFramebuffers(1, np.array(cls.instance.framebuffer_id, dtype=np.uint))
-            if cls.instance.color_attachment > -1:
-                gl.glDeleteTextures(1, np.array(cls.instance.color_attachment, dtype=np.uint))
-            if cls.instance.depth_attachment > -1:
-                gl.glDeleteTextures(1, np.array(cls.instance.depth_attachment, dtype=np.uint))
+            gl.glDeleteTextures(1, np.array(cls.instance.color_attachment, dtype=np.uint))
+            gl.glDeleteTextures(1, np.array(cls.instance.depth_attachment, dtype=np.uint))
 
         # Build the texture that will serve as the color attachment for the framebuffer.
         cls.instance.color_attachment = gl.glGenTextures(1)
