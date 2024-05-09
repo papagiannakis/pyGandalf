@@ -46,12 +46,9 @@ def create_plane() -> Entity:
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    lit_blinn_phong_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_vertex.glsl')
-    lit_blinn_phong_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
-
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
-    OpenGLShaderLib().build('default_mesh', lit_blinn_phong_vertex, lit_blinn_phong_fragment)
-    OpenGLMaterialLib().build('M_Plane', MaterialData('default_mesh', ['white_texture']))
+    OpenGLShaderLib().build('default_mesh_plane', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLMaterialLib().build('M_Plane', MaterialData('default_mesh_plane', ['white_texture']))
 
     scene: Scene = SceneManager().get_active_scene()
 
@@ -176,12 +173,9 @@ def create_cube() -> Entity:
         [1.0, 0.0], #
     ], dtype=np.float32)
 
-    lit_blinn_phong_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_vertex.glsl')
-    lit_blinn_phong_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
-
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
-    OpenGLShaderLib().build('default_mesh', lit_blinn_phong_vertex, lit_blinn_phong_fragment)
-    OpenGLMaterialLib().build('M_Cube', MaterialData('default_mesh', ['white_texture']))
+    OpenGLShaderLib().build('default_mesh_cube', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLMaterialLib().build('M_Cube', MaterialData('default_mesh_cube', ['white_texture']))
 
     scene: Scene = SceneManager().get_active_scene()
 
@@ -207,7 +201,167 @@ def create_light() -> Entity:
     scene: Scene = SceneManager().get_active_scene()
     entity_light = scene.enroll_entity()
     scene.add_component(entity_light, InfoComponent('Light'))
-    scene.add_component(entity_light, TransformComponent(glm.vec3(0, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_light, TransformComponent(glm.vec3(0, 2, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity_light, LinkComponent(None))
     scene.add_component(entity_light, LightComponent(glm.vec3(1, 1, 1), 0.75))
     return entity_light
+
+def create_sphere() -> Entity:
+    vertices = []
+    indices = []
+    normals = []
+    texture_coords = []
+
+    for i in range(0, 21):
+        for j in range(0, 21):
+            x = np.cos(2 * np.pi * j / 20) * np.sin(np.pi * i / 20)
+            y = np.sin(2 * np.pi * j / 20) * np.sin(np.pi * i / 20)
+            z = np.cos(np.pi * i / 20)
+
+            vertices.append([x, y, z])
+            normals.append([x, y, z])
+            texture_coords.append([j / 20.0, i / 20.0])
+
+    for i in range(0, 21):
+        for j in range(0, 21):
+            indices.append(i * 20 + j)
+            indices.append((i + 1) * 20 + j)
+            indices.append((i + 1) * 20 + (j + 1) % 20)
+            indices.append(i * 20 + j)
+            indices.append((i + 1) * 20 + (j + 1) % 20)
+            indices.append(i * 20 + (j + 1) % 20)
+
+    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLShaderLib().build('default_mesh_sphere', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLMaterialLib().build('M_Sphere', MaterialData('default_mesh_sphere', ['white_texture']))
+
+    scene: Scene = SceneManager().get_active_scene()
+
+    entity_sphere = scene.enroll_entity()
+    scene.add_component(entity_sphere, InfoComponent('Sphere'))
+    scene.add_component(entity_sphere, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_sphere, LinkComponent(None))
+    scene.add_component(entity_sphere, StaticMeshComponent('sphere_mesh', [np.asarray(vertices, dtype=np.float32), np.asarray(normals, dtype=np.float32), np.asarray(texture_coords, dtype=np.float32)], np.asarray(indices, dtype=np.uint32)))
+    scene.add_component(entity_sphere, MaterialComponent('M_Sphere'))
+
+    return entity_sphere
+
+def create_cylinder() -> Entity:
+    vertices = []
+    indices = []
+    normals = []
+    texture_coords = []
+
+    for i in range(0, 20):
+        for j in range(0, 20):
+            x = np.cos(2 * np.pi * j / 20)
+            y = np.sin(2 * np.pi * j / 20)
+            z = 2 * i / 20 - 1
+
+            vertices.append([x, y, z])
+            normals.append([x, y, 0])
+            texture_coords.append([j / 20.0, i / 20.0])
+    
+    for i in range(0, 20):
+        for j in range(0, 20):
+            indices.append(i * 20 + j)
+            indices.append((i + 1) * 20 + j)
+            indices.append((i + 1) * 20 + (j + 1) % 20)
+            indices.append(i * 20 + j)
+            indices.append((i + 1) * 20 + (j + 1) % 20)
+            indices.append(i * 20 + (j + 1) % 20)
+
+    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLMaterialLib().build('M_Cylinder', MaterialData('default_mesh', ['white_texture']))
+
+    scene: Scene = SceneManager().get_active_scene()
+
+    entity_cylinder = scene.enroll_entity()
+    scene.add_component(entity_cylinder, InfoComponent('Cylinder'))
+    scene.add_component(entity_cylinder, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_cylinder, LinkComponent(None))
+    scene.add_component(entity_cylinder, StaticMeshComponent('cylinder_mesh', [np.asarray(vertices, dtype=np.float32), np.asarray(normals, dtype=np.float32), np.asarray(texture_coords, dtype=np.float32)], np.asarray(indices, dtype=np.uint32)))
+    scene.add_component(entity_cylinder, MaterialComponent('M_Cylinder'))
+
+    return entity_cylinder
+
+def create_cone() -> Entity:
+    vertices = []
+    indices = []
+    normals = []
+    texture_coords = []
+
+    for i in range(0, 20):
+        for j in range(0, 20):
+            x = np.cos(2 * np.pi * j / 20) * (1 - i / 20)
+            y = np.sin(2 * np.pi * j / 20) * (1 - i / 20)
+            z = 2 * i / 20 - 1
+
+            vertices.append([x, y, z])
+            normals.append([x, y, 0])
+            texture_coords.append([j / 20.0, i / 20.0])
+
+    for i in range(0, 20):
+        for j in range(0, 20):
+            indices.append(i * 20 + j)
+            indices.append((i + 1) * 20 + j)
+            indices.append((i + 1) * 20 + (j + 1) % 20)
+            indices.append(i * 20 + j)
+            indices.append((i + 1) * 20 + (j + 1) % 20)
+            indices.append(i * 20 + (j + 1) % 20)
+
+    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLMaterialLib().build('M_Cone', MaterialData('default_mesh', ['white_texture']))
+
+    scene: Scene = SceneManager().get_active_scene()
+
+    entity_cone = scene.enroll_entity()
+    scene.add_component(entity_cone, InfoComponent('Cone'))
+    scene.add_component(entity_cone, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_cone, LinkComponent(None))
+    scene.add_component(entity_cone, StaticMeshComponent('cone_mesh', [np.asarray(vertices, dtype=np.float32), np.asarray(normals, dtype=np.float32), np.asarray(texture_coords, dtype=np.float32)], np.asarray(indices, dtype=np.uint32)))
+    scene.add_component(entity_cone, MaterialComponent('M_Cone'))
+
+    return entity_cone
+
+def create_torus() -> Entity:
+    vertices = []
+    indices = []
+    normals = []
+    texture_coords = []
+
+    for i in range(0, 21):
+        for j in range(0, 21):
+            x = np.cos(2 * np.pi * j / 20) * (1 + np.cos(2 * np.pi * i / 20) / 2)
+            y = np.sin(2 * np.pi * j / 20) * (1 + np.cos(2 * np.pi * i / 20) / 2)
+            z = np.sin(2 * np.pi * i / 20) / 2
+
+            vertices.append([x, y, z])
+            normals.append([x, y, z])
+            texture_coords.append([j / 20.0, i / 20.0])
+
+    for i in range(0, 20):
+        for j in range(0, 20):
+            indices.append(i * 20 + j)
+            indices.append((i + 1) * 20 + j)
+            indices.append((i + 1) * 20 + (j + 1) % 20)
+            indices.append(i * 20 + j)
+            indices.append((i + 1) * 20 + (j + 1) % 20)
+            indices.append(i * 20 + (j + 1) % 20)
+
+    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLMaterialLib().build('M_Torus', MaterialData('default_mesh', ['white_texture']))
+
+    scene: Scene = SceneManager().get_active_scene()
+
+    entity_torus = scene.enroll_entity()
+    scene.add_component(entity_torus, InfoComponent('Torus'))
+    scene.add_component(entity_torus, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(entity_torus, LinkComponent(None))
+    scene.add_component(entity_torus, StaticMeshComponent('torus_mesh', [np.asarray(vertices, dtype=np.float32), np.asarray(normals, dtype=np.float32), np.asarray(texture_coords, dtype=np.float32)], np.asarray(indices, dtype=np.uint32)))
+    scene.add_component(entity_torus, MaterialComponent('M_Torus'))
+
+    return entity_torus

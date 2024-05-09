@@ -1,15 +1,19 @@
 from pyGandalf.scene.entity import Entity
+from pyGandalf.utilities.opengl_material_lib import MaterialInstance
 
 import glm
 
 from enum import Enum
 
-class InfoComponent:
-    def __init__(self, name = 'UnnamedEntity'):
-        self.tag = name
+class Component(object):
+    pass
+
+class InfoComponent(Component):
+    def __init__(self, tag = 'UnnamedEntity'):
+        self.tag = tag
         self.enabled = True
 
-class TransformComponent:
+class TransformComponent(Component):
     def __init__(self, translation: glm.vec3, rotation: glm.vec3, scale: glm.vec3):
         self.translation = translation
         self.rotation = rotation
@@ -25,26 +29,29 @@ class TransformComponent:
     def get_world_position(self):
         return (self.world_matrix * glm.vec4(self.translation, 1.0)).xyz
 
-class LinkComponent:
+class LinkComponent(Component):
     def __init__(self, parent: Entity):
+        self.parent_id = 0
+        if parent != None:
+            self.parent_id = parent.id
         self.parent: Entity = parent
         self.prev_parent: Entity = parent
         self.children: list[Entity] = []
 
-class MaterialComponent:
-    def __init__(self, name, color = glm.vec3(1.0, 1.0, 1.0)):
+class MaterialComponent(Component):
+    def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0)):
         self.name = name
-        self.instance = None
+        self.instance: MaterialInstance = None
         self.color = color
         self.glossiness = 5.0
         self.metallicness = 0.0
 
-class CameraComponent:
+class CameraComponent(Component):
     class Type(Enum):
         PERSPECTIVE = 1
         ORTHOGRAPHIC = 2
 
-    def __init__(self, fov, aspect_ratio, near, far, zoom_level, type: Type, primary = True, static = False):
+    def __init__(self, fov, aspect_ratio, near, far, zoom_level, type: Type, primary = True):
         self.zoom_level = zoom_level
         self.fov = fov
         self.near = near
@@ -60,9 +67,8 @@ class CameraComponent:
         self.view_projection = glm.mat4(1.0)
 
         self.primary = primary
-        self.static = static
 
-class StaticMeshComponent:
+class StaticMeshComponent(Component):
     def __init__(self, name, attributes = None, indices = None, primitive = None):
         self.name = name
         self.attributes = attributes
@@ -72,9 +78,9 @@ class StaticMeshComponent:
         self.vbo = []
         self.ebo = 0
         self.batch = -1
+        self.load_from_file = True if attributes == None else False
 
-class LightComponent:
-    def __init__(self, color, intensity, static = True):
+class LightComponent(Component):
+    def __init__(self, color, intensity):
         self.color = color
         self.intensity = intensity
-        self.static = static

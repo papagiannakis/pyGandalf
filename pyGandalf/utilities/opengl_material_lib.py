@@ -8,23 +8,45 @@ import re
 import glm
 
 class MaterialInstance:
-    def __init__(self, name, shader_program, textures, shader_params = []):
+    def __init__(self, name, base_template, shader_program, textures, shader_params = []):
         self.name = name
+        self.base_template = base_template
         self.shader_program = shader_program
         self.textures = textures
         self.shader_params = shader_params
 
-    def has_uniform(self, uniform_name):
+    def has_uniform(self, uniform_name: str) -> bool:
+        """Returns True if the material has the uniform with the given name, otherwise False.
+
+        Args:
+            uniform_name (str): The name of the uniform.
+
+        Returns:
+            bool: True if the material has the uniform with the given name, otherwise False.
+        """
         return gl.glGetUniformLocation(self.shader_program, uniform_name) != -1
 
-    def set_uniform(self, uniform_name, uniform_data):
+    def set_uniform(self, uniform_name: str, uniform_data):
+        """Stes the uniform with the provided name (if valid), with the provided data.
+
+        Args:
+            uniform_name (str): The name of the uniform to set.
+            uniform_data (Any): The new data for the unform.
+        """
         uniform_location = gl.glGetUniformLocation(self.shader_program, uniform_name)
         if uniform_location != -1:
             self.update_uniform(uniform_location, uniform_name, uniform_data)
         else:
             self.uniform_not_found(uniform_name)
 
-    def update_uniform(self, uniform_location, uniform_name, uniform_data):
+    def update_uniform(self, uniform_location: int, uniform_name: str, uniform_data):
+        """Updates the uniform at specfied location and the given name with the given data.
+
+        Args:
+            uniform_location (int): The uniform location.
+            uniform_name (str): The uniform name.
+            uniform_data (Any): The new uniform data.
+        """
         uniform_type = self.shader_params[uniform_name]
         match uniform_type:
             case 'float':
@@ -157,10 +179,17 @@ class MaterialInstance:
                 assert len(uniform_data) <= count and isinstance(uniform_data[0], glm.vec4), f"Uniform type with name: {uniform_name} is not an array of {count} 4x1 glm array of float"
                 gl.glUniform4fv(uniform_location, len(uniform_data), uniform_data.ptr)
 
-    def uniform_not_found(self, uniform_name):
+    def uniform_not_found(self, uniform_name: str):
+        """Prints a message stating that the uniform with the provided name was not found.
+
+        Args:
+            uniform_name (str): The name of the uniform that was not found.
+        """
         logger.debug(f'Could not find {uniform_name} uniform for material: {self.name}!\n These are the available uniforms for shader with id {self.shader_program}:\n {self.shader_params}')
     
     def print_available_uniforms(self):
+        """Prints a message with all the available uniforms of the material.
+        """
         logger.log(f'Available uniforms for material: {self.name} and shader id {self.shader_program}:\n {self.shader_params}')
 
 class MaterialData:
@@ -190,6 +219,15 @@ class OpenGLMaterialLib(object):
         return cls.instance
     
     def build(cls, name: str, data: MaterialData) -> MaterialInstance:
+        """Builds a new material (if one does not already exists with that data) and returns its instance.
+
+        Args:
+            name (str): The name of the material.
+            data (MaterialData): The data of the material.
+
+        Returns:
+            MaterialInstance: The material instance.
+        """
         if cls.instance.cached_materials.get(data) != None:
             material = cls.instance.cached_materials[data]
             cls.instance.materials[name] = material
@@ -198,13 +236,29 @@ class OpenGLMaterialLib(object):
         shader_data = OpenGLShaderLib().get(data.base_template)
 
         shader_program = shader_data.shader_program
-        shader_params_vertex = OpenGLShaderLib().parse(shader_data.vertex_shader_code)
-        shader_params_fragment = OpenGLShaderLib().parse(shader_data.fragment_shader_code)
+        shader_params_vertex = OpenGLShaderLib().parse(shader_data.vs_code)
+        shader_params_fragment = OpenGLShaderLib().parse(shader_data.fs_code)
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
-        cls.instance.materials[name] = MaterialInstance(name, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
+        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
+        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
 
         return cls.instance.materials[name]
 
-    def get(cls, name) -> MaterialInstance:
+    def get(cls, name: str) -> MaterialInstance:
+        """Returns the material instance with the given name.
+
+        Args:
+            name (str): The name of the material instance to get.
+
+        Returns:
+            MaterialInstance: The material instance with the given name.
+        """
         return cls.instance.materials.get(name)
+    
+    def get_materials(cls) -> dict[str, MaterialInstance]:
+        """Returns a dictionary the holds all the material instances. As the key is the name of the material, as the value is the material instance.
+
+        Returns:
+            dict[str, MaterialInstance]: A dictionary the holds all the material instances.
+        """
+        return cls.instance.materials

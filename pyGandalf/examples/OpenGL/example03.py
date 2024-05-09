@@ -16,7 +16,7 @@ from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import InfoComponent, TransformComponent, LinkComponent, MaterialComponent, CameraComponent, StaticMeshComponent, LightComponent
+from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
@@ -39,7 +39,7 @@ Event system showcase:
 - There attached callbacks when a scene change happens and the DemoSystem state changes, check console.
 """
 
-class DemoComponent:
+class DemoComponent(Component):
     def __init__(self, axis, speed, rotate_around, main_camera) -> None:
         self.axis = axis
         self.speed = speed
@@ -95,9 +95,6 @@ def main():
     light2 = scene2.enroll_entity()
     rabbit2 = scene2.enroll_entity()
 
-    lit_blinn_phong_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_vertex.glsl')
-    lit_blinn_phong_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
-
     vertices = np.array([
         [-0.5, -0.5, 0.0], #0
         [ 0.5, -0.5, 0.0], #1
@@ -135,7 +132,7 @@ def main():
     OpenGLTextureLib().build('marble_texture', TEXTURES_PATH/'4K_carrara_gioa_p1004___polished___marble_diffuse.png')
 
     # Build shaders
-    OpenGLShaderLib().build('default_mesh', lit_blinn_phong_vertex, lit_blinn_phong_fragment)
+    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Rabbit', MaterialData('default_mesh', ['rabbit_albedo']))

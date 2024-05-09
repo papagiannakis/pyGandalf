@@ -31,6 +31,8 @@ setup(
         "trimesh>=4.2.0",
         "scipy>=1.12.0",
         "imgui-bundle>=1.3.0",
+        "usd-core>=24.3",
+        "jsonpickle>=3.0.4",
     ],    
 
     classifiers=[

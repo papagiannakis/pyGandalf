@@ -20,13 +20,20 @@ class OpenGLStaticMeshRenderingSystem(System):
         """
         mesh, material, transform = components
 
+        mesh.vao = 0
+        mesh.ebo = 0
+        mesh.vbo.clear()
+
         material.instance = OpenGLMaterialLib().get(material.name)
 
-        if mesh.attributes is None:
+        if mesh.load_from_file == True:
             mesh_instance = OpenGLMeshLib().get(mesh.name)
             mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
             mesh.indices = mesh_instance.indices
 
+        if len(mesh.attributes) == 0:
+            return
+        
         mesh.batch = OpenGLRenderer().add_batch(mesh, material)
 
         # Set up matrices for projection and view
@@ -41,6 +48,9 @@ class OpenGLStaticMeshRenderingSystem(System):
         Gets called every frame for every entity that the system operates on.
         """
         mesh, material, transform = components
+
+        if len(mesh.attributes) == 0:
+            return
 
         # Draw the mesh
         if (mesh.indices is None):

@@ -11,7 +11,7 @@ from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import InfoComponent, TransformComponent, LinkComponent, StaticMeshComponent, MaterialComponent, CameraComponent
+from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
@@ -30,7 +30,7 @@ Showcase of an ecss cube consisting of an empty parent entity and six other enti
 A custom component is added to the root entity to rotate around the whole cube.
 """
 
-class DemoComponent:
+class DemoComponent(Component):
     def __init__(self, axis, speed, rotate_around, main_camera) -> None:
         self.axis = axis
         self.speed = speed
@@ -94,20 +94,14 @@ def main():
     cube_face_top = scene.enroll_entity()
     cube_face_bottom = scene.enroll_entity()
 
-    unlit_simple_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_vertex.glsl')
-    unlit_simple_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_simple_fragment.glsl')
-
-    unlit_textured_vertex = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_textured_vertex.glsl')
-    unlit_textured_fragment = OpenGLShaderLib().load_from_file(SHADERS_PATH/'unlit_textured_fragment.glsl')
-
     Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer)
 
     # Build textures
     OpenGLTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png')
 
     # Build shaders 
-    OpenGLShaderLib().build('unlit_simple', unlit_simple_vertex, unlit_simple_fragment)
-    OpenGLShaderLib().build('unlit_textured', unlit_textured_vertex, unlit_textured_fragment)
+    OpenGLShaderLib().build('unlit_simple', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
+    OpenGLShaderLib().build('unlit_textured', SHADERS_PATH/'unlit_textured_vertex.glsl', SHADERS_PATH/'unlit_textured_fragment.glsl')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Yellow_Simple', MaterialData('unlit_simple', []))
