@@ -369,8 +369,7 @@ class EditorPanelSystem(System):
                         # Set up matrices for projection and view
                         camera = SceneManager().get_main_camera()
                         if camera != None:
-                            material.instance.set_uniform('u_Projection', camera.projection)
-                            material.instance.set_uniform('u_View', camera.view)
+                            material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view)
                             material.instance.set_uniform('u_Model', glm.mat4(1.0))
 
                     if imgui.begin_drag_drop_target():

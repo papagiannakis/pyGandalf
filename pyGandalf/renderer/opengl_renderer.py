@@ -116,7 +116,7 @@ class OpenGLRenderer(BaseRenderer):
 
         camera = SceneManager().get_main_camera()
         if camera != None:
-            material.instance.set_uniform('u_ViewProjection', camera.projection * camera.view)
+            material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
             material.instance.set_uniform('u_Model', model)
         else:
             material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
