@@ -285,6 +285,9 @@ class WebGPUMaterialLib(object):
                 },
             })
 
+        texture_index = 0
+        texture_index_use_count = 0
+
         for uniform_name in other.keys():
             other_data = other[uniform_name]
 
@@ -293,8 +296,8 @@ class WebGPUMaterialLib(object):
 
             match other_data['type']['name']:
                 case 'texture_2d<f32>':
-                    # Retrieve texture, TODO: Fix hardcoded texture index.
-                    texture_desc: TextureInstance = WebGPUTextureLib().get_descriptor(data.textures[0])
+                    # Retrieve texture.
+                    texture_desc: TextureInstance = WebGPUTextureLib().get_descriptor(data.textures[texture_index])
 
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_desc
@@ -304,9 +307,11 @@ class WebGPUMaterialLib(object):
                         "binding": other_data['binding'],
                         "resource": texture_desc.view
                     })
+                    texture_index_use_count += 1
+
                 case 'sampler':
-                    # Retrieve texture, TODO: Fix hardcoded texture index.
-                    texture_desc: TextureInstance = WebGPUTextureLib().get_descriptor(data.textures[0])
+                    # Retrieve texture.
+                    texture_desc: TextureInstance = WebGPUTextureLib().get_descriptor(data.textures[texture_index])
 
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_desc
@@ -316,6 +321,11 @@ class WebGPUMaterialLib(object):
                         "binding": other_data['binding'],
                         "resource": texture_desc.sampler
                     })
+                    texture_index_use_count += 1
+            
+            if texture_index_use_count == 2:
+                texture_index_use_count = 0
+                texture_index += 1
 
         bind_groups: list[wgpu.GPUBindGroup] = []
         for index, bind_group_entry in enumerate(bind_groups_entries):
