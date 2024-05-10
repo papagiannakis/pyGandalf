@@ -4,10 +4,12 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene import Scene
-from pyGandalf.scene.components import Component, CameraComponent, WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent, InfoComponent
+from pyGandalf.scene.components import Component, CameraComponent, CameraControllerComponent, LightComponent, WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent, InfoComponent
 from pyGandalf.systems.system import System
 from pyGandalf.systems.transform_system import TransformSystem
 from pyGandalf.systems.camera_system import CameraSystem
+from pyGandalf.systems.camera_controller_system import CameraControllerSystem
+from pyGandalf.systems.light_system import LightSystem
 from pyGandalf.systems.webgpu_rendering_system import WebGPUStaticMeshRenderingSystem
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData
@@ -44,8 +46,8 @@ class MovementSystem(System):
         if InputManager().get_key_down(glfw.KEY_2):
             if info.tag == 'e2':movement.selected = True
             else: movement.selected = False
-        if InputManager().get_key_down(glfw.KEY_3):
-            if info.tag == 'e3':movement.selected = True
+        if InputManager().get_key_down(glfw.KEY_P):
+            if info.tag == 'pistol':movement.selected = True
             else: movement.selected = False
         if InputManager().get_key_down(glfw.KEY_M):
             if info.tag == 'monkeh':movement.selected = True
@@ -67,18 +69,17 @@ def main():
     scene = Scene()
 
     # Create Enroll entities to registry
-    # entity1 = scene.enroll_entity()
-    # entity2 = scene.enroll_entity()
-    # entity3 = scene.enroll_entity()
+    pistol = scene.enroll_entity()
     monkeh = scene.enroll_entity()
+    light = scene.enroll_entity()
     camera = scene.enroll_entity()
 
     # Create application
     Application().create(WebGPUWindow('Hello World', 1280, 720, True), WebGPURenderer)
 
     # Build textures
-    WebGPUTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png')
     WebGPUTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
+    WebGPUTextureLib().build('pistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
     WebGPUTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
 
     # Build shaders 
@@ -88,68 +89,19 @@ def main():
 
     # Build Materials
     WebGPUMaterialLib().build('M_Unlit', MaterialData('unlit', []))
-    WebGPUMaterialLib().build('M_Unlit_Textured_1', MaterialData('unlit_textured', ['uoc_logo']))
-    WebGPUMaterialLib().build('M_Unlit_Textured_2', MaterialData('unlit_textured', ['dark_wood_texture']))
+    WebGPUMaterialLib().build('M_Unlit_Textured', MaterialData('unlit_textured', ['dark_wood_texture']))
     WebGPUMaterialLib().build('M_Monkeh', MaterialData('lit_blinn_phong', ['white_texture']))
+    WebGPUMaterialLib().build('M_Pistol', MaterialData('lit_blinn_phong', ['pistol_albedo']))
 
     # Load models
     OpenGLMeshLib().build('monkeh_mesh', MODELS_PATH/'monkey_flat.obj')
+    OpenGLMeshLib().build('pistol_mesh', MODELS_PATH/'fa_flintlockPistol.obj')
 
-    vertex_data_1 = np.array([
-        [-0.5, -0.5, 0.0],
-        [ 0.5, -0.5, 0.0],
-        [ 0.5,  0.5, 0.0],
-        [-0.5,  0.5, 0.0],
-    ], np.float32)
-
-    vertices = np.array([
-        [-0.5, -0.5, 0.0], #0
-        [ 0.5, -0.5, 0.0], #1
-        [ 0.5,  0.5, 0.0], #2
-        [ 0.5,  0.5, 0.0], #2
-        [-0.5,  0.5, 0.0], #3
-        [-0.5, -0.5, 0.0]  #0
-    ], dtype=np.float32)
-
-    texture_coords = np.array([
-        [0.0, 1.0], #0
-        [1.0, 1.0], #1
-        [1.0, 0.0], #2
-        [1.0, 0.0], #2
-        [0.0, 0.0], #3
-        [0.0, 1.0]  #0
-    ], dtype=np.float32)
-
-    index_data = np.array([
-        [0,1,2],
-        [0,2,3],
-    ], np.uint32)
-
-    texture_coords_1 = np.array([
-        [0.0, 1.0], #0
-        [1.0, 1.0], #1
-        [1.0, 0.0], #2
-        [0.0, 0.0], #3
-    ], dtype=np.float32)
-
-    # Add components
-    # scene.add_component(entity1, InfoComponent('e1'))
-    # scene.add_component(entity1, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(0.5, 0.5, 0.5)))
-    # scene.add_component(entity1, WebGPUStaticMeshComponent('triangle_1', [vertex_data_1], index_data))
-    # scene.add_component(entity1, WebGPUMaterialComponent('M_Unlit'))
-    # scene.add_component(entity1, MovementComponent())
-
-    # scene.add_component(entity2, InfoComponent('e2'))
-    # scene.add_component(entity2, TransformComponent(glm.vec3(-1, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    # scene.add_component(entity2, WebGPUStaticMeshComponent('triangle_2', [vertices, texture_coords]))
-    # scene.add_component(entity2, WebGPUMaterialComponent('M_Unlit_Textured_1'))
-    # scene.add_component(entity2, MovementComponent())
-
-    # scene.add_component(entity3, InfoComponent('e3'))
-    # scene.add_component(entity3, TransformComponent(glm.vec3(1, 0, 0), glm.vec3(0, 0, 0), glm.vec3(0.75, 0.75, 0.75)))
-    # scene.add_component(entity3, WebGPUStaticMeshComponent('triangle_3', [vertex_data_1, texture_coords_1], index_data))
-    # scene.add_component(entity3, WebGPUMaterialComponent('M_Unlit_Textured_2'))
-    # scene.add_component(entity3, MovementComponent())
+    scene.add_component(pistol, InfoComponent('pistol'))
+    scene.add_component(pistol, TransformComponent(glm.vec3(-3, 0, 0), glm.vec3(0, 0, 0), glm.vec3(15, 15, 15)))
+    scene.add_component(pistol, WebGPUStaticMeshComponent('pistol_mesh'))
+    scene.add_component(pistol, WebGPUMaterialComponent('M_Pistol'))
+    scene.add_component(pistol, MovementComponent())
 
     # Register components to monkeh
     scene.add_component(monkeh, InfoComponent("monkeh"))
@@ -158,16 +110,24 @@ def main():
     scene.add_component(monkeh, WebGPUMaterialComponent('M_Monkeh'))
     scene.add_component(monkeh, MovementComponent())
 
+    # Register components to light
+    scene.add_component(light, InfoComponent("light"))
+    scene.add_component(light, TransformComponent(glm.vec3(0, 1, 2), glm.vec3(0, 0, 0), glm.vec3(1, 1, 0)))
+    scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 0.75))
+
     # Register components to camera
     scene.add_component(camera, InfoComponent('camera'))
-    scene.add_component(camera, TransformComponent(glm.vec3(0.0, 0.0, -10.0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(camera, TransformComponent(glm.vec3(0.0, 0.0, 10.0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, CameraComponent(75, 1.778, 0.001, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
+    # scene.add_component(camera, CameraControllerComponent())
 
     # Create Register systems
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(LightSystem([LightComponent, TransformComponent]))
     scene.register_system(MovementSystem([MovementComponent, TransformComponent, InfoComponent]))
+    # scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager
     SceneManager().add_scene(scene)

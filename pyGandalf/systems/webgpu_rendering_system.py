@@ -1,7 +1,8 @@
-from pyGandalf.systems.system import System
+from pyGandalf.systems.system import System, SystemState
 from pyGandalf.scene.entity import Entity
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPassDescription, ColorAttachmentDescription
 from pyGandalf.scene.components import Component, TransformComponent
+from pyGandalf.systems.light_system import LightSystem
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialInstance, CPUBuffer
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
@@ -118,6 +119,28 @@ class WebGPUStaticMeshRenderingSystem(System):
                     camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
                     if camera_transform != None:
                         uniform_data["viewPosition"] = np.asarray(glm.vec4(camera_transform.get_world_position(), 1.0))
+
+            light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
+
+            light_positions: list[glm.vec3] = []
+            light_colors: list[glm.vec3] = []
+            light_intensities: list[np.float32] = []
+            
+            if light_system is not None:
+                if light_system.get_state() != SystemState.PAUSE:
+                    for components in light_system.get_filtered_components():
+                        light, transform = components
+                        light_colors.append(light.color)
+                        light_positions.append(transform.get_world_position())
+                        light_intensities.append(light.intensity)
+
+            count = len(light_positions)
+
+            if count != 0:
+                if uniform_data.has_member("lightPosition"):
+                    uniform_data["lightPosition"] = np.asarray(glm.vec4(light_positions[0], 1.0))
+                if uniform_data.has_member("lightColor"):
+                    uniform_data["lightColor"] = np.asarray(glm.vec4(light_colors[0], 1.0))
 
             material_instance.set_uniform_buffer('u_UniformData', uniform_data)
 

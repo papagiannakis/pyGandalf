@@ -160,7 +160,7 @@ def main():
 
     # Register components to floor
     scene1.add_component(floor1, InfoComponent("floor"))
-    scene1.add_component(floor1, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(90, 0, 0), glm.vec3(20, 20, 20)))
+    scene1.add_component(floor1, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(270, 0, 0), glm.vec3(20, 20, 20)))
     scene1.add_component(floor1, LinkComponent(root1))
     scene1.add_component(floor1, WebGPUStaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
     scene1.add_component(floor1, WebGPUMaterialComponent('M_Floor1'))
@@ -206,13 +206,13 @@ def main():
 
     # Register components to floor
     scene2.add_component(floor2, InfoComponent("floor2"))
-    scene2.add_component(floor2, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(90, 0, 0), glm.vec3(25, 20, 20)))
+    scene2.add_component(floor2, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(270, 0, 0), glm.vec3(25, 20, 20)))
     scene2.add_component(floor2, LinkComponent(root2))
     scene2.add_component(floor2, WebGPUStaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
     scene2.add_component(floor2, WebGPUMaterialComponent('M_Floor2'))
 
     scene2.add_component(floor3, InfoComponent("floor3"))
-    scene2.add_component(floor3, TransformComponent(glm.vec3(0, 0, 3), glm.vec3(20, 0, 0), glm.vec3(25, 20, 20)))
+    scene2.add_component(floor3, TransformComponent(glm.vec3(0, 0, 3), glm.vec3(-20, 180, 0), glm.vec3(25, 20, 20)))
     scene2.add_component(floor3, LinkComponent(root2))
     scene2.add_component(floor3, WebGPUStaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
     scene2.add_component(floor3, WebGPUMaterialComponent('M_Floor2'))

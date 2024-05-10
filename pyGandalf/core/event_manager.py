@@ -62,9 +62,9 @@ class EventManager:
                     for callback, _ in cls.instance.event_callbacks[EventType.CURSOR_ENTER]:
                         callback(event.data["enter"])
                     cls.instance._handle_callback_flush(event.type)
-                case EventType.CURSOR_POS:
-                    for callback, _ in cls.instance.event_callbacks[EventType.CURSOR_POS]:
-                        callback(event.data["x"], event.data["y"])
+                case EventType.MOUSE_MOTION:
+                    for callback, _ in cls.instance.event_callbacks[EventType.MOUSE_MOTION]:
+                        callback(event.data["x"], event.data["y"], event.data["width"], event.data["height"])
                     cls.instance._handle_callback_flush(event.type)
                 case EventType.SCROLL:
                     for callback, _ in cls.instance.event_callbacks[EventType.SCROLL]:
@@ -101,6 +101,7 @@ class EventManager:
         Args:
             event_type (EventType): The type of event to attach the callback to.
             callback (function): The callback to be attached.
+            persistent (bool): Whether or not the callback will be removed after its first invokation.
             
         \n The callback depending on the type should have the following signature:
             \n- EventType.WINDOW_CLOSE: Callable[[None], None]
@@ -109,10 +110,10 @@ class EventManager:
             \n- EventType.WINDOW_SIZE: Callable[[int, int], None]
             \n- EventType.FRAMEBUFFER_SIZE: Callable[[int, int], None]
             \n- EventType.CURSOR_ENTER: Callable[[int], None]
-            \n- EventType.CURSOR_POS: Callable[[int, int], None]
             \n- EventType.SCROLL: Callable[[float, float, list[int], list[int]], None]
             \n- EventType.MOUSE_BUTTON_PRESS: Callable[[int, list[int], float, float], None]
             \n- EventType.MOUSE_BUTTON_RELEASE: Callable[[int, list[int], float, float], None]
+            \n- EventType.MOUSE_MOTION: Callable[[int, int, int, int], None]
             \n- EventType.KEY_PRESS: Callable[[int, list[int]], None]
             \n- EventType.KEY_RELEASE: Callable[[int, list[int]], None]
             \n- EventType.SCENE_CHANGE: Callable[[Scene, Scene], None]
