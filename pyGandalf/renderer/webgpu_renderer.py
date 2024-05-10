@@ -1,11 +1,9 @@
 from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.logger import logger
 
-from dataclasses import dataclass, field
 import wgpu
 
-import glm
-import numpy as np
+from dataclasses import dataclass, field
 
 @dataclass
 class ColorAttachmentDescription:
@@ -32,6 +30,20 @@ class RenderPassDescription:
     stencil_load_op: wgpu.LoadOp = wgpu.LoadOp.clear
     stencil_store_op: wgpu.StoreOp = wgpu.StoreOp.store
     stencil_read_only: bool = True
+
+@dataclass
+class RenderPipelineDescription:
+    render_data = None
+    material_instance = None
+
+    primitive: wgpu.PrimitiveTopology = wgpu.PrimitiveTopology.triangle_list
+    front_face: wgpu.FrontFace = wgpu.FrontFace.ccw
+    cull_mode: wgpu.CullMode = wgpu.CullMode.none
+
+    depth_enabled: bool = True
+    depth_write_enabled: bool = True
+    depth_format: wgpu.TextureFormat = wgpu.TextureFormat.depth24plus
+    depth_compare: wgpu.CompareFunction = wgpu.CompareFunction.less
 
 class WebGPURenderer(BaseRenderer):
     def initialize(cls, *kargs):
@@ -73,13 +85,11 @@ class WebGPURenderer(BaseRenderer):
     def clean(cls):
         pass
 
-    def add_batch(cls, render_data, material):
+    def create_buffers(cls, render_data):
         # Filter out None from attributes
         render_data.attributes = list(filter(lambda x: x is not None, render_data.attributes))
 
-        buffers = []
-
-        for index, attribute in enumerate(render_data.attributes):
+        for attribute in render_data.attributes:
             buffer : wgpu.GPUBuffer = cls.instance.device.create_buffer_with_data(
                 data=attribute,
                 usage=wgpu.BufferUsage.VERTEX
@@ -87,6 +97,17 @@ class WebGPURenderer(BaseRenderer):
 
             render_data.buffers.append(buffer)
 
+        if render_data.indices is not None:
+            index_buffer : wgpu.GPUBuffer = cls.instance.device.create_buffer_with_data(
+                data=render_data.indices,
+                usage=wgpu.BufferUsage.INDEX
+            )
+            render_data.index_buffer = index_buffer
+
+    def create_render_pipeline(cls, render_pipeline_desc: RenderPipelineDescription):
+        buffers = []
+        render_pipeline_desc.render_data.attributes = list(filter(lambda x: x is not None, render_pipeline_desc.render_data.attributes))
+        for index, attribute in enumerate(render_pipeline_desc.render_data.attributes):
             attribute_format = wgpu.VertexFormat.float32
             vertex_length = len(attribute[index])
             match vertex_length:
@@ -109,31 +130,14 @@ class WebGPURenderer(BaseRenderer):
                         "shader_location": index,
                     }
                 ],
-            })            
+            })
 
-        if render_data.indices is not None:
-            index_buffer : wgpu.GPUBuffer = cls.instance.device.create_buffer_with_data(
-                data=render_data.indices,
-                usage=wgpu.BufferUsage.INDEX
-            )
-            render_data.index_buffer = index_buffer
-
-        render_pipeline : wgpu.GPURenderPipeline = cls.instance.device.create_render_pipeline(
-            layout=material.instance.pipeline_layout,
-            vertex={
-                "module": material.instance.shader_module,
-                "entry_point": "vs_main",
-                "buffers": buffers
-            },
-            primitive={
-                "topology": wgpu.PrimitiveTopology.triangle_list,
-                "front_face": wgpu.FrontFace.ccw,
-                "cull_mode": wgpu.CullMode.none,
-            },
+        depth_stencil = None
+        if render_pipeline_desc.depth_enabled:
             depth_stencil={
-                "format": wgpu.TextureFormat.depth24plus,
-                "depth_write_enabled": True,
-                "depth_compare": wgpu.CompareFunction.less,
+                "format": render_pipeline_desc.depth_format,
+                "depth_write_enabled": render_pipeline_desc.depth_write_enabled,
+                "depth_compare": render_pipeline_desc.depth_compare,
                 "stencil_front": {
                     "compare": wgpu.CompareFunction.always,
                     "fail_op": wgpu.StencilOperation.keep,
@@ -151,10 +155,24 @@ class WebGPURenderer(BaseRenderer):
                 "depth_bias": 0,
                 "depth_bias_slope_scale": 0.0,
                 "depth_bias_clamp": 0.0,
+            }
+
+        render_pipeline : wgpu.GPURenderPipeline = cls.instance.device.create_render_pipeline(
+            layout=render_pipeline_desc.material_instance.pipeline_layout,
+            vertex={
+                "module": render_pipeline_desc.material_instance.shader_module,
+                "entry_point": "vs_main",
+                "buffers": buffers
             },
+            primitive={
+                "topology": render_pipeline_desc.primitive,
+                "front_face": render_pipeline_desc.front_face,
+                "cull_mode": render_pipeline_desc.cull_mode,
+            },
+            depth_stencil=depth_stencil,
             multisample=None,
             fragment={
-                "module": material.instance.shader_module,
+                "module": render_pipeline_desc.material_instance.shader_module,
                 "entry_point": "fs_main",
                 "targets": [
                     {
@@ -175,28 +193,29 @@ class WebGPURenderer(BaseRenderer):
                 ],
             },
         )
-        render_data.render_pipeline = render_pipeline
+        render_pipeline_desc.render_data.render_pipeline = render_pipeline
 
-        depth_texture : wgpu.GPUTexture = cls.instance.device.create_texture(
-            label="depth_texture",
-            size=[1280, 720, 1],
-            mip_level_count=1,
-            sample_count=1,
-            dimension="2d",
-            format=wgpu.TextureFormat.depth24plus,
-            usage=wgpu.TextureUsage.RENDER_ATTACHMENT
-        )
+        if render_pipeline_desc.depth_enabled:
+            depth_texture : wgpu.GPUTexture = cls.instance.device.create_texture(
+                label="depth_texture",
+                size=[1280, 720, 1],
+                mip_level_count=1,
+                sample_count=1,
+                dimension="2d",
+                format=wgpu.TextureFormat.depth24plus,
+                usage=wgpu.TextureUsage.RENDER_ATTACHMENT
+            )
 
-        cls.instance.depth_texture_view = depth_texture.create_view(
-            label="depth_texture_view",
-            format=wgpu.TextureFormat.depth24plus,
-            dimension="2d",
-            aspect=wgpu.TextureAspect.depth_only,
-            base_mip_level=0,
-            mip_level_count=1,
-            base_array_layer=0,
-            array_layer_count=1,
-        )
+            cls.instance.depth_texture_view = depth_texture.create_view(
+                label="depth_texture_view",
+                format=wgpu.TextureFormat.depth24plus,
+                dimension="2d",
+                aspect=wgpu.TextureAspect.depth_only,
+                base_mip_level=0,
+                mip_level_count=1,
+                base_array_layer=0,
+                array_layer_count=1,
+            )
 
     def begin_render_pass(cls, render_pass_desc: RenderPassDescription):
         assert cls.instance.current_render_pass == None, 'Previous render pass not ended yet, call end_render_pass() first before starting a new one.'

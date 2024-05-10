@@ -18,16 +18,6 @@ import ctypes
 class OpenGLRenderer(BaseRenderer):    
     def initialize(cls, *kargs):
         # Initialize OpenGL
-        # gl.glEnable(gl.GL_BLEND);
-        # gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
-        # gl.glBlendEquation(gl.GL_FUNC_ADD);
-
-        # gl.glEnable(gl.GL_CULL_FACE);
-        # gl.glCullFace(gl.GL_BACK);
-        # gl.glFrontFace(gl.GL_CCW);
-
-        gl.glEnable(gl.GL_DEPTH_TEST);
-        gl.glDepthFunc(gl.GL_LESS);
 
         cls.instance.use_framebuffer = kargs[0]
         cls.instance.framebuffer_id = 0
@@ -43,6 +33,17 @@ class OpenGLRenderer(BaseRenderer):
         gl.glViewport(0, 0, width, height)
 
     def add_batch(cls, render_data, material):
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+        gl.glBlendEquation(gl.GL_FUNC_ADD)
+
+        gl.glEnable(gl.GL_CULL_FACE)
+        gl.glCullFace(gl.GL_BACK)
+        gl.glFrontFace(gl.GL_CCW)
+
+        gl.glEnable(gl.GL_DEPTH_TEST)
+        gl.glDepthFunc(gl.GL_LESS)
+
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)
         gl.glBindVertexArray(render_data.vao)

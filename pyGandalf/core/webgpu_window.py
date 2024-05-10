@@ -1,9 +1,11 @@
 from pyGandalf.core.base_window import BaseWindow
 from pyGandalf.utilities.logger import logger
 
-import sys
 import glfw
 from wgpu.gui.base import WgpuCanvasBase, WgpuAutoGui
+
+import os
+import sys
 
 # Do checks to prevent pitfalls on hybrid Xorg/Wayland systems
 is_wayland = False

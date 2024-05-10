@@ -70,6 +70,20 @@ class CameraComponent(Component):
 
         self.primary = primary
 
+class CameraControllerComponent(Component):
+    def __init__(self):
+        self.front = glm.vec3(0.0, 0.0, 1.0)
+        self.right = glm.vec3(1.0, 0.0, 0.0)
+        self.up = glm.vec3(0.0, 1.0, 0.0)
+        self.world_up = glm.vec3(0.0, 1.0, 0.0)
+        self.yaw = -90.0
+        self.pitch = 0.0
+        self.movement_speed = 3.5
+        self.mouse_sensitivity = 1.25
+        self.zoom = 45.0
+        self.prev_mouse_x = 0.0
+        self.prev_mouse_y = 0.0
+
 class StaticMeshComponent(Component):
     def __init__(self, name, attributes = None, indices = None, primitive = None):
         self.name = name

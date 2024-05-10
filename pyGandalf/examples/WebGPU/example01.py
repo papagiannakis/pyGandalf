@@ -117,9 +117,9 @@ def main():
 
     # Register components to camera
     scene.add_component(camera, InfoComponent('camera'))
-    scene.add_component(camera, TransformComponent(glm.vec3(0.0, 0.0, 10.0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(camera, TransformComponent(glm.vec3(0.0, 0.0, -10.0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, CameraComponent(75, 1.778, 0.001, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
-    # scene.add_component(camera, CameraControllerComponent())
+    scene.add_component(camera, CameraControllerComponent())
 
     # Create Register systems
     scene.register_system(TransformSystem([TransformComponent]))
@@ -127,7 +127,7 @@ def main():
     scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
     scene.register_system(MovementSystem([MovementComponent, TransformComponent, InfoComponent]))
-    # scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
+    scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager
     SceneManager().add_scene(scene)

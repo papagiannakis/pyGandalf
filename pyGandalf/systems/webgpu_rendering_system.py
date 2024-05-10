@@ -1,6 +1,6 @@
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.scene.entity import Entity
-from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPassDescription, ColorAttachmentDescription
+from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPipelineDescription, RenderPassDescription, ColorAttachmentDescription
 from pyGandalf.scene.components import Component, TransformComponent
 from pyGandalf.systems.light_system import LightSystem
 
@@ -8,9 +8,9 @@ from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialI
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 import glm
-import wgpu
-import hashlib
 import numpy as np
+
+import hashlib
 
 class WebGPUStaticMeshRenderingSystem(System):
     """
@@ -37,20 +37,30 @@ class WebGPUStaticMeshRenderingSystem(System):
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
 
+        # Retrieve and set the material instance
         material.instance = WebGPUMaterialLib().get(material.name)
 
+        # Retrieve mesh data if loading from a model
         if mesh.attributes is None:
             mesh_instance = OpenGLMeshLib().get(mesh.name)
             mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
             mesh.indices = mesh_instance.indices
 
+        # if there is nothing to render, return
         if len(mesh.attributes) == 0:
             return
         
+        # Create render pipeline and buffers
+        render_pipeline_desc = RenderPipelineDescription()
+        render_pipeline_desc.render_data = mesh
+        render_pipeline_desc.material_instance = material.instance
+        WebGPURenderer().create_render_pipeline(render_pipeline_desc)
+        WebGPURenderer().create_buffers(mesh)
+
+        # Calculate mesh hash
         mesh.hash = self.calculate_hash(mesh.attributes, mesh.indices, mesh.primitive)
 
-        mesh.batch = WebGPURenderer().add_batch(mesh, material)
-
+        # Categorize meshes based on material and then on mesh hash
         if material.name not in self.batches.keys():
             self.batches[material.name] = {}
         if mesh.hash not in self.batches[material.name].keys():
