@@ -277,19 +277,13 @@ class EditorPanelSystem(System):
                     if static_changed: transform.static = new_static
 
                     if moved:
-                        transform.translation.x = move_amount[0]
-                        transform.translation.y = move_amount[1]
-                        transform.translation.z = move_amount[2]
+                        transform.translation = glm.vec3(move_amount[0], move_amount[1], move_amount[2])
 
                     if rotated:
-                        transform.rotation.x = rotate_amount[0]
-                        transform.rotation.y = rotate_amount[1]
-                        transform.rotation.z = rotate_amount[2]
+                        transform.rotation = glm.vec3(rotate_amount[0], rotate_amount[1], rotate_amount[2])
 
                     if scaled:
-                        transform.scale.x = scale_amount[0]
-                        transform.scale.y = scale_amount[1]
-                        transform.scale.z = scale_amount[2]
+                        transform.scale = glm.vec3(scale_amount[0], scale_amount[1], scale_amount[2])
 
                     if static_changed:
                         transform.static = new_static
@@ -450,6 +444,19 @@ class EditorPanelSystem(System):
                     imgui.tree_pop()
                 imgui.separator()
 
+            if SceneManager().get_active_scene().has_component(EditorVisibleComponent.SELECTED_ENTITY, CameraControllerComponent):
+                if imgui.tree_node_ex('CameraControllerComponent', flags):
+                    camera_controller: InfoComponent = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, CameraControllerComponent)
+                    modified_speed, new_speed = imgui.slider_float('Movement Speed', camera_controller.movement_speed, 0.0, 10.0)
+                    if modified_speed:
+                        camera_controller.movement_speed = new_speed
+
+                    modified_mouse_sensitivity, new_mouse_sensitivity = imgui.slider_float('Mouse Sensitivity', camera_controller.mouse_sensitivity, 0.0, 2.0)
+                    if modified_mouse_sensitivity:
+                        camera_controller.mouse_sensitivity = new_mouse_sensitivity
+                    imgui.tree_pop()                  
+                imgui.separator()
+
             if imgui.begin_menu('Add Component'):
                 modified_info, _ = imgui.menu_item('Info Component', '', False)
                 if modified_info:
@@ -463,6 +470,9 @@ class EditorPanelSystem(System):
                 modified_camera, _ = imgui.menu_item('Camera Component', '', False)
                 if modified_camera:
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, CameraComponent(45, 1.778, 0.1, 1000, 5.0, CameraComponent.Type.PERSPECTIVE))
+                modified_camera_controller, _ = imgui.menu_item('Camera Controller Component', '', False)
+                if modified_camera_controller:
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, CameraControllerComponent())
                 modified_light, _ = imgui.menu_item('Light Component', '', False)
                 if modified_light:
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, LightComponent(glm.vec3(1, 1, 1), 1.0))

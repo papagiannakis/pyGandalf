@@ -11,6 +11,7 @@ from pyGandalf.systems.transform_system import TransformSystem
 from pyGandalf.systems.camera_system import CameraSystem
 from pyGandalf.systems.opengl_rendering_system import OpenGLStaticMeshRenderingSystem
 from pyGandalf.systems.light_system import LightSystem
+from pyGandalf.systems.camera_controller_system import CameraControllerSystem
 
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
@@ -185,6 +186,7 @@ def main():
     scene1.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene1.register_system(LightSystem([LightComponent, TransformComponent]))
     scene1.register_system(DemoSystem([DemoComponent, TransformComponent, InfoComponent]))
+    scene1.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     #############################################################################################################################
 
@@ -233,6 +235,8 @@ def main():
     scene2.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene2.register_system(LightSystem([LightComponent, TransformComponent]))
     scene2.register_system(DemoSystem([DemoComponent, TransformComponent, InfoComponent]))
+    scene2.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
+
 
     # Add scene to manager
     SceneManager().add_scene(scene1)
