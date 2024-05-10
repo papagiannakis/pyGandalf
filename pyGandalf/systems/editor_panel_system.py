@@ -1,6 +1,5 @@
 from pyGandalf.scene.entity import Entity
 from pyGandalf.core.input_manager import InputManager
-from pyGandalf.core.event_manager import EventManager, EventType
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.scene_serializer import SceneSerializer
