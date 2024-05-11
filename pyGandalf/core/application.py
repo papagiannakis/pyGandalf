@@ -28,6 +28,9 @@ class Application(object):
     def get_window(cls):
         return cls.instance.window
     
+    def get_renderer(cls):
+        return cls.instance.renderer()
+    
     def is_running(cls):
         return cls.instance.is_application_running
     
