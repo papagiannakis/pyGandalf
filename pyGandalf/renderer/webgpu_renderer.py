@@ -64,18 +64,8 @@ class WebGPURenderer(BaseRenderer):
 
     def begin_frame(cls):
         cls.instance.current_texture = cls.instance.present_context.get_current_texture()
-
-        # base_pass_desc: RenderPassDescription = RenderPassDescription()
-        # color_attachment: ColorAttachmentDescription = ColorAttachmentDescription()
-        # color_attachment.view = cls.instance.current_texture.create_view()
-        # base_pass_desc.depth_stencil_attachment=True
-        # base_pass_desc.depth_texture_view = cls.instance.depth_texture_view
-        # base_pass_desc.color_attachments.append(color_attachment)
-
-        # cls.instance.begin_render_pass(base_pass_desc)
     
     def end_frame(cls):
-        # cls.instance.end_render_pass()
         cls.instance.device.queue.submit([cls.instance.command_encoder.finish()])
         cls.instance.canvas.request_draw()
     

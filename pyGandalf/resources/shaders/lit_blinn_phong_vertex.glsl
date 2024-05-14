@@ -13,7 +13,7 @@ out vec2 v_TexCoord;
 void main()
 {
     v_Position = a_Position;
-    v_Normal = (u_Model * vec4(a_Normal, 0.0)).xyz;
+    v_Normal = (transpose(inverse(u_Model)) * vec4(a_Normal, 0.0)).xyz;
     v_TexCoord = a_TexCoord;
 
     gl_Position = u_ModelViewProjection * vec4(a_Position, 1.0);
