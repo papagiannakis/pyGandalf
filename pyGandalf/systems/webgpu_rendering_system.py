@@ -84,6 +84,8 @@ class WebGPUStaticMeshRenderingSystem(System):
 
             self.set_uniforms(material_instance, current_batch.values())
 
+            first_instance = 0
+
             for mesh_hash in current_batch.keys():
                 current_mesh_group = current_batch[mesh_hash]
 
@@ -97,14 +99,16 @@ class WebGPUStaticMeshRenderingSystem(System):
 
                 if mesh_group_size == 1:
                     if (mesh.indices is None):
-                        WebGPURenderer().draw(mesh, mesh_group_size, 0)
+                        WebGPURenderer().draw(mesh, 1, first_instance)
                     else:
-                        WebGPURenderer().draw_indexed(mesh, mesh_group_size, 0)
+                        WebGPURenderer().draw_indexed(mesh, 1, first_instance)
+                    first_instance += 1
                 else:
                     if (mesh.indices is None):
                         WebGPURenderer().draw(mesh, mesh_group_size)
                     else:
                         WebGPURenderer().draw_indexed(mesh, mesh_group_size)
+                    first_instance = 0
         WebGPURenderer().end_render_pass()
     
     def set_uniforms(self, material_instance: MaterialInstance, meshes):
