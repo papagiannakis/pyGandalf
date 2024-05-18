@@ -162,12 +162,14 @@ class WebGPUStaticMeshRenderingSystem(System):
 
             material_instance.set_uniform_buffer('u_UniformData', uniform_data)
 
-        object_data: list[glm.mat4x4] = []
-        
+        object_data = np.zeros((512, 4, 4))
+
+        i = 0
         for mesh in meshes:
             for components in mesh:
                 _, _, transform = components
-                object_data.append(glm.transpose(transform.world_matrix))
+                object_data[i] = glm.transpose(transform.world_matrix)
+                i += 1
 
         storage_data = material_instance.get_cpu_buffer_type('u_ModelData')
         storage_data["modelMatrix"] = np.ascontiguousarray(object_data)

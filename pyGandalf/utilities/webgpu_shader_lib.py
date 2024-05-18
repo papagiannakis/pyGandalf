@@ -6,7 +6,6 @@ import wgpu
 import os
 import re
 from pathlib import Path
-import ctypes
 
 class ShaderData:
     def __init__(self, name: str, shader_module, pipeline_layout, bind_group_layouts, shader_path: Path, shader_code: str):
@@ -149,6 +148,7 @@ class WebGPUShaderLib(object):
                 if struct_match:
                     buffer_members.clear()
                     struct_body = struct_match.group(1)
+                    # TODO: Fix pattern to support nested templates, ie: lightColors: array<vec4<32f>, 16>,
                     member_pattern = r"(\w+)\s*:\s*(\w+(?:\<.*?\>)?)"
                     members = re.findall(member_pattern, struct_body)
                     print(f" Members:")

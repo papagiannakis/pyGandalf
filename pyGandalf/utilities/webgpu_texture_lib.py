@@ -26,7 +26,18 @@ class WebGPUTextureLib(object):
             cls.instance.current_slot = 0
         return cls.instance
     
-    def build(cls, name: str, path: str = None, img_data: tuple[bytes, int, int] = None):
+    def build(cls, name: str, path: str = None, img_data: tuple[bytes, int, int] = None, flip = False):
+        """Builds a new texture (if one does not already exists with that name) and returns its slot.
+
+        Args:
+            name (str): The name of the texture.
+            path (Path, optional): The path the testure asset. Defaults to None.
+            img_data (tuple[bytes, int, int], optional): A tuple consisting of the pixel data in bytes, the width and height that will be used to create the texture. Defaults to None.
+            flip (bool, optional): Wheter or not to flip the texture vertically. Defaults to False.
+
+        Returns:
+            int: The texture slot.
+        """
         if cls.instance.textures.get(name) != None:
             return cls.instance.textures.get(name)
 
@@ -35,7 +46,8 @@ class WebGPUTextureLib(object):
 
         if path is not None:
             img = Image.open(path)
-            # img = img.transpose(Image.FLIP_TOP_BOTTOM)
+            if flip:
+                img = img.transpose(Image.FLIP_TOP_BOTTOM)
             img_bytes = img.convert("RGBA").tobytes("raw", "RGBA", 0, -1)
 
         width = img.width if img is not None else img_data[1]
@@ -76,8 +88,24 @@ class WebGPUTextureLib(object):
 
         return cls.instance.slots[name]
 
-    def get_instance(cls, name: str):
+    def get_instance(cls, name: str) -> TextureInstance:
+        """Returns the instance of the texture with the given name.
+
+        Args:
+            name (str): The name of the texture.
+
+        Returns:
+            TextureInstance: The instance of the texture with the given name.
+        """
         return cls.instance.textures.get(name)
     
     def get_slot(cls, name: str):
+        """Returns the slot of texture with the given name.
+
+        Args:
+            name (str): The name of the texture.
+
+        Returns:
+            float: The texture slot.
+        """
         return float(cls.instance.slots.get(name))
