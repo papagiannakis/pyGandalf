@@ -559,6 +559,8 @@ class EditorPanelSystem(System):
 
         column_count = int(panel_width / (padding + thumbnail_size))
 
+        column_count = 1 if column_count == 0 else column_count
+
         if imgui.begin_table('Content', column_count):
             if self.current_directory != self.resources_directory:
                 imgui.table_next_column()

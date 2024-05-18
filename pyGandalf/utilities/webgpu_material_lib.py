@@ -61,7 +61,6 @@ class CPUBuffer:
     def __setitem__(self, key, val):
         self.data[key] = val
 
-
 class MaterialInstance:
     def __init__(self, name, base_template, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, textures, shader_params = []):
         self.name = name
