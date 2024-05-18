@@ -6,12 +6,36 @@ from pyGandalf.utilities.logger import logger
 import wgpu
 import numpy as np
 
+import re
+
 class CPUBuffer:
     def __init__(self, *args):
         fields = []
-        # TODO: Handle padding.
-        for name, format, size in args:
-            fields.append((name, format, size))
+        current_offset = 0
+
+        # Use this to double check the padding: https://eliemichel.github.io/WebGPU-AutoLayout/
+        def add_padding():
+            nonlocal current_offset
+            if current_offset % 16 != 0:
+                padding = 16 - (current_offset % 16)
+                pad_field_name = f'__pad{len(fields)}'
+                fields.append((pad_field_name, np.float32, ((padding // 4),)))
+                current_offset += padding
+
+        for name, dtype, shape in args:
+            # Ensure shape is a tuple even for single elements
+            if not isinstance(shape, tuple):
+                shape = (shape,)
+
+            # Calculate the size in bytes of the current field
+            field_size = np.dtype(dtype).itemsize * np.prod(shape)
+
+            # Append field and increase the offset
+            fields.append((name, dtype, shape))
+            current_offset += field_size
+
+            # Align current field to 16 bytes
+            add_padding()
 
         self.type = np.dtype(fields)
         self.data = np.empty((1,), self.type)
@@ -85,7 +109,7 @@ class MaterialInstance:
         uniform_buffer = self.uniform_buffers[uniform_name]
         WebGPURenderer().write_buffer(uniform_buffer, uniform_data.mem)
 
-    def set_storage_buffer(self, storage_name: str, storage_data):
+    def set_storage_buffer(self, storage_name: str, storage_data: CPUBuffer):
         """Sets the storage buffer with the provided name (if valid), with the provided data.
 
         Args:
@@ -95,11 +119,11 @@ class MaterialInstance:
         storage_buffer = self.storage_buffers[storage_name]
 
         temporary_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer_with_data(
-            data=storage_data, usage=wgpu.BufferUsage.COPY_SRC
+            data=storage_data.mem, usage=wgpu.BufferUsage.COPY_SRC
         )
 
         WebGPURenderer().get_command_encoder().copy_buffer_to_buffer(
-            temporary_buffer, 0, storage_buffer, 0, storage_data.nbytes
+            temporary_buffer, 0, storage_buffer, 0, storage_data.mem.nbytes
         )
 
         temporary_buffer.destroy()
@@ -170,8 +194,6 @@ class WebGPUMaterialLib(object):
         # Parse shader params
         uniform_buffers_data, storage_buffers_data, read_only_storage_buffers_data, other = WebGPUShaderLib().parse(shader_data.shader_code)
 
-        # Use this to find the padding: https://eliemichel.github.io/WebGPU-AutoLayout/
-
         uniform_buffers = {}
         uniform_buffer_types = {}
         storage_buffers = {}
@@ -190,6 +212,16 @@ class WebGPUMaterialLib(object):
             for member_name in uniform_buffer_data['type']['members']:
                 member_type = uniform_buffer_data['type']['members'][member_name]
                 match member_type:
+                    case 'f32':
+                        fields.append((member_name, np.float32, (1,)))
+                    case 'vec2f':
+                        fields.append((member_name, np.float32, (2,)))
+                    case 'vec2<f32>':
+                        fields.append((member_name, np.float32, (2,)))
+                    case 'vec3f':
+                        fields.append((member_name, np.float32, (3,)))
+                    case 'vec3<f32>':
+                        fields.append((member_name, np.float32, (3,)))
                     case 'vec4f':
                         fields.append((member_name, np.float32, (4,)))
                     case 'vec4<f32>':
@@ -197,7 +229,15 @@ class WebGPUMaterialLib(object):
                     case 'mat4x4f':
                         fields.append((member_name, np.float32, (4, 4)))
                     case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (4, 4)))
+                        fields.append((member_name, np.float32, (512, 4, 4)))
+                    case 'array<mat4x4f, 512>':
+                        fields.append((member_name, np.float32, (512, 4, 4)))
+                    case 'array<vec4f, 16>':
+                        fields.append((member_name, np.float32, (16, 4)))
+                    case 'array<vec4<f32>, 16>':
+                        fields.append((member_name, np.float32, (16, 4)))
+                    case 'array<f32, 16>':
+                        fields.append((member_name, np.float32, (16, 1)))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             uniform_data = CPUBuffer(*fields)
@@ -232,6 +272,16 @@ class WebGPUMaterialLib(object):
             for member_name in storage_buffer_data['type']['members']:
                 member_type = storage_buffer_data['type']['members'][member_name]
                 match member_type:
+                    case 'f32':
+                        fields.append((member_name, np.float32, (1,)))
+                    case 'vec2f':
+                        fields.append((member_name, np.float32, (2,)))
+                    case 'vec2<f32>':
+                        fields.append((member_name, np.float32, (2,)))
+                    case 'vec3f':
+                        fields.append((member_name, np.float32, (3,)))
+                    case 'vec3<f32>':
+                        fields.append((member_name, np.float32, (3,)))
                     case 'vec4f':
                         fields.append((member_name, np.float32, (4,)))
                     case 'vec4<f32>':
@@ -239,7 +289,15 @@ class WebGPUMaterialLib(object):
                     case 'mat4x4f':
                         fields.append((member_name, np.float32, (4, 4)))
                     case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (4, 4)))
+                        fields.append((member_name, np.float32, (512, 4, 4)))
+                    case 'array<mat4x4f, 512>':
+                        fields.append((member_name, np.float32, (512, 4, 4)))
+                    case 'array<vec4f, 16>':
+                        fields.append((member_name, np.float32, (16, 4)))
+                    case 'array<vec4<f32>, 16>':
+                        fields.append((member_name, np.float32, (16, 4)))
+                    case 'array<f32, 16>':
+                        fields.append((member_name, np.float32, (16, 1)))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
@@ -274,6 +332,16 @@ class WebGPUMaterialLib(object):
             for member_name in read_only_storage_buffer_data['type']['members']:
                 member_type = read_only_storage_buffer_data['type']['members'][member_name]
                 match member_type:
+                    case 'f32':
+                        fields.append((member_name, np.float32, (1,)))
+                    case 'vec2f':
+                        fields.append((member_name, np.float32, (2,)))
+                    case 'vec2<f32>':
+                        fields.append((member_name, np.float32, (2,)))
+                    case 'vec3f':
+                        fields.append((member_name, np.float32, (3,)))
+                    case 'vec3<f32>':
+                        fields.append((member_name, np.float32, (3,)))
                     case 'vec4f':
                         fields.append((member_name, np.float32, (4,)))
                     case 'vec4<f32>':
@@ -281,7 +349,15 @@ class WebGPUMaterialLib(object):
                     case 'mat4x4f':
                         fields.append((member_name, np.float32, (4, 4)))
                     case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (4, 4)))
+                        fields.append((member_name, np.float32, (512, 4, 4)))
+                    case 'array<mat4x4f, 512>':
+                        fields.append((member_name, np.float32, (512, 4, 4)))
+                    case 'array<vec4f, 16>':
+                        fields.append((member_name, np.float32, (16, 4)))
+                    case 'array<vec4<f32>, 16>':
+                        fields.append((member_name, np.float32, (16, 4)))
+                    case 'array<f32, 16>':
+                        fields.append((member_name, np.float32, (16, 1)))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
@@ -376,3 +452,16 @@ class WebGPUMaterialLib(object):
             dict[str, MaterialInstance]: A dictionary the holds all the material instances.
         """
         return cls.instance.materials
+    
+    def extract_array_size(declaration: str) -> int:
+        # Define the regular expression pattern to match the array declaration
+        pattern = r'array<[^,]+, (\d+)>'
+        
+        # Use re.search to find the match
+        match = re.search(pattern, declaration)
+        
+        if match:
+            # Extract the number from the match group and convert it to an integer
+            return int(match.group(1))
+        else:
+            raise ValueError(f"Invalid declaration format: {declaration}")

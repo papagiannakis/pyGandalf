@@ -136,40 +136,43 @@ class WebGPUStaticMeshRenderingSystem(System):
 
             light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
 
-            light_positions: list[glm.vec3] = []
-            light_colors: list[glm.vec3] = []
-            light_intensities: list[np.float32] = []
+            light_positions: list[glm.vec4] = []
+            light_colors: list[glm.vec4] = []
+            light_intensities: list[glm.vec4] = []
             
             if light_system is not None:
                 if light_system.get_state() != SystemState.PAUSE:
                     for components in light_system.get_filtered_components():
                         light, transform = components
-                        light_colors.append(light.color)
-                        light_positions.append(transform.get_world_position())
-                        light_intensities.append(light.intensity)
+                        light_colors.append(glm.vec4(light.color, 1.0))
+                        light_positions.append(glm.vec4(transform.get_world_position(), 1.0))
+                        light_intensities.append(glm.vec4(light.intensity, 1.0, 1.0, 1.0))
 
             count = len(light_positions)
 
             if count != 0:
-                if uniform_data.has_member("lightPosition"):
-                    uniform_data["lightPosition"] = np.asarray(glm.vec4(light_positions[0], 1.0))
-                if uniform_data.has_member("lightColor"):
-                    uniform_data["lightColor"] = np.asarray(glm.vec4(light_colors[0], 1.0))
+                if uniform_data.has_member("lightPositions"):
+                    uniform_data["lightPositions"] = np.ascontiguousarray(light_positions)
+                if uniform_data.has_member("lightColors"):
+                    uniform_data["lightColors"] = np.ascontiguousarray(light_colors)
+                if uniform_data.has_member("lightIntensities"):
+                    uniform_data["lightIntensities"] = np.ascontiguousarray(light_intensities)
+                if uniform_data.has_member("lightCount"):
+                    uniform_data["lightCount"] = np.float32(count)
 
             material_instance.set_uniform_buffer('u_UniformData', uniform_data)
 
-        object_data = []
-
+        object_data: list[glm.mat4x4] = []
+        
         for mesh in meshes:
             for components in mesh:
                 _, _, transform = components
-                storage_data = CPUBuffer(("modelMatrix", np.float32, (4, 4)))
-                storage_data["modelMatrix"] = glm.transpose(transform.world_matrix)
-                object_data.append(storage_data.mem)
+                object_data.append(glm.transpose(transform.world_matrix))
 
-        object_data = np.asarray(object_data)
+        storage_data = material_instance.get_cpu_buffer_type('u_ModelData')
+        storage_data["modelMatrix"] = np.ascontiguousarray(object_data)
 
-        material_instance.set_storage_buffer('u_ModelData', object_data)
+        material_instance.set_storage_buffer('u_ModelData', storage_data)
 
         if material_instance.has_uniform('u_Texture'):
             material_instance.set_uniform('u_Texture')

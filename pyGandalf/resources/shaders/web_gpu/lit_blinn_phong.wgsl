@@ -15,8 +15,10 @@ struct UniformData {
     projectionMatrix: mat4x4f,
     objectColor: vec4f,
     viewPosition: vec4<f32>,
-    lightPosition: vec4<f32>,
-    lightColor: vec4<f32>,
+    lightPositions: array<vec4f, 16>,
+    lightColors: array<vec4f, 16>,
+    lightIntensities: array<vec4f, 16>,
+    lightCount: f32,
 };
 
 struct ModelData {
@@ -51,23 +53,23 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     var ambientCoefficient: f32 = 0.1;
     var u_Glossiness: f32 = 5.0;
-    var u_LightCount: i32 = 1;
-    var u_LightIntensity: f32 = 1.0;
 
-    for (var i: i32 = 0; i < 1; i = i + 1) {
+    for (var f: f32 = 0.0; f < u_UniformData.lightCount; f = f + 1.0) {
+        var i: i32 = i32(f);
+
         // ambient
-        ambient = ambient + u_UniformData.lightColor.rgb * u_LightIntensity;
+        ambient = ambient + u_UniformData.lightColors[i].rgb * u_UniformData.lightIntensities[i].x;
 
         // diffuse
-        var lightDir: vec3<f32> = normalize(u_UniformData.lightPosition.xyz - in.v_CurrentPosition);
+        var lightDir: vec3<f32> = normalize(u_UniformData.lightPositions[i].xyz - in.v_CurrentPosition);
         var diff: f32 = max(dot(lightDir, normal), 0.0);
-        var D: vec3<f32> = diff * u_UniformData.lightColor.rgb * u_LightIntensity;
+        var D: vec3<f32> = diff * u_UniformData.lightColors[i].rgb * u_UniformData.lightIntensities[i].x;
         diffuse = diffuse + D;
 
         // specular
         var halfwayDir: vec3<f32> = normalize(lightDir + camDir);
         var spec: f32 = pow(max(dot(normal, halfwayDir), 0.0), 32.0) * u_Glossiness;
-        var S: vec3<f32> = u_UniformData.lightColor.rgb * spec * u_LightIntensity;
+        var S: vec3<f32> = u_UniformData.lightColors[i].rgb * spec * u_UniformData.lightIntensities[i].x;
         specular = specular + S;
     }
 
