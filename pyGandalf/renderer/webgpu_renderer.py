@@ -185,28 +185,6 @@ class WebGPURenderer(BaseRenderer):
         )
         render_pipeline_desc.render_data.render_pipeline = render_pipeline
 
-        if render_pipeline_desc.depth_enabled:
-            depth_texture : wgpu.GPUTexture = cls.instance.device.create_texture(
-                label="depth_texture",
-                size=[1280, 720, 1],
-                mip_level_count=1,
-                sample_count=1,
-                dimension="2d",
-                format=wgpu.TextureFormat.depth24plus,
-                usage=wgpu.TextureUsage.RENDER_ATTACHMENT
-            )
-
-            cls.instance.depth_texture_view = depth_texture.create_view(
-                label="depth_texture_view",
-                format=wgpu.TextureFormat.depth24plus,
-                dimension="2d",
-                aspect=wgpu.TextureAspect.depth_only,
-                base_mip_level=0,
-                mip_level_count=1,
-                base_array_layer=0,
-                array_layer_count=1,
-            )
-
     def begin_render_pass(cls, render_pass_desc: RenderPassDescription):
         assert cls.instance.current_render_pass == None, 'Previous render pass not ended yet, call end_render_pass() first before starting a new one.'
         cls.instance.command_encoder = cls.instance.device.create_command_encoder()
@@ -226,6 +204,28 @@ class WebGPURenderer(BaseRenderer):
         depth_stencil_attachment = None
 
         if render_pass_desc.depth_stencil_attachment:
+            depth_texture : wgpu.GPUTexture = cls.instance.device.create_texture(
+                label="depth_texture",
+                size=[cls.instance.current_texture.width, cls.instance.current_texture.height, 1],
+                mip_level_count=1,
+                sample_count=1,
+                dimension="2d",
+                format=wgpu.TextureFormat.depth24plus,
+                usage=wgpu.TextureUsage.RENDER_ATTACHMENT
+            )
+
+            cls.instance.depth_texture_view = depth_texture.create_view(
+                label="depth_texture_view",
+                format=wgpu.TextureFormat.depth24plus,
+                dimension="2d",
+                aspect=wgpu.TextureAspect.depth_only,
+                base_mip_level=0,
+                mip_level_count=1,
+                base_array_layer=0,
+                array_layer_count=1,
+            )
+            render_pass_desc.depth_texture_view = cls.instance.depth_texture_view
+
             depth_stencil_attachment = {
                 "view": render_pass_desc.depth_texture_view,
                 "depth_clear_value": render_pass_desc.depth_clear_value,
@@ -237,6 +237,7 @@ class WebGPURenderer(BaseRenderer):
                 "stencil_store_op": render_pass_desc.stencil_store_op,
                 "stencil_read_only": render_pass_desc.stencil_read_only,
             }
+
         cls.instance.current_render_pass = cls.instance.command_encoder.begin_render_pass(
             color_attachments=color_attachments,
             depth_stencil_attachment=depth_stencil_attachment,

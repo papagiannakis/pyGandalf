@@ -209,13 +209,13 @@ def main():
     scene2.add_component(floor2, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(270, 0, 0), glm.vec3(25, 20, 20)))
     scene2.add_component(floor2, LinkComponent(root2))
     scene2.add_component(floor2, WebGPUStaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
-    scene2.add_component(floor2, WebGPUMaterialComponent('M_Floor2'))
+    scene2.add_component(floor2, WebGPUMaterialComponent('M_Floor2')).glossiness = 0.01
 
     scene2.add_component(floor3, InfoComponent("floor3"))
     scene2.add_component(floor3, TransformComponent(glm.vec3(0, 0, 3), glm.vec3(-20, 180, 0), glm.vec3(25, 20, 20)))
     scene2.add_component(floor3, LinkComponent(root2))
     scene2.add_component(floor3, WebGPUStaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
-    scene2.add_component(floor3, WebGPUMaterialComponent('M_Floor2'))
+    scene2.add_component(floor3, WebGPUMaterialComponent('M_Floor2')).glossiness = 0.01
 
     # Register components to rabbit
     scene2.add_component(rabbit2, InfoComponent("rabbit"))

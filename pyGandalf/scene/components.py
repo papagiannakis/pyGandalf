@@ -121,7 +121,7 @@ class WebGPUMaterialComponent(Component):
         self.name = name
         self.instance: WebGPUMaterialInstance = None
         self.color = color
-        self.glossiness = 5.0
+        self.glossiness = 3.0
         self.metallicness = 0.0
 
 class LightComponent(Component):
