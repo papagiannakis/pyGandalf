@@ -36,6 +36,7 @@ class EditorPanelSystem(System):
         self.wireframe_value = False
         self.vsync_value = False
         self.gizmo_operation: imguizmo.im_guizmo.OPERATION = imguizmo.im_guizmo.OPERATION.translate
+        self.camera_pivot_distance = 10.0
         self.drag_and_drop_mesh = None
         self.drag_and_drop_scene = None
         self.drag_and_drop_texture = None
@@ -191,7 +192,7 @@ class EditorPanelSystem(System):
             camera_transform: TransformComponent = context.get_component(camera_entity, TransformComponent)
             new_view: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.view_manipulate(
                 np.asmatrix(camera.view, dtype=np.float32),
-                10.0,
+                self.camera_pivot_distance,
                 imgui.ImVec2(view_manipulate_right - 128, view_manipulate_top),
                 imgui.ImVec2(128, 128),
                 0x10101010,
@@ -519,6 +520,7 @@ class EditorPanelSystem(System):
                     from pyGandalf.core.application import Application
                     Application().quit()
                 imgui.end_menu()
+
             if imgui.begin_menu('View'):
                 editor_panel_system: EditorPanelSystem = EditorManager().get_scene().get_system(EditorPanelSystem)
                 if editor_panel_system != None:
@@ -527,7 +529,12 @@ class EditorPanelSystem(System):
                         if modified:
                             panel[0].enabled = show
                 imgui.end_menu()
+                
             if imgui.begin_menu('Settings'):
+                modified_camera_distance, new_distance = imgui.slider_float('Camera Pivot Distance', self.camera_pivot_distance, 0.0, 50.0)
+                if modified_camera_distance:
+                    self.camera_pivot_distance = new_distance
+
                 modified_wireframe, show = imgui.checkbox('Wireframe', self.wireframe_value)
                 if modified_wireframe:
                     if show:

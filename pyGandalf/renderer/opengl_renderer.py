@@ -26,6 +26,8 @@ class OpenGLRenderer(BaseRenderer):
         cls.instance.framebuffer_width = 0
         cls.instance.framebuffer_height = 0
 
+        cls.instance.clear_color = glm.vec4(0.25, 0.25, 0.25, 1.0)
+
         if cls.instance.use_framebuffer:
             cls.instance.invalidate_framebuffer(1280, 720)
 
@@ -82,7 +84,7 @@ class OpenGLRenderer(BaseRenderer):
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, cls.instance.framebuffer_id)
             gl.glViewport(0, 0, int(cls.instance.framebuffer_width), int(cls.instance.framebuffer_height))
 
-        gl.glClearColor(0.8, 0.5, 0.3, 1.0)
+        gl.glClearColor(cls.instance.clear_color.r, cls.instance.clear_color.g, cls.instance.clear_color.b, cls.instance.clear_color.a)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
     def end_frame(cls):
@@ -118,10 +120,12 @@ class OpenGLRenderer(BaseRenderer):
         camera = SceneManager().get_main_camera()
         if camera != None:
             material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
-            material.instance.set_uniform('u_Model', model)
+            if material.instance.has_uniform('u_Model'):
+                material.instance.set_uniform('u_Model', model)
         else:
-            material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
-            material.instance.set_uniform('u_Model', glm.mat4(1.0))
+            material.instance.set_uniform('u_ModelViewProjection', glm.mat4(1.0))
+            if material.instance.has_uniform('u_Model'):
+                material.instance.set_uniform('u_Model', glm.mat4(1.0))
 
         if material.instance.has_uniform('u_ViewPosition'):
             camera_entity = SceneManager().get_main_camera_entity()
@@ -267,3 +271,5 @@ class OpenGLRenderer(BaseRenderer):
     def set_fill_mode(cls, mode):
         gl.glPolygonMode(gl.GL_FRONT_AND_BACK, mode)
 
+    def set_clear_color(cls, clear_color: glm.vec4):
+        cls.instance.clear_color = clear_color
