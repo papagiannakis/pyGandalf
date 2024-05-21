@@ -105,19 +105,19 @@ def main():
 
     # Register components to monkeh
     scene.add_component(monkeh, InfoComponent("monkeh"))
-    scene.add_component(monkeh, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1.5, 1.5, 1.5)))
+    scene.add_component(monkeh, TransformComponent(glm.vec3(3, 0, 0), glm.vec3(0, 180, 0), glm.vec3(1.5, 1.5, 1.5)))
     scene.add_component(monkeh, WebGPUStaticMeshComponent('monkeh_mesh'))
     scene.add_component(monkeh, WebGPUMaterialComponent('M_Monkeh'))
     scene.add_component(monkeh, MovementComponent())
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
-    scene.add_component(light, TransformComponent(glm.vec3(0, 1, 2), glm.vec3(0, 0, 0), glm.vec3(1, 1, 0)))
+    scene.add_component(light, TransformComponent(glm.vec3(0, 2, -3), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 0.75))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent('camera'))
-    scene.add_component(camera, TransformComponent(glm.vec3(0.0, 0.0, -10.0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(camera, TransformComponent(glm.vec3(2.0, 0.0, -8.0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, CameraComponent(75, 1.778, 0.001, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
 
