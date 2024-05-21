@@ -19,11 +19,11 @@ from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
-from pyGandalf.utilities.definitions import SHADERS_PATH, MODELS_PATH
+from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
 from pyGandalf.utilities.logger import logger
 
 """
-Showcase of obj model loading with basic Blinn-Phong lighting.
+Showcase of obj model loading with textures and basic Blinn-Phong lighting.
 """
 
 def main():
@@ -31,54 +31,53 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(OpenGLWindow('Blinn-Phong Model', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('Blinn-Phong Textured Model', 1280, 720, True), OpenGLRenderer)
 
     # Create a new scene
-    scene = Scene('Blinn-Phong Model')
+    scene = Scene('Blinn-Phong Textured Model')
 
     # Create Enroll entities to registry
     root = scene.enroll_entity()
     camera = scene.enroll_entity()
-    bunny = scene.enroll_entity()
+    pistol = scene.enroll_entity()
     light = scene.enroll_entity()
 
     # Build textures
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('flintlockPistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
 
     # Build shaders
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture']))
+    OpenGLMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo']))
 
     # Load models
-    OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
+    OpenGLMeshLib().build('pistol_mesh', MODELS_PATH/'fa_flintlockPistol.obj')
 
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(root, InfoComponent('root'))
     scene.add_component(root, LinkComponent(None))
 
-    # Register components to bunny
-    scene.add_component(bunny, InfoComponent("bunny"))
-    scene.add_component(bunny, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 10, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(bunny, LinkComponent(root))
-    scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
-    scene.add_component(bunny, MaterialComponent('M_Bunny'))
+    # Register components to pistol
+    scene.add_component(pistol, InfoComponent("pistol"))
+    scene.add_component(pistol, TransformComponent(glm.vec3(0.5, 1, 0), glm.vec3(0, 0, 0), glm.vec3(15, 15, 15)))
+    scene.add_component(pistol, LinkComponent(root))
+    scene.add_component(pistol, StaticMeshComponent('pistol_mesh'))
+    scene.add_component(pistol, MaterialComponent('M_Pistol'))
 
-    # Change the material properties of the bunny
-    material: MaterialComponent = scene.get_component(bunny, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
-    material.glossiness = 1.0
+    # Change the material properties of the pistol
+    material: MaterialComponent = scene.get_component(pistol, MaterialComponent)
+    material.glossiness = 2.0
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
-    scene.add_component(light, TransformComponent(glm.vec3(0, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(light, TransformComponent(glm.vec3(-2, 4, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(light, LinkComponent(root))
     scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 0.75))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
-    scene.add_component(camera, TransformComponent(glm.vec3(-0.25, 2, 4), glm.vec3(-15, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(camera, TransformComponent(glm.vec3(-0.25, 3, 4), glm.vec3(-25, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, LinkComponent(root))
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
