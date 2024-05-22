@@ -39,12 +39,12 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
         gl.glBlendEquation(gl.GL_FUNC_ADD)
 
-        gl.glEnable(gl.GL_CULL_FACE)
-        gl.glCullFace(gl.GL_BACK)
-        gl.glFrontFace(gl.GL_CCW)
+        # gl.glEnable(gl.GL_CULL_FACE)
+        # gl.glCullFace(gl.GL_BACK)
+        # gl.glFrontFace(gl.GL_CCW)
 
         gl.glEnable(gl.GL_DEPTH_TEST)
-        gl.glDepthFunc(gl.GL_LESS)
+        gl.glDepthFunc(gl.GL_LEQUAL)
 
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)
@@ -109,23 +109,35 @@ class OpenGLRenderer(BaseRenderer):
         count = len(light_positions)
 
         if count != 0:
-            material.instance.set_uniform('u_LightPositions', glm.array(light_positions))
-            material.instance.set_uniform('u_LightColors', glm.array(light_colors))
-            material.instance.set_uniform('u_LightIntensities', np.asarray(light_intensities, dtype=np.float32))
-            material.instance.set_uniform('u_LightCount', count)
-            material.instance.set_uniform('u_Glossiness', material.glossiness)
+            if material.instance.has_uniform('u_LightPositions'):
+                material.instance.set_uniform('u_LightPositions', glm.array(light_positions))
+            if material.instance.has_uniform('u_LightColors'):
+                material.instance.set_uniform('u_LightColors', glm.array(light_colors))
+            if material.instance.has_uniform('u_LightIntensities'):
+                material.instance.set_uniform('u_LightIntensities', np.asarray(light_intensities, dtype=np.float32))
+            if material.instance.has_uniform('u_LightCount'):
+                material.instance.set_uniform('u_LightCount', count)
+            if material.instance.has_uniform('u_Glossiness'):
+                material.instance.set_uniform('u_Glossiness', material.glossiness)
         elif light_system is not None:
-            material.instance.set_uniform('u_LightCount', 0)
+            if material.instance.has_uniform('u_LightCount'):
+                material.instance.set_uniform('u_LightCount', 0)
 
         camera = SceneManager().get_main_camera()
         if camera != None:
-            material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
+            if material.instance.has_uniform('u_ModelViewProjection'):
+                material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
             if material.instance.has_uniform('u_Model'):
                 material.instance.set_uniform('u_Model', model)
+            if material.instance.has_uniform('u_ViewProjection'):
+                material.instance.set_uniform('u_ViewProjection', camera.projection * glm.mat4(glm.mat3(camera.view)))
         else:
-            material.instance.set_uniform('u_ModelViewProjection', glm.mat4(1.0))
+            if material.instance.has_uniform('u_ModelViewProjection'):
+                material.instance.set_uniform('u_ModelViewProjection', glm.mat4(1.0))
             if material.instance.has_uniform('u_Model'):
                 material.instance.set_uniform('u_Model', glm.mat4(1.0))
+            if material.instance.has_uniform('u_ViewProjection'):
+                material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
 
         if material.instance.has_uniform('u_ViewPosition'):
             camera_entity = SceneManager().get_main_camera_entity()
@@ -138,13 +150,17 @@ class OpenGLRenderer(BaseRenderer):
             material.instance.set_uniform('u_Color', material.color)
     
     def draw(cls, model, render_data, material):
+        if material.instance.name == 'M_Skybox':
+            gl.glDepthMask(gl.GL_FALSE)
+
         # Bind shader program
         gl.glUseProgram(material.instance.shader_program)
         
         # Bind textures
         for texture_name in material.instance.textures:
             OpenGLTextureLib().bind(texture_name)
-            material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
+            if material.instance.has_uniform('u_AlbedoMap'):
+                material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
 
         # Set Uniforms
         cls.instance.update_uniforms(model, material)
@@ -174,6 +190,9 @@ class OpenGLRenderer(BaseRenderer):
 
         # Unbind shader program
         gl.glUseProgram(0)
+
+        if material.instance.name == 'M_Skybox':
+            gl.glDepthMask(gl.GL_TRUE)
 
     def draw_indexed(cls, model, render_data, material):
         # Bind shader program
