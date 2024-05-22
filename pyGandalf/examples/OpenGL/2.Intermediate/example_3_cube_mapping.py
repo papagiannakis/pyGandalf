@@ -33,10 +33,10 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(OpenGLWindow('Blinn-Phong Model', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('Cube Mapping - Skybox', 1280, 720, True), OpenGLRenderer)
 
     # Create a new scene
-    scene = Scene('Blinn-Phong Model')
+    scene = Scene('Cube Mapping - Skybox')
 
     # Create Enroll entities to registry
     root = scene.enroll_entity()
@@ -45,15 +45,17 @@ def main():
     light = scene.enroll_entity()
     skybox = scene.enroll_entity()
 
+    # Array that holds all the skybox textures
     skybox_textures = [
-        TEXTURES_PATH/'skybox'/'right.jpg',
-        TEXTURES_PATH/'skybox'/'left.jpg',
-        TEXTURES_PATH/'skybox'/'top.jpg',
-        TEXTURES_PATH/'skybox'/'bottom.jpg',
-        TEXTURES_PATH/'skybox'/'front.jpg',
-        TEXTURES_PATH/'skybox'/'back.jpg'
+        TEXTURES_PATH / 'skybox' / 'right.jpg',
+        TEXTURES_PATH / 'skybox' / 'left.jpg',
+        TEXTURES_PATH / 'skybox' / 'top.jpg',
+        TEXTURES_PATH / 'skybox' / 'bottom.jpg',
+        TEXTURES_PATH / 'skybox' / 'front.jpg',
+        TEXTURES_PATH / 'skybox' / 'back.jpg'
     ]
 
+    # Vertices for the cube
     vertices = np.array([
         [-1.0, -1.0, -1.0], [-1.0, -1.0,  1.0], [-1.0,  1.0,  1.0], [ 1.0,  1.0, -1.0],
         [-1.0, -1.0, -1.0], [-1.0,  1.0, -1.0], [1.0, -1.0,  1.0], [-1.0, -1.0, -1.0],
@@ -70,7 +72,7 @@ def main():
 
     # Build textures
     OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
-    OpenGLTextureLib().build('cube_map', skybox_textures, None, texture_descriptor=TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
+    OpenGLTextureLib().build('cube_map', skybox_textures, None, TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
 
     # Build shaders
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
@@ -83,6 +85,7 @@ def main():
     # Load models
     OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
 
+    # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(root, InfoComponent('root'))
     scene.add_component(root, LinkComponent(None))

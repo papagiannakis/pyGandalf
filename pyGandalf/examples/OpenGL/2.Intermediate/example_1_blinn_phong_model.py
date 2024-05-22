@@ -54,6 +54,7 @@ def main():
     # Load models
     OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
 
+    # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(root, InfoComponent('root'))
     scene.add_component(root, LinkComponent(None))

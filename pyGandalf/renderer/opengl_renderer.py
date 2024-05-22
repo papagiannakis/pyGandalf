@@ -177,7 +177,7 @@ class OpenGLRenderer(BaseRenderer):
             gl.glEnableVertexAttribArray(index)
             gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
 
-        primitive = render_data.primitive if render_data.primitive != None else gl.GL_TRIANGLES
+        primitive = render_data.descriptor.primitive if render_data.descriptor.primitive != None else gl.GL_TRIANGLES
 
         gl.glDrawArrays(primitive, 0, render_data.attributes[0].size)
 
@@ -221,7 +221,7 @@ class OpenGLRenderer(BaseRenderer):
             gl.glEnableVertexAttribArray(index)
             gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
 
-        primitive = render_data.primitive if render_data.primitive != None else gl.GL_TRIANGLES
+        primitive = render_data.descriptor.primitive if render_data.descriptor.primitive != None else gl.GL_TRIANGLES
 
         gl.glDrawElements(primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
 

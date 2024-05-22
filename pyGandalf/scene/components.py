@@ -4,8 +4,9 @@ from pyGandalf.utilities.webgpu_material_lib import MaterialInstance as WebGPUMa
 
 import glm
 
-from enum import Enum
 import uuid
+from enum import Enum
+from dataclasses import dataclass
 
 class Component(object):
     pass
@@ -85,11 +86,23 @@ class CameraControllerComponent(Component):
         self.prev_mouse_y = 0.0
 
 class StaticMeshComponent(Component):
-    def __init__(self, name, attributes = None, indices = None, primitive = None):
+    @dataclass
+    class Descriptor:
+        primitive = None
+        cull_mode = None
+        depth_enabled = True
+        depth_func = None
+        depth_mask = False
+        blend_enabled = True
+        blend_func_source = None
+        blend_func_destination = None
+        blend_equation = None
+
+    def __init__(self, name, attributes = None, indices = None, descriptor: Descriptor = Descriptor()):
         self.name = name
         self.attributes = attributes
         self.indices = indices
-        self.primitive = primitive
+        self.descriptor = descriptor
 
         self.vao = 0
         self.vbo = []
