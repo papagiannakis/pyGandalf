@@ -18,6 +18,8 @@ class TextureDimension(Enum):
 class TextureDescriptor:
     flip: bool = False
     dimention: TextureDimension = TextureDimension.D2
+    width: float = 0.0
+    height: float = 0.0
 
 class TextureData:
     def __init__(self, id, slot, name: str, descriptor: TextureDescriptor, path: Path | list[Path], data: tuple[bytes, int, int] = None):
@@ -39,7 +41,7 @@ class OpenGLTextureLib(object):
             cls.instance.current_slot = 0
         return cls.instance
     
-    def build(cls, name: str, path: Path | list[Path] = None, img_data: tuple[bytes, int, int] = None, texture_descriptor: TextureDescriptor = TextureDescriptor()):
+    def build(cls, name: str, path: Path | list[Path] = None, img_data: bytes = None, texture_descriptor: TextureDescriptor = TextureDescriptor()):
         """Builds a new texture (if one does not already exists with that name) and returns its slot.
 
         Args:
@@ -54,7 +56,7 @@ class OpenGLTextureLib(object):
         if cls.instance.textures.get(name) != None:
             return cls.instance.textures[name].slot
 
-        img_bytes = img_data[0] if img_data is not None else None
+        img_bytes = img_data
         img = None
 
         if path is None or type(path) is not list:
@@ -75,15 +77,15 @@ class OpenGLTextureLib(object):
             gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
 
             gl.glTexImage2D(
-                gl.GL_TEXTURE_2D,                               #Target
-                0,                                              # Level
-                gl.GL_RGBA8,                                    # Internal Format
-                img.width if img is not None else img_data[1],  # Width
-                img.height if img is not None else img_data[2], # Height
-                0,                                              # Border
-                gl.GL_RGBA,                                     # Format
-                gl.GL_UNSIGNED_BYTE,                            # Type
-                img_bytes                                       # Data
+                gl.GL_TEXTURE_2D,                                            #Target
+                0,                                                           # Level
+                gl.GL_RGBA8,                                                 # Internal Format
+                img.width if img is not None else texture_descriptor.width,  # Width
+                img.height if img is not None else texture_descriptor.height,# Height
+                0,                                                           # Border
+                gl.GL_RGBA,                                                  # Format
+                gl.GL_UNSIGNED_BYTE,                                         # Type
+                img_bytes                                                    # Data
             )
 
             gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
@@ -93,6 +95,10 @@ class OpenGLTextureLib(object):
             relative_path = None
             if path is not None:
                 relative_path = Path(os.path.relpath(path, TEXTURES_PATH))
+
+            if img is not None:
+                texture_descriptor.width = img.width
+                texture_descriptor.height = img.height
 
             data : TextureData = TextureData(texture_id, cls.instance.current_slot, name, texture_descriptor, relative_path, img_data)
             cls.instance.textures[name] = data

@@ -140,7 +140,7 @@ def main():
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
 
-    # Create Register systems
+    # Register the systems
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))

@@ -71,7 +71,7 @@ def main():
     ], dtype=np.float32)
 
     # Build textures
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLTextureLib().build('cube_map', skybox_textures, None, TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
 
     # Build shaders
@@ -122,7 +122,7 @@ def main():
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
 
-    # Create Register systems
+    # Register the systems
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))

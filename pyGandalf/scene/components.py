@@ -86,17 +86,19 @@ class CameraControllerComponent(Component):
         self.prev_mouse_y = 0.0
 
 class StaticMeshComponent(Component):
-    @dataclass
     class Descriptor:
-        primitive = None
-        cull_mode = None
-        depth_enabled = True
-        depth_func = None
-        depth_mask = False
-        blend_enabled = True
-        blend_func_source = None
-        blend_func_destination = None
-        blend_equation = None
+        def __init__(self, primitive=None, cull_mode=None, patch_resolution=20, vertices_per_patch=4):
+            self.primitive = primitive
+            self.cull_mode = cull_mode
+            self.patch_resolution = patch_resolution
+            self.vertices_per_patch = vertices_per_patch
+            self.depth_enabled = True
+            self.depth_func = None
+            self.depth_mask = False
+            self.blend_enabled = True
+            self.blend_func_source = None
+            self.blend_func_destination = None
+            self.blend_equation = None
 
     def __init__(self, name, attributes = None, indices = None, descriptor: Descriptor = Descriptor()):
         self.name = name

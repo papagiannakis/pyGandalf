@@ -46,6 +46,9 @@ class OpenGLRenderer(BaseRenderer):
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glDepthFunc(gl.GL_LEQUAL)
 
+        if render_data.descriptor.primitive == gl.GL_PATCHES:
+            gl.glPatchParameteri(gl.GL_PATCH_VERTICES, render_data.descriptor.vertices_per_patch)
+
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)
         gl.glBindVertexArray(render_data.vao)
@@ -129,6 +132,10 @@ class OpenGLRenderer(BaseRenderer):
                 material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
             if material.instance.has_uniform('u_Model'):
                 material.instance.set_uniform('u_Model', model)
+            if material.instance.has_uniform('u_View'):
+                material.instance.set_uniform('u_View', camera.view)
+            if material.instance.has_uniform('u_Projection'):
+                material.instance.set_uniform('u_Projection', camera.projection)
             if material.instance.has_uniform('u_ViewProjection'):
                 material.instance.set_uniform('u_ViewProjection', camera.projection * glm.mat4(glm.mat3(camera.view)))
         else:
@@ -136,6 +143,10 @@ class OpenGLRenderer(BaseRenderer):
                 material.instance.set_uniform('u_ModelViewProjection', glm.mat4(1.0))
             if material.instance.has_uniform('u_Model'):
                 material.instance.set_uniform('u_Model', glm.mat4(1.0))
+            if material.instance.has_uniform('u_View'):
+                material.instance.set_uniform('u_View', glm.mat4(1.0))
+            if material.instance.has_uniform('u_Projection'):
+                material.instance.set_uniform('u_Projection', glm.mat4(1.0))
             if material.instance.has_uniform('u_ViewProjection'):
                 material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
 
@@ -181,7 +192,10 @@ class OpenGLRenderer(BaseRenderer):
 
         primitive = render_data.descriptor.primitive if render_data.descriptor.primitive != None else gl.GL_TRIANGLES
 
-        gl.glDrawArrays(primitive, 0, render_data.attributes[0].size)
+        if primitive == gl.GL_PATCHES:
+            gl.glDrawArrays(gl.GL_PATCHES, 0, render_data.descriptor.vertices_per_patch * render_data.descriptor.patch_resolution * render_data.descriptor.patch_resolution)
+        else:
+            gl.glDrawArrays(primitive, 0, render_data.attributes[0].size)
 
         # Unbind vao
         gl.glBindVertexArray(0)
@@ -203,6 +217,8 @@ class OpenGLRenderer(BaseRenderer):
         # Bind textures
         for texture_name in material.instance.textures:
             OpenGLTextureLib().bind(texture_name)
+            if material.instance.has_uniform('u_Skybox'):
+                material.instance.set_uniform('u_Skybox', int(OpenGLTextureLib().get_slot(texture_name)))
             if material.instance.has_uniform('u_AlbedoMap'):
                 material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
 

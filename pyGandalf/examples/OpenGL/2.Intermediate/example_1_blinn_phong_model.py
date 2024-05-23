@@ -15,7 +15,7 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
@@ -43,7 +43,7 @@ def main():
     light = scene.enroll_entity()
 
     # Build textures
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
 
     # Build shaders
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
@@ -84,7 +84,7 @@ def main():
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
 
-    # Create Register systems
+    # Register the systems
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))

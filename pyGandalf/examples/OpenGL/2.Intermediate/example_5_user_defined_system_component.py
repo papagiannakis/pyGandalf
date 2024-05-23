@@ -16,7 +16,7 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
@@ -39,7 +39,7 @@ class RotateAroundSystem(System):
     """
 
     def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
-        # NOTE: These should match the components that the system operates on, which are defined in the system instantiation
+        # NOTE: These should match the components that the system operates on, which are defined in the system instantiation.
         #       See line 145: 'scene.register_system(RotateAroundSystem([RotateAroundComponent, TransformComponent]))'
         rotate_around, transform = components
 
@@ -72,7 +72,7 @@ def main():
     light = scene.enroll_entity()
 
     # Build textures
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLTextureLib().build('flintlockPistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
 
     # Build shaders
@@ -133,7 +133,7 @@ def main():
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
 
-    # Register systems
+    # Register the systems
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
