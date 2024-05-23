@@ -61,6 +61,10 @@ class MaterialInstance:
                 assert isinstance(uniform_data, int), f"Uniform type with name: {uniform_name} is not an integer number"
                 gl.glUniform1i(uniform_location, uniform_data)
                 return
+            case 'samplerCube':
+                assert isinstance(uniform_data, int), f"Uniform type with name: {uniform_name} is not an integer number"
+                gl.glUniform1i(uniform_location, uniform_data)
+                return
             case 'vec2':
                 assert isinstance(uniform_data, glm.vec2), f"Uniform type with name: {uniform_name} is not a 2x1 glm array of float32 type"
                 gl.glUniform2f(uniform_location, uniform_data.x, uniform_data.y)

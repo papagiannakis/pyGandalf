@@ -47,12 +47,12 @@ def main():
 
     # Array that holds all the skybox textures
     skybox_textures = [
-        TEXTURES_PATH / 'skybox' / 'right.jpg',
-        TEXTURES_PATH / 'skybox' / 'left.jpg',
-        TEXTURES_PATH / 'skybox' / 'top.jpg',
-        TEXTURES_PATH / 'skybox' / 'bottom.jpg',
-        TEXTURES_PATH / 'skybox' / 'front.jpg',
-        TEXTURES_PATH / 'skybox' / 'back.jpg'
+        TEXTURES_PATH / 'skybox' / 'sea' / 'right.jpg',
+        TEXTURES_PATH / 'skybox' / 'sea' / 'left.jpg',
+        TEXTURES_PATH / 'skybox' / 'sea' / 'top.jpg',
+        TEXTURES_PATH / 'skybox' / 'sea' / 'bottom.jpg',
+        TEXTURES_PATH / 'skybox' / 'sea' / 'front.jpg',
+        TEXTURES_PATH / 'skybox' / 'sea' / 'back.jpg'
     ]
 
     # Vertices for the cube
@@ -119,7 +119,7 @@ def main():
     scene.add_component(camera, InfoComponent("camera"))
     scene.add_component(camera, TransformComponent(glm.vec3(-0.25, 2, 4), glm.vec3(-15, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, LinkComponent(root))
-    scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 2000, 1.2, CameraComponent.Type.PERSPECTIVE))
+    scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
 
     # Create Register systems

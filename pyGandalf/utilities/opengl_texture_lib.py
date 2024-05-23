@@ -88,6 +88,8 @@ class OpenGLTextureLib(object):
 
             gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
 
+            gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+
             relative_path = None
             if path is not None:
                 relative_path = Path(os.path.relpath(path, TEXTURES_PATH))
@@ -124,6 +126,8 @@ class OpenGLTextureLib(object):
             gl.glTexParameteri(gl.GL_TEXTURE_CUBE_MAP, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_EDGE)
             gl.glTexParameteri(gl.GL_TEXTURE_CUBE_MAP, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_EDGE)
             gl.glTexParameteri(gl.GL_TEXTURE_CUBE_MAP, gl.GL_TEXTURE_WRAP_R, gl.GL_CLAMP_TO_EDGE)
+
+            gl.glBindTexture(gl.GL_TEXTURE_CUBE_MAP, 0)
 
             data : TextureData = TextureData(texture_id, cls.instance.current_slot, name, texture_descriptor, relative_path, img_data)
             cls.instance.textures[name] = data

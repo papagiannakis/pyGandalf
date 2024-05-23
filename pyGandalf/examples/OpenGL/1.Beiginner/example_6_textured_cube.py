@@ -49,7 +49,7 @@ def main():
     camera = scene.enroll_entity()
 
     # Build textures
-    OpenGLTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png', texture_descriptor=TextureDescriptor(flip=True))
+    OpenGLTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png', TextureDescriptor(flip=True))
     OpenGLTextureLib().build('dark_wood', TEXTURES_PATH/'dark_wood_texture.jpg')
 
     # Build shaders 

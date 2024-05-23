@@ -150,7 +150,7 @@ class OpenGLRenderer(BaseRenderer):
             material.instance.set_uniform('u_Color', material.color)
     
     def draw(cls, model, render_data, material):
-        if material.instance.name == 'M_Skybox':
+        if 'Skybox' in material.instance.name:
             gl.glDepthMask(gl.GL_FALSE)
 
         # Bind shader program
@@ -159,6 +159,8 @@ class OpenGLRenderer(BaseRenderer):
         # Bind textures
         for texture_name in material.instance.textures:
             OpenGLTextureLib().bind(texture_name)
+            if material.instance.has_uniform('u_Skybox'):
+                material.instance.set_uniform('u_Skybox', int(OpenGLTextureLib().get_slot(texture_name)))
             if material.instance.has_uniform('u_AlbedoMap'):
                 material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
 
@@ -191,7 +193,7 @@ class OpenGLRenderer(BaseRenderer):
         # Unbind shader program
         gl.glUseProgram(0)
 
-        if material.instance.name == 'M_Skybox':
+        if 'Skybox' in material.instance.name:
             gl.glDepthMask(gl.GL_TRUE)
 
     def draw_indexed(cls, model, render_data, material):
@@ -201,7 +203,8 @@ class OpenGLRenderer(BaseRenderer):
         # Bind textures
         for texture_name in material.instance.textures:
             OpenGLTextureLib().bind(texture_name)
-            material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
+            if material.instance.has_uniform('u_AlbedoMap'):
+                material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
 
         # Set Uniforms
         cls.instance.update_uniforms(model, material)

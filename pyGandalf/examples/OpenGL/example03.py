@@ -122,7 +122,7 @@ def main():
     OpenGLTextureLib().build('rabbit_albedo', TEXTURES_PATH/'fg_spkRabbit_albedo.jpg')
     OpenGLTextureLib().build('flintlockPistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
     OpenGLTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
-    OpenGLTextureLib().build('marble_texture', TEXTURES_PATH/'4K_carrara_gioa_p1004___polished___marble_diffuse.png')
+    OpenGLTextureLib().build('marble_texture', TEXTURES_PATH/'marble_diffuse.png')
 
     # Build shaders
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
