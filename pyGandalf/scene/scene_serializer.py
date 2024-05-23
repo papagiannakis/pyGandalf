@@ -2,7 +2,7 @@ from pyGandalf.core.application import Application
 from pyGandalf.scene.scene import Scene
 from pyGandalf.systems.system import System
 from pyGandalf.scene.components import Component
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData, TextureDescriptor
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
@@ -73,19 +73,24 @@ class SceneSerializer:
             texture_prim_name = texture_prim.CreateAttribute("name", Sdf.ValueTypeNames.String)
             texture_prim_name.Set(texture.name)
 
-            texture_prim_path = texture_prim.CreateAttribute("path", Sdf.ValueTypeNames.String)
-            texture_prim_path.Set(str('') if texture.path is None else str(texture.path))
+            texture_paths = []
+            if texture.path is None:
+                texture_paths.append('')
+            elif type(texture.path) is list:
+                for path in texture.path:
+                    texture_paths.append(str(path))
+            else:
+                texture_paths.append(str(texture.path))
 
-            dimension = Gf.Vec2i(-1, -1)
-            if texture.data is not None:
-                dimension = Gf.Vec2i(texture.data[1], texture.data[2])                
+            texture_prim_path = texture_prim.CreateAttribute("path", Sdf.ValueTypeNames.StringArray)
+            texture_prim_path.Set(texture_paths)
 
-            texture_prim_dimensions = texture_prim.CreateAttribute("dimensions", Sdf.ValueTypeNames.Int2)
-            texture_prim_dimensions.Set(dimension)
+            texture_prim_descriptor = texture_prim.CreateAttribute("descriptor", Sdf.ValueTypeNames.String)
+            texture_prim_descriptor.Set(str(USDSerializer().to_json(texture.descriptor)))
 
             data = []
             if texture.data is not None:
-                data = [byte for byte in texture.data[0]]
+                data = [byte for byte in texture.data]
 
             texture_prim_dimensions = texture_prim.CreateAttribute("data", Sdf.ValueTypeNames.IntArray)
             texture_prim_dimensions.Set(data)
@@ -210,13 +215,23 @@ class SceneSerializer:
                     continue
 
                 name_attr = str(prim.GetAttribute("name").Get())
-                path_attr = str(prim.GetAttribute("path").Get())
+                path_attr = prim.GetAttribute("path").Get()
                 data_attr = prim.GetAttribute("data").Get()
-                dimension_attr = prim.GetAttribute("dimensions").Get()
+
+                descriptor = USDSerializer().from_json(str(prim.GetAttribute("descriptor").Get()))
 
                 texture_path = None if path_attr == None else path_attr
-                texture_data = None if data_attr == None else [bytes([x for x in data_attr]), int(dimension_attr[0]), int(dimension_attr[1])]
-                OpenGLTextureLib().build(name_attr, TEXTURES_PATH / texture_path, texture_data)
+                texture_data = None if data_attr == None else bytes([x for x in data_attr])
+
+                if texture_path != None and len(texture_path) == 1:
+                    if str(texture_path[0]) == '':
+                        OpenGLTextureLib().build(name_attr, None, texture_data, descriptor)
+                    else:
+                        OpenGLTextureLib().build(name_attr, TEXTURES_PATH / str(texture_path[0]), texture_data, descriptor)
+                else:
+                    textures = [TEXTURES_PATH / str(path) for path in texture_path]
+                    OpenGLTextureLib().build(name_attr, textures, texture_data, descriptor)
+
         
         # Traverse all Shaders prims in the stage
         skip_first_shader_prim = True
