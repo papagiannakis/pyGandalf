@@ -229,7 +229,7 @@ def main():
     cloudy_scene.add_component(cloudy_camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     cloudy_scene.add_component(cloudy_camera, CameraControllerComponent())
 
-    # Create Register systems
+    # Register the systems
     cloudy_scene.register_system(TransformSystem([TransformComponent]))
     cloudy_scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     cloudy_scene.register_system(CameraSystem([CameraComponent, TransformComponent]))

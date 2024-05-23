@@ -28,6 +28,7 @@ class OpenGLMeshLib(object):
     def build(cls, name: str, path: Path):
         filename = str(path)
         if cls.instance.meshes.get(filename) != None:
+            cls.instance.meshes_names[name] = filename
             return cls.instance.meshes[filename]
 
         mesh = None

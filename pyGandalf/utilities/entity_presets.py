@@ -5,7 +5,7 @@ from pyGandalf.scene.scene_manager import SceneManager
 
 from pyGandalf.utilities.definitions import SHADERS_PATH
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
 
 import numpy as np
@@ -46,7 +46,7 @@ def create_plane() -> Entity:
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLShaderLib().build('default_mesh_plane', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Plane', MaterialData('default_mesh_plane', ['white_texture']))
 
@@ -173,7 +173,7 @@ def create_cube() -> Entity:
         [1.0, 0.0], #
     ], dtype=np.float32)
 
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLShaderLib().build('default_mesh_cube', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Cube', MaterialData('default_mesh_cube', ['white_texture']))
 
@@ -231,7 +231,7 @@ def create_sphere() -> Entity:
             indices.append((i + 1) * 20 + (j + 1) % 20)
             indices.append(i * 20 + (j + 1) % 20)
 
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLShaderLib().build('default_mesh_sphere', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Sphere', MaterialData('default_mesh_sphere', ['white_texture']))
 
@@ -271,7 +271,7 @@ def create_cylinder() -> Entity:
             indices.append((i + 1) * 20 + (j + 1) % 20)
             indices.append(i * 20 + (j + 1) % 20)
 
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Cylinder', MaterialData('default_mesh', ['white_texture']))
 
@@ -311,7 +311,7 @@ def create_cone() -> Entity:
             indices.append((i + 1) * 20 + (j + 1) % 20)
             indices.append(i * 20 + (j + 1) % 20)
 
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Cone', MaterialData('default_mesh', ['white_texture']))
 
@@ -351,7 +351,7 @@ def create_torus() -> Entity:
             indices.append((i + 1) * 20 + (j + 1) % 20)
             indices.append(i * 20 + (j + 1) % 20)
 
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Torus', MaterialData('default_mesh', ['white_texture']))
 
