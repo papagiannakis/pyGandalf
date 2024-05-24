@@ -132,7 +132,7 @@ def main():
     sea_scene.add_component(sea_skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     sea_scene.add_component(sea_skybox, LinkComponent(None))
     sea_scene.add_component(sea_skybox, StaticMeshComponent('skybox', [vertices]))
-    sea_scene.add_component(sea_skybox, MaterialComponent('M_SeaSkybox'))
+    sea_scene.add_component(sea_skybox, MaterialComponent('M_SeaSkybox', descriptor=MaterialComponent.Descriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE)))
 
     # Register components to floor
     sea_scene.add_component(sea_floor, InfoComponent("sea_floor"))
@@ -195,7 +195,7 @@ def main():
     cloudy_scene.add_component(cloudy_skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     cloudy_scene.add_component(cloudy_skybox, LinkComponent(None))
     cloudy_scene.add_component(cloudy_skybox, StaticMeshComponent('skybox', [vertices]))
-    cloudy_scene.add_component(cloudy_skybox, MaterialComponent('M_CloudySkybox'))
+    cloudy_scene.add_component(cloudy_skybox, MaterialComponent('M_CloudySkybox', descriptor=MaterialComponent.Descriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE)))
 
     # Register components to cloudy_floor
     cloudy_scene.add_component(cloudy_floor, InfoComponent("cloudy_floor"))

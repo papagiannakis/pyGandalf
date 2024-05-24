@@ -266,6 +266,18 @@ class OpenGLMaterialLib(object):
         """
         return cls.instance.materials.get(name)
     
+    def get_textures(cls, name: str):
+        mat: MaterialInstance = cls.instance.materials[name]
+
+        textures = []
+        for uniform_name in mat.shader_params.keys():
+            uniform_type = mat.shader_params[uniform_name]
+            if 'sampler' in uniform_type:
+                textures.append(uniform_name)
+        
+        return textures
+
+    
     def get_materials(cls) -> dict[str, MaterialInstance]:
         """Returns a dictionary the holds all the material instances. As the key is the name of the material, as the value is the material instance.
 

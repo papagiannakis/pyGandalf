@@ -1,5 +1,6 @@
 from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
 
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import TransformComponent, CameraComponent
@@ -39,15 +40,14 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
         gl.glBlendEquation(gl.GL_FUNC_ADD)
 
-        # gl.glEnable(gl.GL_CULL_FACE)
-        # gl.glCullFace(gl.GL_BACK)
-        # gl.glFrontFace(gl.GL_CCW)
+        gl.glEnable(gl.GL_CULL_FACE)
+        gl.glFrontFace(gl.GL_CCW)
 
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glDepthFunc(gl.GL_LEQUAL)
 
-        if render_data.descriptor.primitive == gl.GL_PATCHES:
-            gl.glPatchParameteri(gl.GL_PATCH_VERTICES, render_data.descriptor.vertices_per_patch)
+        if material.descriptor.primitive == gl.GL_PATCHES:
+            gl.glPatchParameteri(gl.GL_PATCH_VERTICES, material.descriptor.vertices_per_patch)
 
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)
@@ -161,19 +161,22 @@ class OpenGLRenderer(BaseRenderer):
             material.instance.set_uniform('u_Color', material.color)
     
     def draw(cls, model, render_data, material):
-        if 'Skybox' in material.instance.name:
+        if material.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_FALSE)
+
+        gl.glCullFace(material.descriptor.cull_face)
 
         # Bind shader program
         gl.glUseProgram(material.instance.shader_program)
         
+        # Get uniform textures
+        textures = OpenGLMaterialLib().get_textures(material.instance.name)
+
         # Bind textures
-        for texture_name in material.instance.textures:
+        for index, texture_name in enumerate(material.instance.textures):
             OpenGLTextureLib().bind(texture_name)
-            if material.instance.has_uniform('u_Skybox'):
-                material.instance.set_uniform('u_Skybox', int(OpenGLTextureLib().get_slot(texture_name)))
-            if material.instance.has_uniform('u_AlbedoMap'):
-                material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
+            if material.instance.has_uniform(textures[index]):
+                material.instance.set_uniform(textures[index], int(OpenGLTextureLib().get_slot(texture_name)))
 
         # Set Uniforms
         cls.instance.update_uniforms(model, material)
@@ -190,12 +193,10 @@ class OpenGLRenderer(BaseRenderer):
             gl.glEnableVertexAttribArray(index)
             gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
 
-        primitive = render_data.descriptor.primitive if render_data.descriptor.primitive != None else gl.GL_TRIANGLES
-
-        if primitive == gl.GL_PATCHES:
-            gl.glDrawArrays(gl.GL_PATCHES, 0, render_data.descriptor.vertices_per_patch * render_data.descriptor.patch_resolution * render_data.descriptor.patch_resolution)
+        if material.descriptor.primitive == gl.GL_PATCHES:
+            gl.glDrawArrays(gl.GL_PATCHES, 0, material.descriptor.vertices_per_patch * material.descriptor.patch_resolution * material.descriptor.patch_resolution)
         else:
-            gl.glDrawArrays(primitive, 0, render_data.attributes[0].size)
+            gl.glDrawArrays(material.descriptor.primitive, 0, render_data.attributes[0].size)
 
         # Unbind vao
         gl.glBindVertexArray(0)
@@ -207,20 +208,27 @@ class OpenGLRenderer(BaseRenderer):
         # Unbind shader program
         gl.glUseProgram(0)
 
-        if 'Skybox' in material.instance.name:
+        # Reset depth mask
+        if material.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_TRUE)
 
     def draw_indexed(cls, model, render_data, material):
+        if material.descriptor.depth_mask == gl.GL_FALSE:
+            gl.glDepthMask(gl.GL_FALSE)
+
+        gl.glCullFace(material.descriptor.cull_face)
+
         # Bind shader program
         gl.glUseProgram(material.instance.shader_program)
         
+        # Get uniform textures
+        textures = OpenGLMaterialLib().get_textures(material.instance.name)
+
         # Bind textures
-        for texture_name in material.instance.textures:
+        for index, texture_name in enumerate(material.instance.textures):
             OpenGLTextureLib().bind(texture_name)
-            if material.instance.has_uniform('u_Skybox'):
-                material.instance.set_uniform('u_Skybox', int(OpenGLTextureLib().get_slot(texture_name)))
-            if material.instance.has_uniform('u_AlbedoMap'):
-                material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
+            if material.instance.has_uniform(textures[index]):
+                material.instance.set_uniform(textures[index], int(OpenGLTextureLib().get_slot(texture_name)))
 
         # Set Uniforms
         cls.instance.update_uniforms(model, material)
@@ -240,9 +248,7 @@ class OpenGLRenderer(BaseRenderer):
             gl.glEnableVertexAttribArray(index)
             gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
 
-        primitive = render_data.descriptor.primitive if render_data.descriptor.primitive != None else gl.GL_TRIANGLES
-
-        gl.glDrawElements(primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
+        gl.glDrawElements(material.descriptor.primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
 
         # Unbind vao
         gl.glBindVertexArray(0)
@@ -254,6 +260,10 @@ class OpenGLRenderer(BaseRenderer):
 
         # Unbind shader program
         gl.glUseProgram(0)
+
+        # Reset depth mask if it was set to false
+        if material.descriptor.depth_mask == gl.GL_FALSE:
+            gl.glDepthMask(gl.GL_TRUE)
 
     def clean(cls):
         pass

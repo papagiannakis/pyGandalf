@@ -5,6 +5,7 @@ from pyGandalf.core.events import EventType
 from pyGandalf.core.event_manager import EventManager
 
 from pyGandalf.systems.link_system import LinkSystem
+from pyGandalf.systems.light_system import LightSystem
 from pyGandalf.systems.transform_system import TransformSystem
 from pyGandalf.systems.camera_system import CameraSystem
 from pyGandalf.systems.camera_controller_system import CameraControllerSystem
@@ -28,7 +29,7 @@ import numpy as np
 import OpenGL.GL as gl
 
 """
-Showcase of obj model loading with basic Blinn-Phong lighting.
+Showcase of displaying a height map using tessellation shaders.
 """
 
 def main():
@@ -36,10 +37,10 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(OpenGLWindow('Blinn-Phong Model', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('Tessellation Shaders', 1280, 720, True), OpenGLRenderer)
 
     # Create a new scene
-    scene = Scene('Blinn-Phong Model')
+    scene = Scene('Tessellation Shaders')
 
     # Create Enroll entities to registry
     root = scene.enroll_entity()
@@ -121,8 +122,8 @@ def main():
     scene.add_component(terrain, InfoComponent("terrain"))
     scene.add_component(terrain, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(terrain, LinkComponent(root))
-    scene.add_component(terrain, StaticMeshComponent('terrain_mesh', [vertices, tex_coords], descriptor=StaticMeshComponent.Descriptor(primitive=gl.GL_PATCHES, patch_resolution=patch_resolution, vertices_per_patch=vertices_per_patch)))
-    scene.add_component(terrain, MaterialComponent('M_Terrain'))
+    scene.add_component(terrain, StaticMeshComponent('terrain_mesh', [vertices, tex_coords]))
+    scene.add_component(terrain, MaterialComponent('M_Terrain', descriptor=MaterialComponent.Descriptor(primitive=gl.GL_PATCHES, cull_face=gl.GL_FRONT, patch_resolution=patch_resolution, vertices_per_patch=vertices_per_patch)))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
@@ -135,6 +136,7 @@ def main():
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
+    scene.register_system(LightSystem([LightComponent, TransformComponent]))
     scene.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 

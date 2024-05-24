@@ -112,6 +112,12 @@ class SceneSerializer:
             shader_prim_fs_path = shader_prim.CreateAttribute("fs_path", Sdf.ValueTypeNames.String)
             shader_prim_fs_path.Set(str(shader.fs_path))
 
+            shader_prim_tcs_path = shader_prim.CreateAttribute("tcs_path", Sdf.ValueTypeNames.String)
+            shader_prim_tcs_path.Set('' if shader.tcs_path == None else str(shader.tcs_path))
+
+            shader_prim_tes_path = shader_prim.CreateAttribute("tes_path", Sdf.ValueTypeNames.String)
+            shader_prim_tes_path.Set('' if shader.tes_path == None else str(shader.tes_path))
+
         self.stage.DefinePrim("/Materials")
 
         for material in OpenGLMaterialLib().get_materials().values():
@@ -246,8 +252,13 @@ class SceneSerializer:
                 name_attr = str(prim.GetAttribute("name").Get())
                 vs_attr = str(prim.GetAttribute("vs_path").Get())
                 fs_attr = str(prim.GetAttribute("fs_path").Get())
+                tcs_attr = str(prim.GetAttribute("tcs_path").Get())
+                tes_attr = str(prim.GetAttribute("tes_path").Get())
 
-                OpenGLShaderLib().build(name_attr, SHADERS_PATH / vs_attr, SHADERS_PATH / fs_attr)
+                tcs_path = None if (tcs_attr == '' or tcs_attr == 'None') else SHADERS_PATH / tcs_attr
+                tes_path = None if (tes_attr == '' or tes_attr == 'None') else SHADERS_PATH / tes_attr
+
+                OpenGLShaderLib().build(name_attr, SHADERS_PATH / vs_attr, SHADERS_PATH / fs_attr, tcs_path, tes_path)
 
         # Traverse all Materials prims in the stage
         skip_first_material_prim = True

@@ -99,7 +99,7 @@ def main():
     scene.add_component(skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(skybox, LinkComponent(None))
     scene.add_component(skybox, StaticMeshComponent('skybox', [vertices]))
-    scene.add_component(skybox, MaterialComponent('M_Skybox'))
+    scene.add_component(skybox, MaterialComponent('M_Skybox', descriptor=MaterialComponent.Descriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE)))
 
     # Register components to reflection bunny - acts like its a bunny made from a mirror
     scene.add_component(reflection_bunny, InfoComponent("reflection_bunny"))
