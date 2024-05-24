@@ -130,6 +130,9 @@ class EditorPanelSystem(System):
             if payload != None:
                 EditorVisibleComponent.SELECTED = False
                 EditorVisibleComponent.SELECTED_ENTITY = None
+
+                OpenGLShaderLib().clean()
+
                 path: Path = Path(self.drag_and_drop_scene)
                 scene: Scene = Scene(path.stem)
                 scene_serializer: SceneSerializer = SceneSerializer(scene)

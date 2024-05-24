@@ -168,3 +168,6 @@ class OpenGLShaderLib(object):
         """
         with open(path_to_source) as file:
             return file.read()
+        
+    def clean(cls):
+        cls.instance.shaders.clear()

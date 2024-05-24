@@ -43,8 +43,8 @@ class OpenGLRenderer(BaseRenderer):
         gl.glEnable(gl.GL_CULL_FACE)
         gl.glFrontFace(gl.GL_CCW)
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
-        gl.glDepthFunc(gl.GL_LEQUAL)
+        if material.descriptor.depth_enabled:
+            gl.glEnable(gl.GL_DEPTH_TEST)
 
         if material.descriptor.primitive == gl.GL_PATCHES:
             gl.glPatchParameteri(gl.GL_PATCH_VERTICES, material.descriptor.vertices_per_patch)
@@ -166,6 +166,9 @@ class OpenGLRenderer(BaseRenderer):
 
         gl.glCullFace(material.descriptor.cull_face)
 
+        if material.descriptor.depth_enabled:
+            gl.glDepthFunc(material.descriptor.depth_func)
+
         # Bind shader program
         gl.glUseProgram(material.instance.shader_program)
         
@@ -217,6 +220,9 @@ class OpenGLRenderer(BaseRenderer):
             gl.glDepthMask(gl.GL_FALSE)
 
         gl.glCullFace(material.descriptor.cull_face)
+
+        if material.descriptor.depth_enabled:
+            gl.glDepthFunc(material.descriptor.depth_func)
 
         # Bind shader program
         gl.glUseProgram(material.instance.shader_program)
