@@ -20,6 +20,7 @@ class OpenGLRenderer(BaseRenderer):
         cls.instance.depth_attachment = 0
         cls.instance.framebuffer_width = 0
         cls.instance.framebuffer_height = 0
+        cls.instance.shadows_enabled = False
 
         cls.instance.clear_color = glm.vec4(0.25, 0.25, 0.25, 1.0)
 
@@ -30,12 +31,14 @@ class OpenGLRenderer(BaseRenderer):
         gl.glViewport(0, 0, width, height)
 
     def add_batch(cls, render_data, material):
-        gl.glEnable(gl.GL_BLEND)
-        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-        gl.glBlendEquation(gl.GL_FUNC_ADD)
+        if material.descriptor.blend_enabled:
+            gl.glEnable(gl.GL_BLEND)
+            gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+            gl.glBlendEquation(gl.GL_FUNC_ADD)
 
-        # gl.glEnable(gl.GL_CULL_FACE)
-        # gl.glFrontFace(gl.GL_CCW)
+        if material.descriptor.cull_enabled:
+            gl.glEnable(gl.GL_CULL_FACE)
+            gl.glFrontFace(gl.GL_CCW)
 
         if material.descriptor.depth_enabled:
             gl.glEnable(gl.GL_DEPTH_TEST)
@@ -88,6 +91,12 @@ class OpenGLRenderer(BaseRenderer):
         if cls.instance.use_framebuffer:
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
+    def begin_render_pass(cls):
+        pass
+
+    def end_render_pass(cls):
+        pass
+
     def set_pipeline(cls, render_data):
         # Bind vao
         gl.glBindVertexArray(render_data.vao)
@@ -110,7 +119,8 @@ class OpenGLRenderer(BaseRenderer):
         if material.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_FALSE)
 
-        # gl.glCullFace(material.descriptor.cull_face)
+        if material.descriptor.cull_enabled:
+            gl.glCullFace(material.descriptor.cull_face)
 
         if material.descriptor.depth_enabled:
             gl.glDepthFunc(material.descriptor.depth_func)
@@ -221,3 +231,9 @@ class OpenGLRenderer(BaseRenderer):
 
     def set_clear_color(cls, clear_color: glm.vec4):
         cls.instance.clear_color = clear_color
+
+    def set_shadows_enabled(cls, shadows_enabled: bool):
+        cls.instance.shadows_enabled = shadows_enabled
+
+    def get_shadows_enabled(cls):
+        return cls.instance.shadows_enabled

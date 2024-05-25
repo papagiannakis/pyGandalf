@@ -45,6 +45,7 @@ class MaterialComponent(Component):
     class Descriptor:
         def __init__(self, primitive=gl.GL_TRIANGLES, cull_face=gl.GL_BACK, depth_mask=gl.GL_TRUE, patch_resolution=20, vertices_per_patch=4):
             self.primitive = primitive
+            self.cull_enabled = True
             self.cull_face = cull_face
             self.patch_resolution = patch_resolution
             self.vertices_per_patch = vertices_per_patch

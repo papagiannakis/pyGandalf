@@ -18,11 +18,18 @@ class TextureDimension(Enum):
 class TextureDescriptor:
     flip: bool = False
     dimention: TextureDimension = TextureDimension.D2
+    internal_format: gl.Constant = gl.GL_RGBA8
+    format: gl.Constant = gl.GL_RGBA
+    type: gl.Constant = gl.GL_UNSIGNED_BYTE
+    wrap_s: gl.Constant = gl.GL_REPEAT
+    wrap_t: gl.Constant = gl.GL_REPEAT
+    min_filter: gl.Constant = gl.GL_LINEAR
+    max_filter: gl.Constant = gl.GL_LINEAR
     width: float = 0.0
     height: float = 0.0
 
 class TextureData:
-    def __init__(self, id, slot, name: str, descriptor: TextureDescriptor, path: Path | list[Path], data: tuple[bytes, int, int] = None):
+    def __init__(self, id, slot, name: str, descriptor: TextureDescriptor, path: Path | list[Path], data: bytes = None):
         self.id = id
         self.slot = slot
         self.name = name
@@ -71,21 +78,23 @@ class OpenGLTextureLib(object):
             texture_id = gl.glGenTextures(1)        
             gl.glBindTexture(gl.GL_TEXTURE_2D, texture_id)
 
-            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
-            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, descriptor.wrap_s)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, descriptor.wrap_t)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, descriptor.min_filter)
+            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, descriptor.min_filter)
+
+            gl.glTexParameterfv(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_BORDER_COLOR, [1.0, 1.0, 1.0, 1.0])
 
             gl.glTexImage2D(
-                gl.GL_TEXTURE_2D,                                            #Target
-                0,                                                           # Level
-                gl.GL_RGBA8,                                                 # Internal Format
-                img.width if img is not None else descriptor.width,  # Width
-                img.height if img is not None else descriptor.height,# Height
-                0,                                                           # Border
-                gl.GL_RGBA,                                                  # Format
-                gl.GL_UNSIGNED_BYTE,                                         # Type
-                img_bytes                                                    # Data
+                gl.GL_TEXTURE_2D,                                     #Target
+                0,                                                    # Level
+                descriptor.internal_format,                           # Internal Format
+                img.width if img is not None else descriptor.width,   # Width
+                img.height if img is not None else descriptor.height, # Height
+                0,                                                    # Border
+                descriptor.format,                                    # Format
+                descriptor.type,                                      # Type
+                img_bytes                                             # Data
             )
 
             gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
@@ -121,7 +130,7 @@ class OpenGLTextureLib(object):
 
                 gl.glTexImage2D(
                     gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                    0, gl.GL_RGB8, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img_bytes
+                    0, descriptor.internal_format, img.width, img.height, 0, descriptor.format, descriptor.type, img_bytes
                 )
 
                 if path is not None:

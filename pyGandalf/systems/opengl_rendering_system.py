@@ -3,6 +3,7 @@ from pyGandalf.systems.system import System, SystemState
 from pyGandalf.systems.light_system import LightSystem
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
@@ -11,33 +12,102 @@ from pyGandalf.scene.entity import Entity
 
 import glm
 import numpy as np
+import OpenGL.GL as gl
 
 class OpenGLStaticMeshRenderingSystem(System):
     """
     The system responsible for rendering.
     """
 
-    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
-        mesh, material, transform = components
+    def on_create_system(self):
+        if OpenGLRenderer().get_shadows_enabled():
+            SHADOW_WIDTH = 1024
+            SHADOW_HEIGHT = 1024
 
-        mesh.vao = 0
-        mesh.ebo = 0
-        mesh.vbo.clear()
+            self.framebuffer_id = gl.glGenFramebuffers(1)
 
-        material.instance = OpenGLMaterialLib().get(material.name)
+            depth_texture_descriptor = TextureDescriptor()
+            depth_texture_descriptor.width=SHADOW_WIDTH
+            depth_texture_descriptor.height=SHADOW_HEIGHT
+            depth_texture_descriptor.internal_format=gl.GL_DEPTH_COMPONENT
+            depth_texture_descriptor.format=gl.GL_DEPTH_COMPONENT
+            depth_texture_descriptor.type=gl.GL_FLOAT
+            depth_texture_descriptor.wrap_s=gl.GL_CLAMP_TO_BORDER
+            depth_texture_descriptor.wrap_t=gl.GL_CLAMP_TO_BORDER
+            depth_texture_descriptor.min_filter=gl.GL_NEAREST
+            depth_texture_descriptor.max_filter=gl.GL_NEAREST
 
-        if mesh.load_from_file == True:
-            mesh_instance = OpenGLMeshLib().get(mesh.name)
-            mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
-            mesh.indices = mesh_instance.indices
+            # Create depth texture
+            OpenGLTextureLib().build('depth_texture', img_data=None, descriptor=depth_texture_descriptor)
+            depth_texture_id = OpenGLTextureLib().get_id('depth_texture')
 
-        if len(mesh.attributes) == 0:
-            return
-        
-        mesh.batch = OpenGLRenderer().add_batch(mesh, material)
+            gl.glBindTexture(gl.GL_TEXTURE_2D, depth_texture_id)
+
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebuffer_id)
+            gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_TEXTURE_2D, depth_texture_id, 0)
+            gl.glDrawBuffer(gl.GL_NONE)
+            gl.glReadBuffer(gl.GL_NONE)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
+        for components in self.get_filtered_components():
+            mesh, material, transform = components
+
+            mesh.vao = 0
+            mesh.ebo = 0
+            mesh.vbo.clear()
+
+            material.instance = OpenGLMaterialLib().get(material.name)
+
+            if mesh.load_from_file == True:
+                mesh_instance = OpenGLMeshLib().get(mesh.name)
+                mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
+                mesh.indices = mesh_instance.indices
+
+            if len(mesh.attributes) == 0:
+                return
+            
+            mesh.batch = OpenGLRenderer().add_batch(mesh, material)
 
     def on_update_system(self, ts: float):
-        
+        if OpenGLRenderer().get_shadows_enabled():
+            OpenGLRenderer().resize(1024, 1024)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebuffer_id)
+            gl.glClear(gl.GL_DEPTH_BUFFER_BIT)
+
+            # Use the depth only pre-pass material
+            pre_pass_material_descriptor = MaterialComponent.Descriptor()
+            pre_pass_material_descriptor.blend_enabled = False
+            pre_pass_material_descriptor.cull_enabled = True
+            pre_pass_material_descriptor.cull_face = gl.GL_BACK
+
+            pre_pass_material = MaterialComponent('M_DepthPrePass', descriptor=pre_pass_material_descriptor)
+            pre_pass_material.instance = OpenGLMaterialLib().get('M_DepthPrePass')
+
+            # Depth only pre-pass
+            for components in self.get_filtered_components():
+                mesh, _, transform = components
+
+                # Bind vao
+                OpenGLRenderer().set_pipeline(mesh)
+                # Bind vbo(s) and ebo
+                OpenGLRenderer().set_buffers(mesh)
+                # Bind shader program and set material properties
+                OpenGLRenderer().set_bind_groups(pre_pass_material)
+
+                self.update_prepass_uniforms(transform.world_matrix, pre_pass_material)
+
+                if (mesh.indices is None):
+                    OpenGLRenderer().draw(mesh, pre_pass_material)
+                else:
+                    OpenGLRenderer().draw_indexed(mesh, pre_pass_material)
+
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
+            # TODO: Fix this, get it from current window size
+            OpenGLRenderer().resize(1280, 720)
+            gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+
+        # Color pass
         for components in self.get_filtered_components():
             mesh, material, transform = components
 
@@ -55,6 +125,24 @@ class OpenGLStaticMeshRenderingSystem(System):
             else:
                 OpenGLRenderer().draw_indexed(mesh, material)
 
+    def update_prepass_uniforms(self, model, material: MaterialComponent):
+        light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
+        
+        if light_system is not None:
+            if light_system.get_state() != SystemState.PAUSE:
+                for components in light_system.get_filtered_components():
+                    light, transform = components
+
+                    if material.instance.has_uniform('u_LightSpaceMatrix'):
+                        light_projection = SceneManager().get_main_camera().projection
+                        light_view = glm.lookAt(transform.get_world_position(), glm.vec3(0.0), glm.vec3(0.0, 1.0, 0.0))
+                        material.instance.set_uniform('u_LightSpaceMatrix', light_projection * light_view)
+
+                    break
+
+        if material.instance.has_uniform('u_Model'):
+            material.instance.set_uniform('u_Model', model)
+
     def update_uniforms(self, model, material: MaterialComponent):
         light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
 
@@ -69,6 +157,12 @@ class OpenGLStaticMeshRenderingSystem(System):
                     light_colors.append(light.color)
                     light_positions.append(transform.get_world_position())
                     light_intensities.append(light.intensity)
+
+                    # NOTE: Only works with one light, adding more will keep the last.
+                    if material.instance.has_uniform('u_LightSpaceMatrix'):
+                        light_projection = SceneManager().get_main_camera().projection
+                        light_view = glm.lookAt(transform.get_world_position(), glm.vec3(0.0), glm.vec3(0.0, 1.0, 0.0))
+                        material.instance.set_uniform('u_LightSpaceMatrix', light_projection * light_view)
 
         count = len(light_positions)
 

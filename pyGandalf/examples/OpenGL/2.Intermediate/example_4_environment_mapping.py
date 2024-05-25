@@ -25,7 +25,7 @@ from pyGandalf.utilities.logger import logger
 import numpy as np
 
 """
-Showcase of obj model loading with basic Blinn-Phong lighting.
+Showcase of reflection and refraction materials when using a skybox.
 """
 
 def main():
@@ -72,8 +72,8 @@ def main():
     ], dtype=np.float32)
 
     # Build textures
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
-    OpenGLTextureLib().build('cube_map', skybox_textures, None, TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), descriptor=TextureDescriptor(width=1, height=1))
+    OpenGLTextureLib().build('cube_map', skybox_textures, None, descriptor=TextureDescriptor(flip=True, dimention=TextureDimension.CUBE, internal_format=gl.GL_RGB8, format=gl.GL_RGB))
 
     # Build shaders
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')

@@ -91,11 +91,11 @@ def main():
     ], dtype=np.float32)
 
     # Build textures
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), descriptor=TextureDescriptor(width=1, height=1))
     OpenGLTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
     OpenGLTextureLib().build('marble_texture', TEXTURES_PATH/'marble_diffuse.png')
-    OpenGLTextureLib().build('sea_cube_map', sea_skybox_textures, None, TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
-    OpenGLTextureLib().build('cloudy_cube_map', cloudy_skybox_textures, None, TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
+    OpenGLTextureLib().build('sea_cube_map', sea_skybox_textures, None, descriptor=TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
+    OpenGLTextureLib().build('cloudy_cube_map', cloudy_skybox_textures, None, descriptor=TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
 
     # Build shaders
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
