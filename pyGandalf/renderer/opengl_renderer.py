@@ -34,8 +34,8 @@ class OpenGLRenderer(BaseRenderer):
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
         gl.glBlendEquation(gl.GL_FUNC_ADD)
 
-        gl.glEnable(gl.GL_CULL_FACE)
-        gl.glFrontFace(gl.GL_CCW)
+        # gl.glEnable(gl.GL_CULL_FACE)
+        # gl.glFrontFace(gl.GL_CCW)
 
         if material.descriptor.depth_enabled:
             gl.glEnable(gl.GL_DEPTH_TEST)
@@ -110,7 +110,7 @@ class OpenGLRenderer(BaseRenderer):
         if material.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_FALSE)
 
-        gl.glCullFace(material.descriptor.cull_face)
+        # gl.glCullFace(material.descriptor.cull_face)
 
         if material.descriptor.depth_enabled:
             gl.glDepthFunc(material.descriptor.depth_func)

@@ -41,7 +41,7 @@ class OpenGLTextureLib(object):
             cls.instance.current_slot = 0
         return cls.instance
     
-    def build(cls, name: str, path: Path | list[Path] = None, img_data: bytes = None, texture_descriptor: TextureDescriptor = TextureDescriptor()):
+    def build(cls, name: str, path: Path | list[Path] = None, img_data: bytes = None, descriptor: TextureDescriptor = TextureDescriptor()):
         """Builds a new texture (if one does not already exists with that name) and returns its slot.
 
         Args:
@@ -60,11 +60,11 @@ class OpenGLTextureLib(object):
         img = None
 
         if path is None or type(path) is not list:
-            assert texture_descriptor.dimention == TextureDimension.D2 or texture_descriptor.dimention == TextureDimension.D3, "Single texture path only supported for 2d or 3d textures dimensions"
+            assert descriptor.dimention == TextureDimension.D2 or descriptor.dimention == TextureDimension.D3, "Single texture path only supported for 2d or 3d textures dimensions"
 
             if path is not None:
                 img = Image.open(path)
-                if texture_descriptor.flip:
+                if descriptor.flip:
                     img = img.transpose(Image.FLIP_TOP_BOTTOM)
                 img_bytes = img.convert("RGBA").tobytes("raw", "RGBA", 0, -1)
 
@@ -80,8 +80,8 @@ class OpenGLTextureLib(object):
                 gl.GL_TEXTURE_2D,                                            #Target
                 0,                                                           # Level
                 gl.GL_RGBA8,                                                 # Internal Format
-                img.width if img is not None else texture_descriptor.width,  # Width
-                img.height if img is not None else texture_descriptor.height,# Height
+                img.width if img is not None else descriptor.width,  # Width
+                img.height if img is not None else descriptor.height,# Height
                 0,                                                           # Border
                 gl.GL_RGBA,                                                  # Format
                 gl.GL_UNSIGNED_BYTE,                                         # Type
@@ -97,17 +97,17 @@ class OpenGLTextureLib(object):
                 relative_path = Path(os.path.relpath(path, TEXTURES_PATH))
 
             if img is not None:
-                texture_descriptor.width = img.width
-                texture_descriptor.height = img.height
+                descriptor.width = img.width
+                descriptor.height = img.height
 
-            data : TextureData = TextureData(texture_id, cls.instance.current_slot, name, texture_descriptor, relative_path, img_data)
+            data : TextureData = TextureData(texture_id, cls.instance.current_slot, name, descriptor, relative_path, img_data)
             cls.instance.textures[name] = data
 
             cls.instance.current_slot += 1
 
             return data.slot
         elif type(path) is list:
-            assert texture_descriptor.dimention == TextureDimension.CUBE, "Multiple texture paths are only supported for cube dimetion type"
+            assert descriptor.dimention == TextureDimension.CUBE, "Multiple texture paths are only supported for cube dimetion type"
 
             texture_id = gl.glGenTextures(1)        
             gl.glBindTexture(gl.GL_TEXTURE_CUBE_MAP, texture_id)
@@ -115,7 +115,7 @@ class OpenGLTextureLib(object):
             relative_path: list[Path] = []
             for i, p in enumerate(path):
                 img = Image.open(p)
-                if texture_descriptor.flip:
+                if descriptor.flip:
                     img = img.transpose(Image.FLIP_TOP_BOTTOM)
                 img_bytes = img.convert("RGBA").tobytes("raw", "RGB", 0, -1)
 
@@ -135,7 +135,7 @@ class OpenGLTextureLib(object):
 
             gl.glBindTexture(gl.GL_TEXTURE_CUBE_MAP, 0)
 
-            data : TextureData = TextureData(texture_id, cls.instance.current_slot, name, texture_descriptor, relative_path, img_data)
+            data : TextureData = TextureData(texture_id, cls.instance.current_slot, name, descriptor, relative_path, img_data)
             cls.instance.textures[name] = data
 
             cls.instance.current_slot += 1
