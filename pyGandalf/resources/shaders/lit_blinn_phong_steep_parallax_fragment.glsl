@@ -57,16 +57,16 @@ vec2 SteepParallaxMapping(vec2 texCoords, vec3 viewDir)
 void main()
 {
     vec3 camDir = normalize(v_TangentViewPos - v_TangentFragPos);
-	vec2 texCoords = SteepParallaxMapping(v_TexCoord, camDir);
+	vec2 offsetTexCoord = SteepParallaxMapping(v_TexCoord, camDir);
 
-	if (texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
+	if (offsetTexCoord.x > 1.0 || offsetTexCoord.y > 1.0 || offsetTexCoord.x < 0.0 || offsetTexCoord.y < 0.0)
     	discard;
 
     vec3 textureColor;
-    textureColor = texture(u_AlbedoMap, texCoords).rgb;
+    textureColor = texture(u_AlbedoMap, offsetTexCoord).rgb;
 
     vec3 normal;
-    normal = texture(u_NormalMap, texCoords).rgb;
+    normal = texture(u_NormalMap, offsetTexCoord).rgb;
 
     float ambientCoefficient = 0.1;
     normal = normalize(normal);
