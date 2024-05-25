@@ -1,5 +1,6 @@
-from pyGandalf.scene.components import Component
-from pyGandalf.systems.system import System
+from pyGandalf.scene.components import Component, TransformComponent, MaterialComponent
+from pyGandalf.systems.system import System, SystemState
+from pyGandalf.systems.light_system import LightSystem
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
@@ -9,6 +10,7 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.entity import Entity
 
 import glm
+import numpy as np
 
 class OpenGLStaticMeshRenderingSystem(System):
     """
@@ -34,22 +36,87 @@ class OpenGLStaticMeshRenderingSystem(System):
         
         mesh.batch = OpenGLRenderer().add_batch(mesh, material)
 
-        # Set up matrices for projection and view
+    def on_update_system(self, ts: float):
+        
+        for components in self.get_filtered_components():
+            mesh, material, transform = components
+
+            # Bind vao
+            OpenGLRenderer().set_pipeline(mesh)
+            # Bind vbo(s) and ebo
+            OpenGLRenderer().set_buffers(mesh)
+            # Bind shader program and set material properties
+            OpenGLRenderer().set_bind_groups(material)
+
+            self.update_uniforms(transform.world_matrix, material)
+
+            if (mesh.indices is None):
+                OpenGLRenderer().draw(mesh, material)
+            else:
+                OpenGLRenderer().draw_indexed(mesh, material)
+
+    def update_uniforms(self, model, material: MaterialComponent):
+        light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
+
+        light_positions: list[glm.vec3] = []
+        light_colors: list[glm.vec3] = []
+        light_intensities: list[np.float32] = []
+        
+        if light_system is not None:
+            if light_system.get_state() != SystemState.PAUSE:
+                for components in light_system.get_filtered_components():
+                    light, transform = components
+                    light_colors.append(light.color)
+                    light_positions.append(transform.get_world_position())
+                    light_intensities.append(light.intensity)
+
+        count = len(light_positions)
+
+        if count != 0:
+            if material.instance.has_uniform('u_LightPositions'):
+                material.instance.set_uniform('u_LightPositions', glm.array(light_positions))
+            if material.instance.has_uniform('u_LightColors'):
+                material.instance.set_uniform('u_LightColors', glm.array(light_colors))
+            if material.instance.has_uniform('u_LightIntensities'):
+                material.instance.set_uniform('u_LightIntensities', np.asarray(light_intensities, dtype=np.float32))
+            if material.instance.has_uniform('u_LightCount'):
+                material.instance.set_uniform('u_LightCount', count)
+            if material.instance.has_uniform('u_Glossiness'):
+                material.instance.set_uniform('u_Glossiness', material.glossiness)
+        elif light_system is not None:
+            if material.instance.has_uniform('u_LightCount'):
+                material.instance.set_uniform('u_LightCount', 0)
+
         camera = SceneManager().get_main_camera()
         if camera != None:
             if material.instance.has_uniform('u_ModelViewProjection'):
-                material.instance.set_uniform('u_ModelViewProjection', camera.view_projection)
+                material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
+            if material.instance.has_uniform('u_Model'):
+                material.instance.set_uniform('u_Model', model)
+            if material.instance.has_uniform('u_View'):
+                material.instance.set_uniform('u_View', camera.view)
+            if material.instance.has_uniform('u_Projection'):
+                material.instance.set_uniform('u_Projection', camera.projection)
+            if material.instance.has_uniform('u_ViewProjection'):
+                material.instance.set_uniform('u_ViewProjection', camera.projection * glm.mat4(glm.mat3(camera.view)))
+        else:
+            if material.instance.has_uniform('u_ModelViewProjection'):
+                material.instance.set_uniform('u_ModelViewProjection', glm.mat4(1.0))
             if material.instance.has_uniform('u_Model'):
                 material.instance.set_uniform('u_Model', glm.mat4(1.0))
+            if material.instance.has_uniform('u_View'):
+                material.instance.set_uniform('u_View', glm.mat4(1.0))
+            if material.instance.has_uniform('u_Projection'):
+                material.instance.set_uniform('u_Projection', glm.mat4(1.0))
+            if material.instance.has_uniform('u_ViewProjection'):
+                material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
 
-    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
-        mesh, material, transform = components
+        if material.instance.has_uniform('u_ViewPosition'):
+            camera_entity = SceneManager().get_main_camera_entity()
+            if camera_entity != None:
+                camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
+                if camera_transform != None and not camera_transform.static:
+                    material.instance.set_uniform('u_ViewPosition', camera_transform.get_world_position())
 
-        if len(mesh.attributes) == 0:
-            return
-
-        # Draw the mesh
-        if (mesh.indices is None):
-            OpenGLRenderer().draw(transform.world_matrix, mesh, material)
-        else:
-            OpenGLRenderer().draw_indexed(transform.world_matrix, mesh, material)
+        if material.instance.has_uniform('u_Color'):
+            material.instance.set_uniform('u_Color', material.color)

@@ -2,12 +2,6 @@ from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
 
-from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import TransformComponent, CameraComponent
-
-from pyGandalf.systems.system import SystemState
-from pyGandalf.systems.light_system import LightSystem
-
 from pyGandalf.utilities.logger import logger
 
 import OpenGL.GL as gl
@@ -94,73 +88,25 @@ class OpenGLRenderer(BaseRenderer):
         if cls.instance.use_framebuffer:
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-    def update_uniforms(cls, model, material):
-        light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
+    def set_pipeline(cls, render_data):
+        # Bind vao
+        gl.glBindVertexArray(render_data.vao)
 
-        light_positions: list[glm.vec3] = []
-        light_colors: list[glm.vec3] = []
-        light_intensities: list[np.float32] = []
-        
-        if light_system is not None:
-            if light_system.get_state() != SystemState.PAUSE:
-                for components in light_system.get_filtered_components():
-                    light, transform = components
-                    light_colors.append(light.color)
-                    light_positions.append(transform.get_world_position())
-                    light_intensities.append(light.intensity)
+    def set_buffers(cls, render_data):
+        # Bind ebo
+        if render_data.indices is not None:
+            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
 
-        count = len(light_positions)
+        # Bind vertex buffer and their layout
+        for index, attribute in enumerate(render_data.attributes):
+            # Vertex Buffer Object (VBO)
+            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.vbo[index])
 
-        if count != 0:
-            if material.instance.has_uniform('u_LightPositions'):
-                material.instance.set_uniform('u_LightPositions', glm.array(light_positions))
-            if material.instance.has_uniform('u_LightColors'):
-                material.instance.set_uniform('u_LightColors', glm.array(light_colors))
-            if material.instance.has_uniform('u_LightIntensities'):
-                material.instance.set_uniform('u_LightIntensities', np.asarray(light_intensities, dtype=np.float32))
-            if material.instance.has_uniform('u_LightCount'):
-                material.instance.set_uniform('u_LightCount', count)
-            if material.instance.has_uniform('u_Glossiness'):
-                material.instance.set_uniform('u_Glossiness', material.glossiness)
-        elif light_system is not None:
-            if material.instance.has_uniform('u_LightCount'):
-                material.instance.set_uniform('u_LightCount', 0)
+            # Set vertex buffer layout
+            gl.glEnableVertexAttribArray(index)
+            gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
 
-        camera = SceneManager().get_main_camera()
-        if camera != None:
-            if material.instance.has_uniform('u_ModelViewProjection'):
-                material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
-            if material.instance.has_uniform('u_Model'):
-                material.instance.set_uniform('u_Model', model)
-            if material.instance.has_uniform('u_View'):
-                material.instance.set_uniform('u_View', camera.view)
-            if material.instance.has_uniform('u_Projection'):
-                material.instance.set_uniform('u_Projection', camera.projection)
-            if material.instance.has_uniform('u_ViewProjection'):
-                material.instance.set_uniform('u_ViewProjection', camera.projection * glm.mat4(glm.mat3(camera.view)))
-        else:
-            if material.instance.has_uniform('u_ModelViewProjection'):
-                material.instance.set_uniform('u_ModelViewProjection', glm.mat4(1.0))
-            if material.instance.has_uniform('u_Model'):
-                material.instance.set_uniform('u_Model', glm.mat4(1.0))
-            if material.instance.has_uniform('u_View'):
-                material.instance.set_uniform('u_View', glm.mat4(1.0))
-            if material.instance.has_uniform('u_Projection'):
-                material.instance.set_uniform('u_Projection', glm.mat4(1.0))
-            if material.instance.has_uniform('u_ViewProjection'):
-                material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
-
-        if material.instance.has_uniform('u_ViewPosition'):
-            camera_entity = SceneManager().get_main_camera_entity()
-            if camera_entity != None:
-                camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
-                if camera_transform != None and not camera_transform.static:
-                    material.instance.set_uniform('u_ViewPosition', camera_transform.get_world_position())
-
-        if material.instance.has_uniform('u_Color'):
-            material.instance.set_uniform('u_Color', material.color)
-    
-    def draw(cls, model, render_data, material):
+    def set_bind_groups(cls, material):
         if material.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_FALSE)
 
@@ -181,21 +127,7 @@ class OpenGLRenderer(BaseRenderer):
             if material.instance.has_uniform(textures[index]):
                 material.instance.set_uniform(textures[index], int(OpenGLTextureLib().get_slot(texture_name)))
 
-        # Set Uniforms
-        cls.instance.update_uniforms(model, material)
-        
-        # Bind vao
-        gl.glBindVertexArray(render_data.vao)
-
-        # Bind vertex buffer and their layout
-        for index, attribute in enumerate(render_data.attributes):
-            # Vertex Buffer Object (VBO)
-            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.vbo[index])
-
-            # Set vertex buffer layout
-            gl.glEnableVertexAttribArray(index)
-            gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
-
+    def draw(cls, render_data, material):
         if material.descriptor.primitive == gl.GL_PATCHES:
             gl.glDrawArrays(gl.GL_PATCHES, 0, material.descriptor.vertices_per_patch * material.descriptor.patch_resolution * material.descriptor.patch_resolution)
         else:
@@ -215,45 +147,7 @@ class OpenGLRenderer(BaseRenderer):
         if material.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_TRUE)
 
-    def draw_indexed(cls, model, render_data, material):
-        if material.descriptor.depth_mask == gl.GL_FALSE:
-            gl.glDepthMask(gl.GL_FALSE)
-
-        gl.glCullFace(material.descriptor.cull_face)
-
-        if material.descriptor.depth_enabled:
-            gl.glDepthFunc(material.descriptor.depth_func)
-
-        # Bind shader program
-        gl.glUseProgram(material.instance.shader_program)
-        
-        # Get uniform textures
-        textures = OpenGLMaterialLib().get_textures(material.instance.name)
-
-        # Bind textures
-        for index, texture_name in enumerate(material.instance.textures):
-            OpenGLTextureLib().bind(texture_name)
-            if material.instance.has_uniform(textures[index]):
-                material.instance.set_uniform(textures[index], int(OpenGLTextureLib().get_slot(texture_name)))
-
-        # Set Uniforms
-        cls.instance.update_uniforms(model, material)
-
-        # Bind vao
-        gl.glBindVertexArray(render_data.vao)
-
-        # Bind ebo
-        gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
-
-        # Bind vertex buffer and their layout
-        for index, attribute in enumerate(render_data.attributes):
-            # Vertex Buffer Object (VBO)
-            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.vbo[index])
-
-            # Set vertex buffer layout
-            gl.glEnableVertexAttribArray(index)
-            gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
-
+    def draw_indexed(cls, render_data, material):
         gl.glDrawElements(material.descriptor.primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
 
         # Unbind vao
