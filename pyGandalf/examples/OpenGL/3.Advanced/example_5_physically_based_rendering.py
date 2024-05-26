@@ -25,7 +25,7 @@ import numpy as np
 import OpenGL.GL as gl
 
 """
-Showcase of obj model loading with textures and Physically Based Rendering(PBR).
+Showcase of sphere with textures and Physically Based Rendering(PBR).
 """
 
 def get_sphere_vertex_data():
@@ -73,10 +73,10 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(OpenGLWindow('Physically Based Rendering(PBR) Textured Model', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('Physically Based Rendering(PBR) with Textured Sphere', 1280, 720, True), OpenGLRenderer, True, True)
 
     # Create a new scene
-    scene = Scene('Physically Based Rendering(PBR) Textured Model')
+    scene = Scene('Physically Based Rendering(PBR) with Textured Sphere')
 
     # Create Enroll entities to registry
     root = scene.enroll_entity()
@@ -91,7 +91,7 @@ def main():
     OpenGLTextureLib().build('rusted_sphere_roughness', TEXTURES_PATH / 'rusted_iron' / 'rustediron2_roughness.png')
 
     # Build shaders
-    OpenGLShaderLib().build('pbr_mesh', SHADERS_PATH/'lit_pbr_vertex.glsl', SHADERS_PATH/'lit_pbr_fragment.glsl')
+    OpenGLShaderLib().build('pbr_mesh', SHADERS_PATH/'lit_pbr.vs', SHADERS_PATH/'lit_pbr.fs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_PBR', MaterialData('pbr_mesh', ['rusted_sphere_albedo', 'rusted_sphere_normal', 'rusted_sphere_metallic', 'rusted_sphere_roughness']))
@@ -114,7 +114,7 @@ def main():
     scene.add_component(light, InfoComponent("light"))
     scene.add_component(light, TransformComponent(glm.vec3(0, 2, 2), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(light, LinkComponent(root))
-    scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 1.75))
+    scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 5.0))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
