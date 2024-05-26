@@ -491,7 +491,8 @@ class EditorPanelSystem(System):
                 modified_static_mesh, _ = imgui.menu_item('Static Mesh Component', '', False)
                 if modified_static_mesh:
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, StaticMeshComponent('empty', [], None))
-
+                    
+                    # TODO: Extend editor to be able to choose shader
                     OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
                     OpenGLShaderLib().build('default_lit', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
                     OpenGLMaterialLib().build('M_Lit', MaterialData('default_lit', ['white_texture']))
