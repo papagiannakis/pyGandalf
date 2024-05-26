@@ -25,7 +25,7 @@ from pyGandalf.utilities.logger import logger
 import numpy as np
 
 """
-Showcase of obj model loading with textures and basic Blinn-Phong lighting.
+Showcase of shadow mapping and basic Blinn-Phong lighting.
 """
 
 def main():
@@ -44,6 +44,7 @@ def main():
     root = scene.enroll_entity()
     camera = scene.enroll_entity()
     bunny = scene.enroll_entity()
+    dragon = scene.enroll_entity()
     floor = scene.enroll_entity()
     light = scene.enroll_entity()
     debug_depth_quad = scene.enroll_entity()
@@ -74,13 +75,14 @@ def main():
     OpenGLShaderLib().build('debug_quad_depth', SHADERS_PATH/'debug_quad_depth_vertex.glsl', SHADERS_PATH/'debug_quad_depth_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Bunny', MaterialData('shadow_mesh', ['white_texture', 'depth_texture']))
+    OpenGLMaterialLib().build('M_LitShadows', MaterialData('shadow_mesh', ['white_texture', 'depth_texture']))
     OpenGLMaterialLib().build('M_BrickFloor', MaterialData('shadow_mesh', ['brickwall_texture', 'depth_texture']))
     OpenGLMaterialLib().build('M_DepthPrePass', MaterialData('depth_pre_pass', []))
     OpenGLMaterialLib().build('M_DebugQuadDepth', MaterialData('debug_quad_depth', ['depth_texture']))
 
     # Load models
     OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
+    OpenGLMeshLib().build('dragon_mesh', MODELS_PATH/'dragon.obj')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
@@ -89,10 +91,17 @@ def main():
 
     # Register components to bunny
     scene.add_component(bunny, InfoComponent("bunny"))
-    scene.add_component(bunny, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 10, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(bunny, TransformComponent(glm.vec3(-1, 0, 0), glm.vec3(0, 10, 0), glm.vec3(1, 1, 1)))
     scene.add_component(bunny, LinkComponent(root))
     scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
-    scene.add_component(bunny, MaterialComponent('M_Bunny')).glossiness = 2.0
+    scene.add_component(bunny, MaterialComponent('M_LitShadows')).glossiness = 2.0
+
+    # Register components to dragon
+    scene.add_component(dragon, InfoComponent("dragon"))
+    scene.add_component(dragon, TransformComponent(glm.vec3(2, 0.8, 0), glm.vec3(0, 90, 0), glm.vec3(3, 3, 3)))
+    scene.add_component(dragon, LinkComponent(root))
+    scene.add_component(dragon, StaticMeshComponent('dragon_mesh'))
+    scene.add_component(dragon, MaterialComponent('M_LitShadows')).glossiness = 2.0
 
     # Register components to floor
     scene.add_component(floor, InfoComponent("floor"))

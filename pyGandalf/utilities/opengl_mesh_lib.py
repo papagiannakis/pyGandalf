@@ -70,7 +70,9 @@ class OpenGLMeshLib(object):
             vertices = np.asarray(mesh.vertices, dtype=np.float32)
             indices = np.asarray(mesh.faces, dtype=np.uint32)
             normals = np.asarray(mesh.vertex_normals, dtype=np.float32)
-            texcoords = np.asarray(mesh.visual.uv, dtype=np.float32)
+
+            if hasattr(mesh.visual, 'uv'):
+                texcoords = np.asarray(mesh.visual.uv, dtype=np.float32)
 
         rel_path = Path(os.path.relpath(path, MODELS_PATH))
 

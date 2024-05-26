@@ -49,24 +49,24 @@ class OpenGLStaticMeshRenderingSystem(System):
             gl.glReadBuffer(gl.GL_NONE)
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-        for components in self.get_filtered_components():
-            mesh, material, transform = components
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
+        mesh, material, transform = components
 
-            mesh.vao = 0
-            mesh.ebo = 0
-            mesh.vbo.clear()
+        mesh.vao = 0
+        mesh.ebo = 0
+        mesh.vbo.clear()
 
-            material.instance = OpenGLMaterialLib().get(material.name)
+        material.instance = OpenGLMaterialLib().get(material.name)
 
-            if mesh.load_from_file == True:
-                mesh_instance = OpenGLMeshLib().get(mesh.name)
-                mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
-                mesh.indices = mesh_instance.indices
+        if mesh.load_from_file == True:
+            mesh_instance = OpenGLMeshLib().get(mesh.name)
+            mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
+            mesh.indices = mesh_instance.indices
 
-            if len(mesh.attributes) == 0:
-                return
-            
-            mesh.batch = OpenGLRenderer().add_batch(mesh, material)
+        if len(mesh.attributes) == 0:
+            return
+        
+        mesh.batch = OpenGLRenderer().add_batch(mesh, material)
 
     def on_update_system(self, ts: float):
         if OpenGLRenderer().get_shadows_enabled():

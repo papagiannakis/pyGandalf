@@ -1,3 +1,4 @@
+from pyGandalf.scene.components import Component
 from pyGandalf.scene.entity import Entity
 from pyGandalf.core.input_manager import InputManager
 from pyGandalf.systems.system import System, SystemState
@@ -40,6 +41,9 @@ class EditorPanelSystem(System):
         self.drag_and_drop_mesh = None
         self.drag_and_drop_scene = None
         self.drag_and_drop_texture = None
+
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
+        pass
 
     def on_gui_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         editor_panel = components

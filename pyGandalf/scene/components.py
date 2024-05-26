@@ -44,18 +44,18 @@ class LinkComponent(Component):
 class MaterialComponent(Component):
     class Descriptor:
         def __init__(self, primitive=gl.GL_TRIANGLES, cull_face=gl.GL_BACK, depth_mask=gl.GL_TRUE, patch_resolution=20, vertices_per_patch=4):
-            self.primitive = primitive
-            self.cull_enabled = True
-            self.cull_face = cull_face
-            self.patch_resolution = patch_resolution
-            self.vertices_per_patch = vertices_per_patch
-            self.depth_enabled = True
-            self.depth_func = gl.GL_LEQUAL
-            self.depth_mask = depth_mask
-            self.blend_enabled = True
-            self.blend_func_source = gl.GL_SRC_ALPHA
-            self.blend_func_destination = gl.GL_ONE_MINUS_SRC_ALPHA
-            self.blend_equation = gl.GL_FUNC_ADD
+            self.primitive: gl.Constant = primitive
+            self.cull_enabled: bool = True
+            self.cull_face: gl.Constant = cull_face
+            self.patch_resolution: int = patch_resolution
+            self.vertices_per_patch: int = vertices_per_patch
+            self.depth_enabled: bool = True
+            self.depth_func: gl.Constant = gl.GL_LEQUAL
+            self.depth_mask: gl.Constant = depth_mask
+            self.blend_enabled: bool = True
+            self.blend_func_source: gl.Constant = gl.GL_SRC_ALPHA
+            self.blend_func_destination: gl.Constant = gl.GL_ONE_MINUS_SRC_ALPHA
+            self.blend_equation: gl.Constant = gl.GL_FUNC_ADD
             
     def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0), descriptor: Descriptor = Descriptor()):
         self.name = name

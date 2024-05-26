@@ -142,7 +142,7 @@ class System:
             entity (Entity): The current entity to process.
             components (Component | tuple[Component]): The component(s) of the current entity that are manipulated by the system.
         """
-        pass
+        raise NotImplementedError()
 
     def on_update_entity(self, ts: float, entity: Entity, components: Component | tuple[Component]):
         """Gets called every frame for each entity that the system operates on.

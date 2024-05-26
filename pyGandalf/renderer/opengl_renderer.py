@@ -72,7 +72,11 @@ class OpenGLRenderer(BaseRenderer):
             # Element Buffer Object (EBO)
             render_data.ebo = gl.glGenBuffers(1)
             gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
-            gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 3 * 4, indices_pointer, gl.GL_STATIC_DRAW)
+            
+            if material.descriptor.primitive == gl.GL_TRIANGLE_STRIP:
+                gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 4, indices_pointer, gl.GL_STATIC_DRAW)
+            else:
+                gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 3 * 4, indices_pointer, gl.GL_STATIC_DRAW)
 
         # Use the shader program
         gl.glUseProgram(material.instance.shader_program)

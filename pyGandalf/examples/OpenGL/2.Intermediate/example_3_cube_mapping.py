@@ -25,7 +25,7 @@ from pyGandalf.utilities.logger import logger
 import numpy as np
 
 """
-Showcase of obj model loading with basic Blinn-Phong lighting.
+Showcase of a skybox using cube mapping.
 """
 
 def main():
