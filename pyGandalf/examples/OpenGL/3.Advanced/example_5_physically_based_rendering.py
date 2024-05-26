@@ -17,9 +17,8 @@ from pyGandalf.scene.components import *
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
-from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
+from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
 from pyGandalf.utilities.logger import logger
 
 import numpy as np
@@ -90,16 +89,12 @@ def main():
     OpenGLTextureLib().build('rusted_sphere_normal', TEXTURES_PATH / 'rusted_iron' / 'rustediron2_normal.png')
     OpenGLTextureLib().build('rusted_sphere_metallic', TEXTURES_PATH / 'rusted_iron' / 'rustediron2_metallic.png')
     OpenGLTextureLib().build('rusted_sphere_roughness', TEXTURES_PATH / 'rusted_iron' / 'rustediron2_roughness.png')
-    # OpenGLTextureLib().build('rusted_sphere_ao', TEXTURES_PATH / 'rusted_iron' / 'fa_flintlockPistol_albedo.jpg')
 
     # Build shaders
     OpenGLShaderLib().build('pbr_mesh', SHADERS_PATH/'lit_pbr_vertex.glsl', SHADERS_PATH/'lit_pbr_fragment.glsl')
     
     # Build Materials
     OpenGLMaterialLib().build('M_PBR', MaterialData('pbr_mesh', ['rusted_sphere_albedo', 'rusted_sphere_normal', 'rusted_sphere_metallic', 'rusted_sphere_roughness']))
-
-    # Load models
-    OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
 
     vertices, normals, uvs, indices = get_sphere_vertex_data()
 
