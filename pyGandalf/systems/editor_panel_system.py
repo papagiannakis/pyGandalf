@@ -420,30 +420,34 @@ class EditorPanelSystem(System):
                         color_changed, new_color = imgui.color_edit3('color', material.color)
                         if color_changed: material.color = glm.vec3(new_color[0], new_color[1], new_color[2])
 
-                    if material.instance.has_uniform('u_AlbedoMap'):
+                    # Get uniform textures
+                    textures = OpenGLMaterialLib().get_textures(material.instance.name)
+
+                    for index, texture in enumerate(textures):
                         imgui.begin_disabled()
-                        albedo_changed, new_albedo = imgui.input_text('albedo', material.instance.textures[0])
+                        texture_changed, new_texture = imgui.input_text(texture, material.instance.textures[index])
                         imgui.end_disabled()
-                        if albedo_changed: material.instance.textures[0] = new_albedo
+                        if texture_changed: material.instance.textures[index] = new_texture
 
-                    if imgui.begin_drag_drop_target():
-                        payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('textures')
-                        if payload != None:
-                            texture_already_built = False
-                            for texture in OpenGLTextureLib().get_textures().values():
-                                if texture.path == None:
-                                    continue
+                        if imgui.begin_drag_drop_target():
+                            payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('textures')
+                            if payload != None:
+                                texture_already_built = False
+                                for texture in OpenGLTextureLib().get_textures().values():
+                                    if texture.path == None:
+                                        continue
+                                    
+                                    # TODO: Handle textures that are in subfolders.
+                                    if self.drag_and_drop_texture == str(TEXTURES_PATH / texture.path):
+                                        material.instance.textures[0] = texture.name
+                                        texture_already_built = True
+                                        break
 
-                                if self.drag_and_drop_texture == str(TEXTURES_PATH / texture.path):
-                                    material.instance.textures[0] = texture.name
-                                    texture_already_built = True
-                                    break
-
-                            if not texture_already_built:
-                                path: Path = Path(self.drag_and_drop_texture)
-                                instance = OpenGLTextureLib().build(path.stem, path)
-                                material.instance.textures[0] = path.stem
-                        imgui.end_drag_drop_target()
+                                if not texture_already_built:
+                                    path: Path = Path(self.drag_and_drop_texture)
+                                    instance = OpenGLTextureLib().build(path.stem, path)
+                                    material.instance.textures[0] = path.stem
+                            imgui.end_drag_drop_target()
                     
                     if material.instance.has_uniform('u_Glossiness'):
                         glossiness_changed, new_glossiness = imgui.drag_float('glossiness', material.glossiness, 0.1)

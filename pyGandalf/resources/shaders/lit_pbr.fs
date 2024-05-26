@@ -5,7 +5,6 @@ uniform sampler2D u_AlbedoMap;
 uniform sampler2D u_NormalMap;
 uniform sampler2D u_MetallicMap;
 uniform sampler2D u_RoughnessMap;
-// uniform sampler2D u_AmbientOcclissionMap;
 
 uniform vec3 u_Color = vec3(1.0, 1.0, 1.0);
 
@@ -92,7 +91,6 @@ void main()
     vec3 albedo     = pow(texture(u_AlbedoMap, v_TexCoord).rgb, vec3(2.2));
     float metallic  = texture(u_MetallicMap, v_TexCoord).r;
     float roughness = texture(u_RoughnessMap, v_TexCoord).r;
-    // float ao        = texture(u_AmbientOcclissionMap, v_TexCoord).r;
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(u_ViewPosition - v_Position);
@@ -142,7 +140,7 @@ void main()
     
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
-    vec3 ambient = vec3(0.05) * albedo; // * ao;
+    vec3 ambient = vec3(0.05) * albedo;
     
     vec3 color = ambient + Lo;
 
