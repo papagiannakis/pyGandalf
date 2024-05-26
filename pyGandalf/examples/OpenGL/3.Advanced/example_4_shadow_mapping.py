@@ -94,21 +94,21 @@ def main():
     scene.add_component(bunny, TransformComponent(glm.vec3(-1, 0, 0), glm.vec3(0, 10, 0), glm.vec3(1, 1, 1)))
     scene.add_component(bunny, LinkComponent(root))
     scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
-    scene.add_component(bunny, MaterialComponent('M_LitShadows')).glossiness = 2.0
+    scene.add_component(bunny, MaterialComponent('M_LitShadows')).glossiness = 1.5
 
     # Register components to dragon
     scene.add_component(dragon, InfoComponent("dragon"))
     scene.add_component(dragon, TransformComponent(glm.vec3(2, 0.8, 0), glm.vec3(0, 90, 0), glm.vec3(3, 3, 3)))
     scene.add_component(dragon, LinkComponent(root))
     scene.add_component(dragon, StaticMeshComponent('dragon_mesh'))
-    scene.add_component(dragon, MaterialComponent('M_LitShadows')).glossiness = 2.0
+    scene.add_component(dragon, MaterialComponent('M_LitShadows')).glossiness = 1.5
 
     # Register components to floor
     scene.add_component(floor, InfoComponent("floor"))
     scene.add_component(floor, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(270, 0, 0), glm.vec3(15, 15, 15)))
     scene.add_component(floor, LinkComponent(root))
     scene.add_component(floor, StaticMeshComponent('floor_mesh', [plane_vertices, plane_normals, plane_texture_coords]))
-    scene.add_component(floor, MaterialComponent('M_BrickFloor')).glossiness = 1.0
+    scene.add_component(floor, MaterialComponent('M_BrickFloor')).glossiness = 0.75
 
     # Register components to debug_depth_quad
     scene.add_component(debug_depth_quad, InfoComponent("debug_depth_quad"))

@@ -72,7 +72,7 @@ def main():
 
     # Build textures
     OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
-    OpenGLTextureLib().build('cube_map', skybox_textures, None, TextureDescriptor(flip=True, dimention=TextureDimension.CUBE))
+    OpenGLTextureLib().build('cube_map', skybox_textures, None, TextureDescriptor(flip=True, dimention=TextureDimension.CUBE, internal_format=gl.GL_RGB8, format=gl.GL_RGB))
 
     # Build shaders
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')

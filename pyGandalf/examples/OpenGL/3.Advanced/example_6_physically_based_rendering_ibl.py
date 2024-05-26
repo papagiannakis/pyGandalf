@@ -31,7 +31,7 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(OpenGLWindow('Physically Based Rendering(PBR) with Textured Model', 1280, 720, True), OpenGLRenderer, True, True)
+    Application().create(OpenGLWindow('Physically Based Rendering(PBR) with Textured Model', 1280, 720, True), OpenGLRenderer)
 
     # Create a new scene
     scene = Scene('Physically Based Rendering(PBR) with Textured Model')
