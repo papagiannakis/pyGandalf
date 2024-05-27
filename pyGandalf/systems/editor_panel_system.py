@@ -522,6 +522,9 @@ class EditorPanelSystem(System):
                         if file_pressed:
                             EditorVisibleComponent.SELECTED = False
                             EditorVisibleComponent.SELECTED_ENTITY = None
+
+                            OpenGLShaderLib().clean()
+
                             scene: Scene = Scene()
                             scene_serializer: SceneSerializer = SceneSerializer(scene)
                             scene_serializer.deserialize(SCENES_PATH / path.name)

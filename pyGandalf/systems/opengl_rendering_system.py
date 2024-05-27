@@ -21,34 +21,42 @@ class OpenGLStaticMeshRenderingSystem(System):
     """
 
     def on_create_system(self):
-        if OpenGLRenderer().get_shadows_enabled():
-            SHADOW_WIDTH = 1024
-            SHADOW_HEIGHT = 1024
+        self.SHADOW_WIDTH = 1024
+        self.SHADOW_HEIGHT = 1024
 
-            self.framebuffer_id = gl.glGenFramebuffers(1)
+        self.framebuffer_id = gl.glGenFramebuffers(1)
 
-            depth_texture_descriptor = TextureDescriptor()
-            depth_texture_descriptor.width=SHADOW_WIDTH
-            depth_texture_descriptor.height=SHADOW_HEIGHT
-            depth_texture_descriptor.internal_format=gl.GL_DEPTH_COMPONENT
-            depth_texture_descriptor.format=gl.GL_DEPTH_COMPONENT
-            depth_texture_descriptor.type=gl.GL_FLOAT
-            depth_texture_descriptor.wrap_s=gl.GL_CLAMP_TO_BORDER
-            depth_texture_descriptor.wrap_t=gl.GL_CLAMP_TO_BORDER
-            depth_texture_descriptor.min_filter=gl.GL_NEAREST
-            depth_texture_descriptor.max_filter=gl.GL_NEAREST
+        depth_texture_descriptor = TextureDescriptor()
+        depth_texture_descriptor.width=self.SHADOW_WIDTH
+        depth_texture_descriptor.height=self.SHADOW_HEIGHT
+        depth_texture_descriptor.internal_format=gl.GL_DEPTH_COMPONENT
+        depth_texture_descriptor.format=gl.GL_DEPTH_COMPONENT
+        depth_texture_descriptor.type=gl.GL_FLOAT
+        depth_texture_descriptor.wrap_s=gl.GL_CLAMP_TO_BORDER
+        depth_texture_descriptor.wrap_t=gl.GL_CLAMP_TO_BORDER
+        depth_texture_descriptor.min_filter=gl.GL_NEAREST
+        depth_texture_descriptor.max_filter=gl.GL_NEAREST
 
-            # Create depth texture
-            OpenGLTextureLib().build('depth_texture', img_data=None, descriptor=depth_texture_descriptor)
-            depth_texture_id = OpenGLTextureLib().get_id('depth_texture')
+        # Create depth texture
+        OpenGLTextureLib().build('depth_texture', img_data=None, descriptor=depth_texture_descriptor)
+        depth_texture_id = OpenGLTextureLib().get_id('depth_texture')
 
-            gl.glBindTexture(gl.GL_TEXTURE_2D, depth_texture_id)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, depth_texture_id)
 
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebuffer_id)
-            gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_TEXTURE_2D, depth_texture_id, 0)
-            gl.glDrawBuffer(gl.GL_NONE)
-            gl.glReadBuffer(gl.GL_NONE)
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebuffer_id)
+        gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_TEXTURE_2D, depth_texture_id, 0)
+        gl.glDrawBuffer(gl.GL_NONE)
+        gl.glReadBuffer(gl.GL_NONE)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
+        # Create the depth only pre-pass material
+        pre_pass_material_descriptor = MaterialComponent.Descriptor()
+        pre_pass_material_descriptor.blend_enabled = False
+        pre_pass_material_descriptor.cull_enabled = True
+        pre_pass_material_descriptor.cull_face = gl.GL_BACK
+
+        self.pre_pass_material = MaterialComponent('M_DepthPrePass', descriptor=pre_pass_material_descriptor)
+        self.pre_pass_material.instance = OpenGLMaterialLib().get('M_DepthPrePass')
 
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
@@ -71,42 +79,36 @@ class OpenGLStaticMeshRenderingSystem(System):
 
     def on_update_system(self, ts: float):
         if OpenGLRenderer().get_shadows_enabled():
-            OpenGLRenderer().resize(1024, 1024)
+            OpenGLRenderer().resize(self.SHADOW_WIDTH, self.SHADOW_HEIGHT)
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebuffer_id)
             gl.glClear(gl.GL_DEPTH_BUFFER_BIT)
 
-            # Use the depth only pre-pass material
-            pre_pass_material_descriptor = MaterialComponent.Descriptor()
-            pre_pass_material_descriptor.blend_enabled = False
-            pre_pass_material_descriptor.cull_enabled = True
-            pre_pass_material_descriptor.cull_face = gl.GL_BACK
-
-            pre_pass_material = MaterialComponent('M_DepthPrePass', descriptor=pre_pass_material_descriptor)
-            pre_pass_material.instance = OpenGLMaterialLib().get('M_DepthPrePass')
-
             # Depth only pre-pass
             for components in self.get_filtered_components():
-                mesh, _, transform = components
+                mesh, entity_material, transform = components
+
+                if entity_material.descriptor.cast_shadows == False:
+                    continue
 
                 # Bind vao
                 OpenGLRenderer().set_pipeline(mesh)
                 # Bind vbo(s) and ebo
                 OpenGLRenderer().set_buffers(mesh)
                 # Bind shader program and set material properties
-                OpenGLRenderer().set_bind_groups(pre_pass_material)
+                OpenGLRenderer().set_bind_groups(self.pre_pass_material)
 
-                self.update_prepass_uniforms(transform.world_matrix, pre_pass_material)
+                self.update_prepass_uniforms(transform.world_matrix, self.pre_pass_material)
 
                 if (mesh.indices is None):
-                    OpenGLRenderer().draw(mesh, pre_pass_material)
+                    OpenGLRenderer().draw(mesh, self.pre_pass_material)
                 else:
-                    OpenGLRenderer().draw_indexed(mesh, pre_pass_material)
+                    OpenGLRenderer().draw_indexed(mesh, self.pre_pass_material)
 
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
             if OpenGLRenderer().use_framebuffer:
                 gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, OpenGLRenderer().framebuffer_id)
-                gl.glViewport(0, 0, int(OpenGLRenderer().framebuffer_width), int(OpenGLRenderer().framebuffer_height))
+                OpenGLRenderer().resize(int(OpenGLRenderer().framebuffer_width), int(OpenGLRenderer().framebuffer_height))
             else:
                 OpenGLRenderer().resize(Application().get_window().width, Application().get_window().height)
 

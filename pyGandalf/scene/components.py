@@ -43,8 +43,9 @@ class LinkComponent(Component):
 
 class MaterialComponent(Component):
     class Descriptor:
-        def __init__(self, primitive=gl.GL_TRIANGLES, cull_face=gl.GL_BACK, depth_mask=gl.GL_TRUE, patch_resolution=20, vertices_per_patch=4):
+        def __init__(self, primitive=gl.GL_TRIANGLES, cull_face=gl.GL_BACK, cast_shadows=True, depth_mask=gl.GL_TRUE, patch_resolution=20, vertices_per_patch=4):
             self.primitive: gl.Constant = primitive
+            self.cast_shadows = cast_shadows
             self.cull_enabled: bool = True
             self.cull_face: gl.Constant = cull_face
             self.patch_resolution: int = patch_resolution
