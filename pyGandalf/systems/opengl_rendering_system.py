@@ -104,7 +104,12 @@ class OpenGLStaticMeshRenderingSystem(System):
 
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-            OpenGLRenderer().resize(Application().get_window().width, Application().get_window().height)
+            if OpenGLRenderer().use_framebuffer:
+                gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, OpenGLRenderer().framebuffer_id)
+                gl.glViewport(0, 0, int(OpenGLRenderer().framebuffer_width), int(OpenGLRenderer().framebuffer_height))
+            else:
+                OpenGLRenderer().resize(Application().get_window().width, Application().get_window().height)
+
             gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         # Color pass
