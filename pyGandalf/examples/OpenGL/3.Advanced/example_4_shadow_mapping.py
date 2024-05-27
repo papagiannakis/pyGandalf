@@ -2,6 +2,7 @@ from pyGandalf.core.application import Application
 from pyGandalf.core.opengl_window import OpenGLWindow
 
 from pyGandalf.systems.link_system import LinkSystem
+from pyGandalf.systems.system import System
 from pyGandalf.systems.transform_system import TransformSystem
 from pyGandalf.systems.camera_system import CameraSystem
 from pyGandalf.systems.camera_controller_system import CameraControllerSystem
@@ -28,6 +29,33 @@ import numpy as np
 Showcase of shadow mapping and basic Blinn-Phong lighting.
 """
 
+class RotateAroundComponent(Component):
+    def __init__(self, axis: list, speed: float) -> None:
+        self.axis = axis
+        self.speed = speed
+        self.enabled = True
+
+class RotateAroundSystem(System):
+    """
+    The system responsible rotating around entities.
+    """
+
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
+        pass
+
+    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
+        rotate_around, transform = components
+
+        if rotate_around.enabled:
+            if rotate_around.axis[0] == 1:
+                transform.rotation.x += rotate_around.speed * ts
+
+            if rotate_around.axis[1] == 1:
+                transform.rotation.y += rotate_around.speed * ts
+
+            if rotate_around.axis[2] == 1:
+                transform.rotation.z += rotate_around.speed * ts
+
 def main():
     # Set the logger DEBUG to report all the logs
     logger.setLevel(logger.DEBUG)
@@ -44,7 +72,7 @@ def main():
     root = scene.enroll_entity()
     camera = scene.enroll_entity()
     bunny = scene.enroll_entity()
-    dragon = scene.enroll_entity()
+    monkey = scene.enroll_entity()
     floor = scene.enroll_entity()
     light = scene.enroll_entity()
     debug_depth_quad = scene.enroll_entity()
@@ -82,7 +110,7 @@ def main():
 
     # Load models
     OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
-    OpenGLMeshLib().build('dragon_mesh', MODELS_PATH/'dragon.obj')
+    OpenGLMeshLib().build('monkey_mesh', MODELS_PATH/'monkey_flat.obj')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
@@ -95,13 +123,14 @@ def main():
     scene.add_component(bunny, LinkComponent(root))
     scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
     scene.add_component(bunny, MaterialComponent('M_LitShadows')).glossiness = 1.5
+    scene.add_component(bunny, RotateAroundComponent([0, 1, 0], 30))
 
-    # Register components to dragon
-    scene.add_component(dragon, InfoComponent("dragon"))
-    scene.add_component(dragon, TransformComponent(glm.vec3(2, 0.8, 0), glm.vec3(0, 90, 0), glm.vec3(3, 3, 3)))
-    scene.add_component(dragon, LinkComponent(root))
-    scene.add_component(dragon, StaticMeshComponent('dragon_mesh'))
-    scene.add_component(dragon, MaterialComponent('M_LitShadows')).glossiness = 1.5
+    # Register components to monkey
+    scene.add_component(monkey, InfoComponent("monkey"))
+    scene.add_component(monkey, TransformComponent(glm.vec3(2, 1.2, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(monkey, LinkComponent(root))
+    scene.add_component(monkey, StaticMeshComponent('monkey_mesh'))
+    scene.add_component(monkey, MaterialComponent('M_LitShadows')).glossiness = 1.5
 
     # Register components to floor
     scene.add_component(floor, InfoComponent("floor"))
@@ -137,6 +166,7 @@ def main():
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
     scene.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
+    scene.register_system(RotateAroundSystem([RotateAroundComponent, TransformComponent]))
 
     # Add scene to manager
     SceneManager().add_scene(scene)

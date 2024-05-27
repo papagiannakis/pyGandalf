@@ -1,3 +1,4 @@
+from pyGandalf.core.application import Application
 from pyGandalf.scene.components import Component, TransformComponent, MaterialComponent
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.systems.light_system import LightSystem
@@ -103,8 +104,7 @@ class OpenGLStaticMeshRenderingSystem(System):
 
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-            # TODO: Fix this, get it from current window size
-            OpenGLRenderer().resize(1280, 720)
+            OpenGLRenderer().resize(Application().get_window().width, Application().get_window().height)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         # Color pass

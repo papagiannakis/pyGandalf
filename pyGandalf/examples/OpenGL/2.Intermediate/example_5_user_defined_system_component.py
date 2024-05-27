@@ -1,6 +1,8 @@
 from pyGandalf.core.application import Application
 from pyGandalf.core.opengl_window import OpenGLWindow
 
+from pyGandalf.scene.components import Component
+from pyGandalf.scene.entity import Entity
 from pyGandalf.systems.system import System
 from pyGandalf.systems.link_system import LinkSystem
 from pyGandalf.systems.transform_system import TransformSystem
@@ -37,6 +39,9 @@ class RotateAroundSystem(System):
     """
     The system responsible rotating around entities.
     """
+
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
+        pass
 
     def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         # NOTE: These should match the components that the system operates on, which are defined in the system instantiation.
