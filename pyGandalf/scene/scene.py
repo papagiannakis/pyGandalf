@@ -119,9 +119,9 @@ class Scene():
             if (Application().is_running()):
                 if components != None:
                     if (len(components) == 1):
-                        system.on_create(entity, components[0])
+                        system.on_create_entity(entity, components[0])
                     else:
-                        system.on_create(entity, components)
+                        system.on_create_entity(entity, components)
 
         return component
     

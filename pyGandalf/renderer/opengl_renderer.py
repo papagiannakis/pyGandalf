@@ -18,16 +18,6 @@ import ctypes
 class OpenGLRenderer(BaseRenderer):    
     def initialize(cls, *kargs):
         # Initialize OpenGL
-        # gl.glEnable(gl.GL_BLEND);
-        # gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
-        # gl.glBlendEquation(gl.GL_FUNC_ADD);
-
-        # gl.glEnable(gl.GL_CULL_FACE);
-        # gl.glCullFace(gl.GL_BACK);
-        # gl.glFrontFace(gl.GL_CCW);
-
-        gl.glEnable(gl.GL_DEPTH_TEST);
-        gl.glDepthFunc(gl.GL_LESS);
 
         cls.instance.use_framebuffer = kargs[0]
         cls.instance.framebuffer_id = 0
@@ -43,6 +33,17 @@ class OpenGLRenderer(BaseRenderer):
         gl.glViewport(0, 0, width, height)
 
     def add_batch(cls, render_data, material):
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+        gl.glBlendEquation(gl.GL_FUNC_ADD)
+
+        gl.glEnable(gl.GL_CULL_FACE)
+        gl.glCullFace(gl.GL_BACK)
+        gl.glFrontFace(gl.GL_CCW)
+
+        gl.glEnable(gl.GL_DEPTH_TEST)
+        gl.glDepthFunc(gl.GL_LESS)
+
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)
         gl.glBindVertexArray(render_data.vao)
@@ -116,12 +117,10 @@ class OpenGLRenderer(BaseRenderer):
 
         camera = SceneManager().get_main_camera()
         if camera != None:
-            material.instance.set_uniform('u_Projection', camera.projection)
-            material.instance.set_uniform('u_View', camera.view)
+            material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
             material.instance.set_uniform('u_Model', model)
         else:
-            material.instance.set_uniform('u_Projection', glm.mat4(1.0))
-            material.instance.set_uniform('u_View', glm.mat4(1.0))
+            material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
             material.instance.set_uniform('u_Model', glm.mat4(1.0))
 
         if material.instance.has_uniform('u_ViewPosition'):
@@ -160,7 +159,7 @@ class OpenGLRenderer(BaseRenderer):
 
         primitive = render_data.primitive if render_data.primitive != None else gl.GL_TRIANGLES
 
-        gl.glDrawArrays(primitive, 0, len(render_data.attributes[0]) * 3)
+        gl.glDrawArrays(primitive, 0, render_data.attributes[0].size)
 
         # Unbind vao
         gl.glBindVertexArray(0)
@@ -201,7 +200,7 @@ class OpenGLRenderer(BaseRenderer):
 
         primitive = render_data.primitive if render_data.primitive != None else gl.GL_TRIANGLES
 
-        gl.glDrawElements(primitive, len(render_data.indices) * 3, gl.GL_UNSIGNED_INT, None)
+        gl.glDrawElements(primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
 
         # Unbind vao
         gl.glBindVertexArray(0)

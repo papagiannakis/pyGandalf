@@ -1,9 +1,11 @@
 from pyGandalf.scene.entity import Entity
-from pyGandalf.utilities.opengl_material_lib import MaterialInstance
+from pyGandalf.utilities.opengl_material_lib import MaterialInstance as OpenGLMaterialInstance
+from pyGandalf.utilities.webgpu_material_lib import MaterialInstance as WebGPUMaterialInstance
 
 import glm
 
 from enum import Enum
+import uuid
 
 class Component(object):
     pass
@@ -26,7 +28,7 @@ class TransformComponent(Component):
         self.dirty = True
         self.static = False
     
-    def get_world_position(self):
+    def get_world_position(self) -> glm.vec3:
         return (self.world_matrix * glm.vec4(self.translation, 1.0)).xyz
 
 class LinkComponent(Component):
@@ -41,7 +43,7 @@ class LinkComponent(Component):
 class MaterialComponent(Component):
     def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0)):
         self.name = name
-        self.instance: MaterialInstance = None
+        self.instance: OpenGLMaterialInstance = None
         self.color = color
         self.glossiness = 5.0
         self.metallicness = 0.0
@@ -68,17 +70,59 @@ class CameraComponent(Component):
 
         self.primary = primary
 
+class CameraControllerComponent(Component):
+    def __init__(self, movement_speed = 3.5, mouse_sensitivity = 1.25):
+        self.front = glm.vec3(0.0, 0.0, 1.0)
+        self.right = glm.vec3(1.0, 0.0, 0.0)
+        self.up = glm.vec3(0.0, 1.0, 0.0)
+        self.world_up = glm.vec3(0.0, 1.0, 0.0)
+        self.yaw = -90.0
+        self.pitch = 0.0
+        self.movement_speed = movement_speed
+        self.mouse_sensitivity = mouse_sensitivity
+        self.zoom = 45.0
+        self.prev_mouse_x = 0.0
+        self.prev_mouse_y = 0.0
+
 class StaticMeshComponent(Component):
     def __init__(self, name, attributes = None, indices = None, primitive = None):
         self.name = name
         self.attributes = attributes
         self.indices = indices
         self.primitive = primitive
+
         self.vao = 0
         self.vbo = []
         self.ebo = 0
+
         self.batch = -1
         self.load_from_file = True if attributes == None else False
+
+        self.hash = uuid.uuid4()
+
+class WebGPUStaticMeshComponent(Component):
+    def __init__(self, name, attributes = None, indices = None, primitive = None):
+        self.name = name
+        self.attributes = attributes
+        self.indices = indices
+        self.primitive = primitive
+
+        self.render_pipeline = None
+        self.buffers = []
+        self.index_buffer = None
+
+        self.batch = -1
+        self.load_from_file = True if attributes == None else False
+
+        self.hash = uuid.uuid4()
+
+class WebGPUMaterialComponent(Component):
+    def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0)):
+        self.name = name
+        self.instance: WebGPUMaterialInstance = None
+        self.color = color
+        self.glossiness = 3.0
+        self.metallicness = 0.0
 
 class LightComponent(Component):
     def __init__(self, color, intensity):

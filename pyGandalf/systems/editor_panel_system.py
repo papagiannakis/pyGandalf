@@ -1,6 +1,5 @@
 from pyGandalf.scene.entity import Entity
 from pyGandalf.core.input_manager import InputManager
-from pyGandalf.core.event_manager import EventManager, EventType
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.scene_serializer import SceneSerializer
@@ -41,22 +40,7 @@ class EditorPanelSystem(System):
         self.drag_and_drop_scene = None
         self.drag_and_drop_texture = None
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
-        pass
-
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
-        pass
-
-    def on_gui_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_gui_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         editor_panel = components
 
         if editor_panel.enabled:
@@ -293,19 +277,16 @@ class EditorPanelSystem(System):
                     if static_changed: transform.static = new_static
 
                     if moved:
-                        transform.translation.x = move_amount[0]
-                        transform.translation.y = move_amount[1]
-                        transform.translation.z = move_amount[2]
+                        transform.translation = glm.vec3(move_amount[0], move_amount[1], move_amount[2])
 
                     if rotated:
-                        transform.rotation.x = rotate_amount[0]
-                        transform.rotation.y = rotate_amount[1]
-                        transform.rotation.z = rotate_amount[2]
+                        transform.rotation = glm.vec3(rotate_amount[0], rotate_amount[1], rotate_amount[2])
 
                     if scaled:
-                        transform.scale.x = scale_amount[0]
-                        transform.scale.y = scale_amount[1]
-                        transform.scale.z = scale_amount[2]
+                        transform.scale = glm.vec3(scale_amount[0], scale_amount[1], scale_amount[2])
+
+                    if static_changed:
+                        transform.static = new_static
 
                     imgui.tree_pop()
                 imgui.separator()
@@ -381,8 +362,7 @@ class EditorPanelSystem(System):
                         # Set up matrices for projection and view
                         camera = SceneManager().get_main_camera()
                         if camera != None:
-                            material.instance.set_uniform('u_Projection', camera.projection)
-                            material.instance.set_uniform('u_View', camera.view)
+                            material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view)
                             material.instance.set_uniform('u_Model', glm.mat4(1.0))
 
                     if imgui.begin_drag_drop_target():
@@ -464,6 +444,19 @@ class EditorPanelSystem(System):
                     imgui.tree_pop()
                 imgui.separator()
 
+            if SceneManager().get_active_scene().has_component(EditorVisibleComponent.SELECTED_ENTITY, CameraControllerComponent):
+                if imgui.tree_node_ex('CameraControllerComponent', flags):
+                    camera_controller: InfoComponent = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, CameraControllerComponent)
+                    modified_speed, new_speed = imgui.slider_float('Movement Speed', camera_controller.movement_speed, 0.0, 10.0)
+                    if modified_speed:
+                        camera_controller.movement_speed = new_speed
+
+                    modified_mouse_sensitivity, new_mouse_sensitivity = imgui.slider_float('Mouse Sensitivity', camera_controller.mouse_sensitivity, 0.0, 2.0)
+                    if modified_mouse_sensitivity:
+                        camera_controller.mouse_sensitivity = new_mouse_sensitivity
+                    imgui.tree_pop()                  
+                imgui.separator()
+
             if imgui.begin_menu('Add Component'):
                 modified_info, _ = imgui.menu_item('Info Component', '', False)
                 if modified_info:
@@ -477,6 +470,9 @@ class EditorPanelSystem(System):
                 modified_camera, _ = imgui.menu_item('Camera Component', '', False)
                 if modified_camera:
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, CameraComponent(45, 1.778, 0.1, 1000, 5.0, CameraComponent.Type.PERSPECTIVE))
+                modified_camera_controller, _ = imgui.menu_item('Camera Controller Component', '', False)
+                if modified_camera_controller:
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, CameraControllerComponent())
                 modified_light, _ = imgui.menu_item('Light Component', '', False)
                 if modified_light:
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, LightComponent(glm.vec3(1, 1, 1), 1.0))
@@ -563,6 +559,8 @@ class EditorPanelSystem(System):
 
         column_count = int(panel_width / (padding + thumbnail_size))
 
+        column_count = 1 if column_count == 0 else column_count
+
         if imgui.begin_table('Content', column_count):
             if self.current_directory != self.resources_directory:
                 imgui.table_next_column()
@@ -632,3 +630,4 @@ class EditorPanelSystem(System):
                 imgui.button('Pause', imgui.ImVec2(60, 20))
                 if imgui.is_item_clicked():
                     system.set_state(SystemState.PAUSE)
+            imgui.separator()

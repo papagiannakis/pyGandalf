@@ -1,6 +1,6 @@
 from pyGandalf.scene.entity import Entity
 from pyGandalf.systems.system import System
-from pyGandalf.scene.components import CameraComponent, TransformComponent
+from pyGandalf.scene.components import CameraComponent, Component, TransformComponent
 
 from pyGandalf.scene.scene_manager import SceneManager
 
@@ -11,10 +11,7 @@ class CameraSystem(System):
     The system responsible for the cameras.
     """
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         camera, transform = components
         
         camera.view = glm.inverse(transform.world_matrix)
@@ -29,10 +26,7 @@ class CameraSystem(System):
         if camera.primary:
             SceneManager().set_main_camera(entity, camera)
 
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         camera, transform = components
 
         if not transform.static:

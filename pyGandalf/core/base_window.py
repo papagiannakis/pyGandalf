@@ -36,6 +36,9 @@ class BaseWindow:
 
     def dispatch_main_loop(self, main_loop):
         raise NotImplementedError()
+    
+    def get_context(self):
+        raise NotImplementedError()
 
     def destroy(self):
         glfw.destroy_window(self.handle)
@@ -183,12 +186,14 @@ class BaseWindow:
         ev = {  
             "x": x, 
             "y": y,
+            "width": self.width, 
+            "height": self.height,
             "buttons": list(self.pointer_buttons),
             "modifiers": list(self.key_modifiers)
         } 
       
         event = Event() 
-        event.type = EventType.CURSOR_POS
+        event.type = EventType.MOUSE_MOTION
         event.data = ev  
         PushEvent(event)
 

@@ -1,5 +1,6 @@
 from pyGandalf.core.application import Application
 from pyGandalf.core.opengl_window import OpenGLWindow
+from pyGandalf.scene.components import Component
 from pyGandalf.systems.system import System
 from pyGandalf.systems.link_system import LinkSystem
 from pyGandalf.systems.transform_system import TransformSystem
@@ -42,16 +43,7 @@ class DemoSystem(System):
     The system responsible showcasing new features.
     """
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
-        demo, transform, info = components
-
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         demo, transform, info = components
 
         if demo.rotate_around == True:

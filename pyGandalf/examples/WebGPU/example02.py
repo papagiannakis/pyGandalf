@@ -1,28 +1,26 @@
 from pyGandalf.core.application import Application
-from pyGandalf.core.opengl_window import OpenGLWindow
+from pyGandalf.core.webgpu_window import WebGPUWindow
 from pyGandalf.core.input_manager import InputManager
 from pyGandalf.core.event_manager import EventManager
 from pyGandalf.core.events import EventType
 
-from pyGandalf.scene.components import Component
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.systems.link_system import LinkSystem
 from pyGandalf.systems.transform_system import TransformSystem
 from pyGandalf.systems.camera_system import CameraSystem
-from pyGandalf.systems.opengl_rendering_system import OpenGLStaticMeshRenderingSystem
+from pyGandalf.systems.webgpu_rendering_system import WebGPUStaticMeshRenderingSystem
 from pyGandalf.systems.light_system import LightSystem
-from pyGandalf.systems.camera_controller_system import CameraControllerSystem
 
-from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
+from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 
 from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import *
+from pyGandalf.scene.components import Component, InfoComponent, TransformComponent, LinkComponent, WebGPUMaterialComponent, CameraComponent, WebGPUStaticMeshComponent, LightComponent
 
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
-from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
+from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData
+from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib
+from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
@@ -41,7 +39,7 @@ Event system showcase:
 - There attached callbacks when a scene change happens and the DemoSystem state changes, check console.
 """
 
-class DemoComponent(Component):
+class DemoComponent:
     def __init__(self, axis, speed, rotate_around, main_camera) -> None:
         self.axis = axis
         self.speed = speed
@@ -115,24 +113,24 @@ def main():
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    Application().create(OpenGLWindow('ECSS Cube', 1280, 720, True), OpenGLRenderer, True, True)
+    Application().create(WebGPUWindow('ECSS Cube', 1280, 720, True), WebGPURenderer)
 
     # Build textures
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
-    OpenGLTextureLib().build('rabbit_albedo', TEXTURES_PATH/'fg_spkRabbit_albedo.jpg')
-    OpenGLTextureLib().build('flintlockPistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
-    OpenGLTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
-    OpenGLTextureLib().build('marble_texture', TEXTURES_PATH/'4K_carrara_gioa_p1004___polished___marble_diffuse.png')
+    WebGPUTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    WebGPUTextureLib().build('rabbit_albedo', TEXTURES_PATH/'fg_spkRabbit_albedo.jpg')
+    WebGPUTextureLib().build('flintlockPistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
+    WebGPUTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
+    WebGPUTextureLib().build('marble_texture', TEXTURES_PATH/'4K_carrara_gioa_p1004___polished___marble_diffuse.png')
 
     # Build shaders
-    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    WebGPUShaderLib().build('default_mesh', SHADERS_PATH/ 'web_gpu' / 'lit_blinn_phong.wgsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Rabbit', MaterialData('default_mesh', ['rabbit_albedo']))
-    OpenGLMaterialLib().build('M_Monkeh', MaterialData('default_mesh', ['white_texture']))
-    OpenGLMaterialLib().build('M_Floor1', MaterialData('default_mesh', ['dark_wood_texture']))
-    OpenGLMaterialLib().build('M_Floor2', MaterialData('default_mesh', ['marble_texture']))
-    OpenGLMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo']))
+    WebGPUMaterialLib().build('M_Rabbit', MaterialData('default_mesh', ['rabbit_albedo']))
+    WebGPUMaterialLib().build('M_Monkeh', MaterialData('default_mesh', ['white_texture']))
+    WebGPUMaterialLib().build('M_Floor1', MaterialData('default_mesh', ['dark_wood_texture']))
+    WebGPUMaterialLib().build('M_Floor2', MaterialData('default_mesh', ['marble_texture']))
+    WebGPUMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo']))
 
     # Load models
     OpenGLMeshLib().build('monkeh_mesh', MODELS_PATH/'monkey_flat.obj')
@@ -148,24 +146,24 @@ def main():
     scene1.add_component(monkeh1, InfoComponent("monkeh"))
     scene1.add_component(monkeh1, TransformComponent(glm.vec3(5, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1.5, 1.5, 1.5)))
     scene1.add_component(monkeh1, LinkComponent(root1))
-    scene1.add_component(monkeh1, StaticMeshComponent('monkeh_mesh'))
-    scene1.add_component(monkeh1, MaterialComponent('M_Monkeh'))
+    scene1.add_component(monkeh1, WebGPUStaticMeshComponent('monkeh_mesh'))
+    scene1.add_component(monkeh1, WebGPUMaterialComponent('M_Monkeh'))
     scene1.add_component(monkeh1, DemoComponent((1, 0, 0), 25, True, False))
 
     # Register components to pistol
     scene1.add_component(pistol1, InfoComponent("pistol"))
     scene1.add_component(pistol1, TransformComponent(glm.vec3(-2, 0, 0), glm.vec3(0, 0, 0), glm.vec3(20, 20, 20)))
     scene1.add_component(pistol1, LinkComponent(root1))
-    scene1.add_component(pistol1, StaticMeshComponent('pistol_mesh'))
-    scene1.add_component(pistol1, MaterialComponent('M_Pistol'))
+    scene1.add_component(pistol1, WebGPUStaticMeshComponent('pistol_mesh'))
+    scene1.add_component(pistol1, WebGPUMaterialComponent('M_Pistol'))
     scene1.add_component(pistol1, DemoComponent((1, 1, 0), 25, True, False))
 
     # Register components to floor
     scene1.add_component(floor1, InfoComponent("floor"))
     scene1.add_component(floor1, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(270, 0, 0), glm.vec3(20, 20, 20)))
     scene1.add_component(floor1, LinkComponent(root1))
-    scene1.add_component(floor1, StaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
-    scene1.add_component(floor1, MaterialComponent('M_Floor1'))
+    scene1.add_component(floor1, WebGPUStaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
+    scene1.add_component(floor1, WebGPUMaterialComponent('M_Floor1'))
 
     # Register components to light
     scene1.add_component(light1, InfoComponent("light"))
@@ -175,7 +173,7 @@ def main():
 
     # Register components to camera
     scene1.add_component(camera1, InfoComponent("camera"))
-    scene1.add_component(camera1, TransformComponent(glm.vec3(0, 5, 10), glm.vec3(-25, 0, 0), glm.vec3(1, 1, 1)))
+    scene1.add_component(camera1, TransformComponent(glm.vec3(0, 5, -10), glm.vec3(25, 0, 0), glm.vec3(1, 1, 1)))
     scene1.add_component(camera1, LinkComponent(root1))
     scene1.add_component(camera1, CameraComponent(45, 1.778, 0.1, 1000, 5.0, CameraComponent.Type.PERSPECTIVE))
 
@@ -183,10 +181,9 @@ def main():
     scene1.register_system(TransformSystem([TransformComponent]))
     scene1.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene1.register_system(CameraSystem([CameraComponent, TransformComponent]))
-    scene1.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
+    scene1.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
     scene1.register_system(LightSystem([LightComponent, TransformComponent]))
     scene1.register_system(DemoSystem([DemoComponent, TransformComponent, InfoComponent]))
-    scene1.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     #############################################################################################################################
 
@@ -197,7 +194,7 @@ def main():
 
     # Register components to camera
     scene2.add_component(camera2, InfoComponent("camera"))
-    scene2.add_component(camera2, TransformComponent(glm.vec3(0, 5, 10), glm.vec3(-25, 0, 0), glm.vec3(1, 1, 1)))
+    scene2.add_component(camera2, TransformComponent(glm.vec3(0, 5, -10), glm.vec3(25, 0, 0), glm.vec3(1, 1, 1)))
     scene2.add_component(camera2, LinkComponent(root2))
     scene2.add_component(camera2, CameraComponent(45, 1.778, 0.1, 1000, 5.0, CameraComponent.Type.PERSPECTIVE))
 
@@ -211,32 +208,30 @@ def main():
     scene2.add_component(floor2, InfoComponent("floor2"))
     scene2.add_component(floor2, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(270, 0, 0), glm.vec3(25, 20, 20)))
     scene2.add_component(floor2, LinkComponent(root2))
-    scene2.add_component(floor2, StaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
-    scene2.add_component(floor2, MaterialComponent('M_Floor2'))
+    scene2.add_component(floor2, WebGPUStaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
+    scene2.add_component(floor2, WebGPUMaterialComponent('M_Floor2')).glossiness = 0.01
 
     scene2.add_component(floor3, InfoComponent("floor3"))
-    scene2.add_component(floor3, TransformComponent(glm.vec3(0, 0, -3), glm.vec3(335, 0, 0), glm.vec3(25, 20, 20)))
+    scene2.add_component(floor3, TransformComponent(glm.vec3(0, 0, 3), glm.vec3(-20, 180, 0), glm.vec3(25, 20, 20)))
     scene2.add_component(floor3, LinkComponent(root2))
-    scene2.add_component(floor3, StaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
-    scene2.add_component(floor3, MaterialComponent('M_Floor2'))
+    scene2.add_component(floor3, WebGPUStaticMeshComponent('floor_mesh', [vertices, normals, texture_coords]))
+    scene2.add_component(floor3, WebGPUMaterialComponent('M_Floor2')).glossiness = 0.01
 
     # Register components to rabbit
     scene2.add_component(rabbit2, InfoComponent("rabbit"))
     scene2.add_component(rabbit2, TransformComponent(glm.vec3(0, -2, 0), glm.vec3(0, 0, 0), glm.vec3(40, 40, 40)))
     scene2.add_component(rabbit2, LinkComponent(root2))
-    scene2.add_component(rabbit2, StaticMeshComponent('rabbit_mesh'))
-    scene2.add_component(rabbit2, MaterialComponent('M_Rabbit'))
+    scene2.add_component(rabbit2, WebGPUStaticMeshComponent('rabbit_mesh'))
+    scene2.add_component(rabbit2, WebGPUMaterialComponent('M_Rabbit'))
     scene2.add_component(rabbit2, DemoComponent((0, 1, 0), 25, True, False))
 
     # Create Register systems
     scene2.register_system(TransformSystem([TransformComponent]))
     scene2.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene2.register_system(CameraSystem([CameraComponent, TransformComponent]))
-    scene2.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
+    scene2.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
     scene2.register_system(LightSystem([LightComponent, TransformComponent]))
     scene2.register_system(DemoSystem([DemoComponent, TransformComponent, InfoComponent]))
-    scene2.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
-
 
     # Add scene to manager
     SceneManager().add_scene(scene1)

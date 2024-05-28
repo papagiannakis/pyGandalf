@@ -1,4 +1,5 @@
 from pyGandalf.scene.entity import Entity
+from pyGandalf.scene.components import Component
 from pyGandalf.systems.system import System
 
 import numpy as np
@@ -9,10 +10,7 @@ class TransformSystem(System):
     The system responsible for transformations.
     """
 
-    def on_create(self, entity: Entity, components):
-        """
-        Gets called once in the first frame for every entity that the system operates on.
-        """
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         transform = components
 
         T = glm.translate(glm.mat4(1.0), glm.vec3(transform.translation.x, transform.translation.y, transform.translation.z))
@@ -21,11 +19,9 @@ class TransformSystem(System):
 
         transform.quaternion = R        
         transform.local_matrix = T * glm.mat4(R) * S
+        transform.world_matrix = transform.local_matrix
 
-    def on_update(self, ts, entity: Entity, components):
-        """
-        Gets called every frame for every entity that the system operates on.
-        """
+    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         transform = components
 
         if not transform.static:
