@@ -143,6 +143,12 @@ class EditorPanelSystem(System):
                 scene_serializer.deserialize(path)
                 SceneManager().open_external_scene(scene)
 
+                # TODO: Fix this properly!
+                if 'Shadow' in scene.name:
+                    OpenGLRenderer().set_shadows_enabled(True)
+                else:
+                    OpenGLRenderer().set_shadows_enabled(False)
+
         # Gizmos
         if camera != None and camera_entity != None:
             context = SceneManager().get_active_scene()
@@ -529,6 +535,13 @@ class EditorPanelSystem(System):
                             scene_serializer: SceneSerializer = SceneSerializer(scene)
                             scene_serializer.deserialize(SCENES_PATH / path.name)
                             SceneManager().open_external_scene(scene)
+
+                            # TODO: Fix this properly!
+                            if 'Shadow' in scene.name:
+                                OpenGLRenderer().set_shadows_enabled(True)
+                            else:
+                                OpenGLRenderer().set_shadows_enabled(False)
+
                     imgui.end_menu()
                 close_pressed, _ = imgui.menu_item('Close', 'Alt + F4', False)
                 if close_pressed:

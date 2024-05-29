@@ -20,6 +20,10 @@ class OpenGLStaticMeshRenderingSystem(System):
     The system responsible for rendering.
     """
 
+    def __init__(self, filters: list[type]):
+        super().__init__(filters)
+        self.pre_pass_material = None
+
     def on_create_system(self):
         self.SHADOW_WIDTH = 1024
         self.SHADOW_HEIGHT = 1024
@@ -49,15 +53,6 @@ class OpenGLStaticMeshRenderingSystem(System):
         gl.glReadBuffer(gl.GL_NONE)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-        # Create the depth only pre-pass material
-        pre_pass_material_descriptor = MaterialComponent.Descriptor()
-        pre_pass_material_descriptor.blend_enabled = False
-        pre_pass_material_descriptor.cull_enabled = True
-        pre_pass_material_descriptor.cull_face = gl.GL_BACK
-
-        self.pre_pass_material = MaterialComponent('M_DepthPrePass', descriptor=pre_pass_material_descriptor)
-        self.pre_pass_material.instance = OpenGLMaterialLib().get('M_DepthPrePass')
-
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
 
@@ -79,6 +74,16 @@ class OpenGLStaticMeshRenderingSystem(System):
 
     def on_update_system(self, ts: float):
         if OpenGLRenderer().get_shadows_enabled():
+            # Create the depth only pre-pass material is not already created
+            if self.pre_pass_material == None:
+                pre_pass_material_descriptor = MaterialComponent.Descriptor()
+                pre_pass_material_descriptor.blend_enabled = False
+                pre_pass_material_descriptor.cull_enabled = True
+                pre_pass_material_descriptor.cull_face = gl.GL_BACK
+
+                self.pre_pass_material = MaterialComponent('M_DepthPrePass', descriptor=pre_pass_material_descriptor)
+                self.pre_pass_material.instance = OpenGLMaterialLib().get('M_DepthPrePass')
+
             OpenGLRenderer().resize(self.SHADOW_WIDTH, self.SHADOW_HEIGHT)
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebuffer_id)
             gl.glClear(gl.GL_DEPTH_BUFFER_BIT)
