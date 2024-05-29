@@ -117,7 +117,7 @@ def main():
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
-    scene.add_component(camera, TransformComponent(glm.vec3(-0.25, 2, 4), glm.vec3(-15, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(camera, TransformComponent(glm.vec3(-0.25, 1.0, 4), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, LinkComponent(root))
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
