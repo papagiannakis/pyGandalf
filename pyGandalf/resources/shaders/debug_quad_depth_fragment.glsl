@@ -6,7 +6,7 @@ in vec2 v_TexCoords;
 uniform sampler2D u_DepthMap;
 
 float near_plane = 1.0;
-float far_plane = 7.5f;
+float far_plane = 7.5;
 
 // required when using a perspective projection matrix
 float LinearizeDepth(float depth)

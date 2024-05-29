@@ -17,8 +17,8 @@ uniform vec3 u_LightColors[16];
 uniform float u_LightIntensities[16];
 
 // Material properties
-uniform float u_Glossiness = 5.0f;
-uniform float u_Metalicness = 5.0f;
+uniform float u_Glossiness = 5.0;
+uniform float u_Metalicness = 5.0;
 
 // Camera properties
 uniform vec3 u_ViewPosition = vec3(0.0, 0.0, 10.0);
