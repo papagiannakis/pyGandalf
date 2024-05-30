@@ -36,6 +36,8 @@ class MovementSystem(System):
     """
     The system responsible for moving.
     """
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
+        pass
 
     def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         movement, transform, info = components
