@@ -1,6 +1,7 @@
 from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.logger import logger
 
+import glm
 import wgpu
 
 from dataclasses import dataclass, field
@@ -36,15 +37,6 @@ class RenderPipelineDescription:
     render_data = None
     material_instance = None
 
-    primitive: wgpu.PrimitiveTopology = wgpu.PrimitiveTopology.triangle_list
-    front_face: wgpu.FrontFace = wgpu.FrontFace.ccw
-    cull_mode: wgpu.CullMode = wgpu.CullMode.none
-
-    depth_enabled: bool = True
-    depth_write_enabled: bool = True
-    depth_format: wgpu.TextureFormat = wgpu.TextureFormat.depth24plus
-    depth_compare: wgpu.CompareFunction = wgpu.CompareFunction.less
-
 class WebGPURenderer(BaseRenderer):
     def initialize(cls, *kargs):
         cls.instance.canvas = kargs[0]
@@ -61,6 +53,7 @@ class WebGPURenderer(BaseRenderer):
         cls.instance.current_render_pass: wgpu.GPURenderPassEncoder = None # type: ignore
         cls.instance.current_texture = None
         cls.instance.depth_texture_view = None
+        cls.instance.clear_color = glm.vec4(0.8, 0.5, 0.3, 1.0)
 
     def begin_frame(cls):
         cls.instance.current_texture = cls.instance.present_context.get_current_texture()
@@ -123,11 +116,11 @@ class WebGPURenderer(BaseRenderer):
             })
 
         depth_stencil = None
-        if render_pipeline_desc.depth_enabled:
+        if render_pipeline_desc.material_instance.descriptor.depth_enabled:
             depth_stencil={
-                "format": render_pipeline_desc.depth_format,
-                "depth_write_enabled": render_pipeline_desc.depth_write_enabled,
-                "depth_compare": render_pipeline_desc.depth_compare,
+                "format": render_pipeline_desc.material_instance.descriptor.depth_format,
+                "depth_write_enabled": render_pipeline_desc.material_instance.descriptor.depth_write_enabled,
+                "depth_compare": render_pipeline_desc.material_instance.descriptor.depth_compare,
                 "stencil_front": {
                     "compare": wgpu.CompareFunction.always,
                     "fail_op": wgpu.StencilOperation.keep,
@@ -155,9 +148,9 @@ class WebGPURenderer(BaseRenderer):
                 "buffers": buffers
             },
             primitive={
-                "topology": render_pipeline_desc.primitive,
-                "front_face": render_pipeline_desc.front_face,
-                "cull_mode": render_pipeline_desc.cull_mode,
+                "topology": render_pipeline_desc.material_instance.descriptor.primitive,
+                "front_face": render_pipeline_desc.material_instance.descriptor.front_face,
+                "cull_mode": render_pipeline_desc.material_instance.descriptor.cull_mode,
             },
             depth_stencil=depth_stencil,
             multisample=None,
@@ -281,7 +274,7 @@ class WebGPURenderer(BaseRenderer):
                 "bytes_per_row": uniform_data.data.width * 4,
                 "rows_per_image": uniform_data.data.height
             },
-            [uniform_data.data.width, uniform_data.data.width, 1]
+            [uniform_data.data.width, uniform_data.data.height, uniform_data.descriptor.array_layer_count]
         )
 
     def draw(cls, render_data, instance_count=1, first_instance=0):
@@ -303,3 +296,6 @@ class WebGPURenderer(BaseRenderer):
     
     def get_depth_texture_view(cls) -> wgpu.GPUTextureView:
         return cls.instance.depth_texture_view
+    
+    def set_clear_color(cls, clear_color: glm.vec4):
+        cls.instance.clear_color = clear_color

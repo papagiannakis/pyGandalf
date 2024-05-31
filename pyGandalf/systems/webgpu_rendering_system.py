@@ -174,16 +174,29 @@ class WebGPUStaticMeshRenderingSystem(System):
         storage_data = material_instance.get_cpu_buffer_type('u_ModelData')
 
         if storage_data != None:
-            object_data = np.zeros((512, 4, 4))
+            if storage_data.has_member('modelMatrix'):
+                object_data = np.zeros((512, 4, 4))
 
-            i = 0
-            for mesh in meshes:
-                for components in mesh:
-                    _, _, transform = components
-                    object_data[i] = glm.transpose(transform.world_matrix)
-                    i += 1
+                i = 0
+                for mesh in meshes:
+                    for components in mesh:
+                        _, _, transform = components
+                        object_data[i] = glm.transpose(transform.world_matrix)
+                        i += 1
 
-            storage_data["modelMatrix"] = np.ascontiguousarray(object_data)
+                storage_data["modelMatrix"] = np.ascontiguousarray(object_data)
+
+            if storage_data.has_member('inverseModelMatrix'):
+                object_data = np.zeros((512, 4, 4))
+
+                i = 0
+                for mesh in meshes:
+                    for components in mesh:
+                        _, _, transform = components
+                        object_data[i] = glm.transpose(glm.inverse(transform.world_matrix))
+                        i += 1
+
+                storage_data["inverseModelMatrix"] = np.ascontiguousarray(object_data)
 
             material_instance.set_storage_buffer('u_ModelData', storage_data)
 
