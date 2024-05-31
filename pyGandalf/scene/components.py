@@ -137,9 +137,6 @@ class WebGPUMaterialComponent(Component):
     def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0)):
         self.name = name
         self.instance: WebGPUMaterialInstance = None
-        self.color = color
-        self.glossiness = 3.0
-        self.metallicness = 0.0
 
 class LightComponent(Component):
     def __init__(self, color, intensity):

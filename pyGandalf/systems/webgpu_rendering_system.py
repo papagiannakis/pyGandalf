@@ -134,7 +134,7 @@ class WebGPUStaticMeshRenderingSystem(System):
                     uniform_data["viewProjection"] = np.identity(4)
 
             if uniform_data.has_member("objectColor"):
-                uniform_data["objectColor"] = np.asarray(glm.vec4(1.0, 1.0, 1.0, 1.0))
+                uniform_data["objectColor"] = np.asarray(material_instance.data.color)
 
             if uniform_data.has_member("viewPosition"):
                 camera_entity = SceneManager().get_main_camera_entity()

@@ -3,6 +3,7 @@ from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureInstance
 from pyGandalf.utilities.logger import logger
 
+import glm
 import wgpu
 import numpy as np
 
@@ -73,11 +74,32 @@ class MaterialDescriptor:
     depth_format: wgpu.TextureFormat = wgpu.TextureFormat.depth24plus
     depth_compare: wgpu.CompareFunction = wgpu.CompareFunction.less_equal
 
-class MaterialInstance:
-    def __init__(self, name, base_template, descriptor: MaterialDescriptor, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, textures, shader_params = []):
-        self.name = name
+class MaterialData:
+    def __init__(self, base_template: str, textures: list[str], color: glm.vec4 = glm.vec4(1.0, 1.0, 1.0, 1.0)):
         self.base_template = base_template
+        self.color = color
         self.textures = textures
+
+    def __eq__(self, other):
+        if self.base_template != other.base_template:
+            return False
+        if self.color != other.color:
+            return False
+        if len(self.textures) != len(other.textures):
+            return False
+        for i in range(len(self.textures)):
+            if (self.textures[i] != other.textures[i]):
+                return False
+        return True
+    
+    def __hash__(self):
+        return hash((self.base_template, self.color.r, self.color.g, self.color.b, self.color.a, len(self.textures), tuple(texture for texture in self.textures)))
+
+
+class MaterialInstance:
+    def __init__(self, name, data: MaterialData, descriptor: MaterialDescriptor, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, shader_params = []):
+        self.name = name
+        self.data: MaterialData = data
         self.descriptor: MaterialDescriptor = descriptor
         self.shader_module = shader_module
         self.pipeline_layout = pipeline_layout
@@ -159,24 +181,6 @@ class MaterialInstance:
         """Prints a message with all the available uniforms of the material.
         """
         logger.log(f'Available uniforms for material: {self.name} and shader id {self.shader_program}:\n {self.shader_params}')
-
-class MaterialData:
-    def __init__(self, base_template, textures):
-        self.base_template = base_template
-        self.textures = textures
-
-    def __eq__(self, other):
-        if self.base_template != other.base_template:
-            return False
-        if len(self.textures) != len(other.textures):
-            return False
-        for i in range(len(self.textures)):
-            if (self.textures[i] != other.textures[i]):
-                return False
-        return True
-    
-    def __hash__(self):
-        return hash((self.base_template, len(self.textures), tuple(texture for texture in self.textures)))
 
 class WebGPUMaterialLib(object):
     def __new__(cls):
@@ -454,8 +458,8 @@ class WebGPUMaterialLib(object):
                 entries=bind_group_entry
             ))
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, descriptor, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
-        cls.instance.materials[name] = MaterialInstance(name, data.base_template, descriptor, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
+        cls.instance.cached_materials[data] = MaterialInstance(name, data, descriptor, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, [])
+        cls.instance.materials[name] = MaterialInstance(name, data, descriptor, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, [])
 
         return cls.instance.materials[name]
 
