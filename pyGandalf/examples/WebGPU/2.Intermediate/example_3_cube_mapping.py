@@ -93,7 +93,7 @@ def main():
 
     # Register components to skybox
     scene.add_component(skybox, InfoComponent("skybox"))
-    scene.add_component(skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1000, 1000, 1000)))
+    scene.add_component(skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(skybox, LinkComponent(None))
     scene.add_component(skybox, WebGPUStaticMeshComponent('skybox', [vertices]))
     scene.add_component(skybox, WebGPUMaterialComponent('M_Skybox'))

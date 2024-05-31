@@ -134,7 +134,7 @@ class WebGPUStaticMeshComponent(Component):
         self.hash = uuid.uuid4()
 
 class WebGPUMaterialComponent(Component):
-    def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0)):
+    def __init__(self, name: str):
         self.name = name
         self.instance: WebGPUMaterialInstance = None
 

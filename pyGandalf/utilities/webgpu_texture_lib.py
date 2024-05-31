@@ -49,17 +49,14 @@ class WebGPUTextureLib(object):
 
         Args:
             name (str): The name of the texture.
-            path (Path, optional): The path the testure asset. Defaults to None.
-            img_data (bytes, optional): The pixel data in bytes. Defaults to None.
-            descriptor (TextureDescriptor, optional): The description of the texture.
+            data (TextureData): The data of the texture. You can either give a path (or list of paths if cubemap) or the byte data to use when creating the texture and the width and height.
+            descriptor (TextureDescriptor, optional): The description of the texturewhich consists of various options and flags.
 
         Returns:
             int: The texture slot.
         """
         if cls.instance.textures.get(name) != None:
             return cls.instance.textures.get(name)
-
-        img = None
 
         if data.path is not None:
             if type(data.path) is not list:
