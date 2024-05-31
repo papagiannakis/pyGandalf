@@ -7,6 +7,7 @@ import wgpu
 import numpy as np
 
 import re
+from dataclasses import dataclass
 
 class CPUBuffer:
     def __init__(self, *args):
@@ -61,10 +62,23 @@ class CPUBuffer:
     def __setitem__(self, key, val):
         self.data[key] = val
 
+@dataclass
+class MaterialDescriptor:
+    primitive: wgpu.PrimitiveTopology = wgpu.PrimitiveTopology.triangle_list
+    front_face: wgpu.FrontFace = wgpu.FrontFace.ccw
+    cull_mode: wgpu.CullMode = wgpu.CullMode.front
+
+    depth_enabled: bool = True
+    depth_write_enabled: bool = True
+    depth_format: wgpu.TextureFormat = wgpu.TextureFormat.depth24plus
+    depth_compare: wgpu.CompareFunction = wgpu.CompareFunction.less_equal
+
 class MaterialInstance:
-    def __init__(self, name, base_template, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, textures, shader_params = []):
+    def __init__(self, name, base_template, descriptor: MaterialDescriptor, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, textures, shader_params = []):
         self.name = name
         self.base_template = base_template
+        self.textures = textures
+        self.descriptor: MaterialDescriptor = descriptor
         self.shader_module = shader_module
         self.pipeline_layout = pipeline_layout
         self.bind_groups = bind_groups
@@ -73,7 +87,6 @@ class MaterialInstance:
         self.storage_buffers = storage_buffers
         self.storage_buffer_types = storage_buffer_types
         self.other_uniforms = other_uniforms
-        self.textures = textures
         self.shader_params = shader_params
 
     def has_uniform(self, uniform_name: str) -> bool:
@@ -173,7 +186,7 @@ class WebGPUMaterialLib(object):
             cls.instance.materials: dict[str, MaterialInstance] = {} # type: ignore
         return cls.instance
     
-    def build(cls, name: str, data: MaterialData) -> MaterialInstance:
+    def build(cls, name: str, data: MaterialData, descriptor: MaterialDescriptor=MaterialDescriptor()) -> MaterialInstance:
         """Builds a new material (if one does not already exists with that data) and returns its instance.
 
         Args:
@@ -402,6 +415,19 @@ class WebGPUMaterialLib(object):
                         "resource": texture_inst.view
                     })
                     texture_index_use_count += 1
+                case 'texture_cube<f32>':
+                    # Retrieve texture.
+                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
+
+                    # Append uniform buffer to dictionary holding all uniform buffers
+                    other_uniforms[uniform_name] = texture_inst
+
+                    # Create a bind group entry for the uniform buffer
+                    bind_groups_entries[other_data['group']].append({
+                        "binding": other_data['binding'],
+                        "resource": texture_inst.view
+                    })
+                    texture_index_use_count += 1
 
                 case 'sampler':
                     # Retrieve texture.
@@ -428,8 +454,8 @@ class WebGPUMaterialLib(object):
                 entries=bind_group_entry
             ))
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
-        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
+        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, descriptor, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
+        cls.instance.materials[name] = MaterialInstance(name, data.base_template, descriptor, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
 
         return cls.instance.materials[name]
 

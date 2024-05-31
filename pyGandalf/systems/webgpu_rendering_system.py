@@ -72,6 +72,7 @@ class WebGPUStaticMeshRenderingSystem(System):
         base_pass_desc: RenderPassDescription = RenderPassDescription()
         color_attachment: ColorAttachmentDescription = ColorAttachmentDescription()
         color_attachment.view = WebGPURenderer().get_current_texture().create_view()
+        color_attachment.clear_value = (WebGPURenderer().clear_color.r, WebGPURenderer().clear_color.g, WebGPURenderer().clear_color.b, WebGPURenderer().clear_color.a)
         base_pass_desc.depth_stencil_attachment=True
         base_pass_desc.depth_texture_view = WebGPURenderer().get_depth_texture_view()
         base_pass_desc.color_attachments.append(color_attachment)
@@ -118,11 +119,19 @@ class WebGPUStaticMeshRenderingSystem(System):
             from pyGandalf.scene.scene_manager import SceneManager
             camera = SceneManager().get_main_camera()
             if camera != None:
-                uniform_data["viewMatrix"] = np.asarray(glm.transpose(camera.view))
-                uniform_data["projectionMatrix"] = np.asarray(glm.transpose(glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)))
+                if uniform_data.has_member("viewMatrix"):
+                    uniform_data["viewMatrix"] = np.asarray(glm.transpose(camera.view))
+                if uniform_data.has_member("projectionMatrix"):
+                    uniform_data["projectionMatrix"] = np.asarray(glm.transpose(glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)))
+                if uniform_data.has_member("viewProjection"):
+                    uniform_data["viewProjection"] = np.asarray(glm.transpose(glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far) * glm.mat4(glm.mat3(camera.view))))
             else:
-                uniform_data["viewMatrix"] = np.identity(4)
-                uniform_data["projectionMatrix"] = np.identity(4)
+                if uniform_data.has_member("viewMatrix"):
+                    uniform_data["viewMatrix"] = np.identity(4)
+                if uniform_data.has_member("projectionMatrix"):
+                    uniform_data["projectionMatrix"] = np.identity(4)
+                if uniform_data.has_member("viewProjection"):
+                    uniform_data["viewProjection"] = np.identity(4)
 
             if uniform_data.has_member("objectColor"):
                 uniform_data["objectColor"] = np.asarray(glm.vec4(1.0, 1.0, 1.0, 1.0))
@@ -162,19 +171,21 @@ class WebGPUStaticMeshRenderingSystem(System):
 
             material_instance.set_uniform_buffer('u_UniformData', uniform_data)
 
-        object_data = np.zeros((512, 4, 4))
-
-        i = 0
-        for mesh in meshes:
-            for components in mesh:
-                _, _, transform = components
-                object_data[i] = glm.transpose(transform.world_matrix)
-                i += 1
-
         storage_data = material_instance.get_cpu_buffer_type('u_ModelData')
-        storage_data["modelMatrix"] = np.ascontiguousarray(object_data)
 
-        material_instance.set_storage_buffer('u_ModelData', storage_data)
+        if storage_data != None:
+            object_data = np.zeros((512, 4, 4))
+
+            i = 0
+            for mesh in meshes:
+                for components in mesh:
+                    _, _, transform = components
+                    object_data[i] = glm.transpose(transform.world_matrix)
+                    i += 1
+
+            storage_data["modelMatrix"] = np.ascontiguousarray(object_data)
+
+            material_instance.set_storage_buffer('u_ModelData', storage_data)
 
         if material_instance.has_uniform('u_Texture'):
             material_instance.set_uniform('u_Texture')

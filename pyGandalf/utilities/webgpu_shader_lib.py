@@ -80,6 +80,15 @@ class WebGPUShaderLib(object):
                             "view_dimension": wgpu.TextureViewDimension.d2,
                         }
                     })
+                case 'texture_cube<f32>':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.FRAGMENT,
+                        "texture": {  
+                            "sample_type": wgpu.TextureSampleType.float,
+                            "view_dimension": wgpu.TextureViewDimension.cube,
+                        }
+                    })
                 case 'sampler':
                     bind_groups_layout_entries[other[uniform_name]['group']].append({
                         "binding": other[uniform_name]['binding'],

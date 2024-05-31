@@ -13,13 +13,13 @@ from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialD
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.logger import logger
-from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
+from pyGandalf.utilities.definitions import SHADERS_PATH
 
 import numpy as np
 import glm
 
 """
-Showcase of basic square drawing using the pyGandalf API.
+Showcase of basic quad drawing using the pyGandalf API.
 """
 
 def main():
@@ -27,13 +27,13 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(OpenGLWindow('Square', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('Quad', 1280, 720, True), OpenGLRenderer)
 
     # Create a new scene
-    scene = Scene('Square')
+    scene = Scene('Quad')
 
-    # Enroll a square entity to registry
-    square = scene.enroll_entity()
+    # Enroll a quad entity to registry
+    quad = scene.enroll_entity()
 
     # Build shaders 
     OpenGLShaderLib().build('unlit', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
@@ -41,7 +41,7 @@ def main():
     # Build Materials
     OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', []))
 
-    # Vertices of the square
+    # Vertices of the quad
     vertices = np.array([
         [-0.5, -0.5, 0.0], # 0 - Bottom left
         [ 0.5, -0.5, 0.0], # 1 - Bottom right
@@ -52,13 +52,13 @@ def main():
     ], dtype=np.float32)
 
     # Register components to triangle
-    scene.add_component(square, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(square, InfoComponent("triangle"))
-    scene.add_component(square, StaticMeshComponent('triangle', [vertices]))
-    scene.add_component(square, MaterialComponent('M_Unlit'))
+    scene.add_component(quad, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(quad, InfoComponent("triangle"))
+    scene.add_component(quad, StaticMeshComponent('triangle', [vertices]))
+    scene.add_component(quad, MaterialComponent('M_Unlit'))
 
     # Change the color of the triangle from the material
-    material: MaterialComponent = scene.get_component(square, MaterialComponent)
+    material: MaterialComponent = scene.get_component(quad, MaterialComponent)
     material.color = glm.vec3(0.8, 0.5, 0.3)
 
     # Register systems to the scene
