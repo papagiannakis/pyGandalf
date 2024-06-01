@@ -16,6 +16,7 @@ class WebGPUStaticMeshRenderingSystem(System):
     """
     The system responsible for rendering static meshes on WebGPU.
     """
+
     def __init__(self, filters: list[type]):
         super().__init__(filters)
         self.batches: dict[str, dict[str, list]] = {}
@@ -159,6 +160,8 @@ class WebGPUStaticMeshRenderingSystem(System):
 
             count = len(light_positions)
 
+            assert count <= 4, f"Maximum supported lights for WebGPU backend are 4, but {count} are defined"
+
             if count != 0:
                 if uniform_data.has_member("lightPositions"):
                     uniform_data["lightPositions"] = np.ascontiguousarray(light_positions)
@@ -200,5 +203,8 @@ class WebGPUStaticMeshRenderingSystem(System):
 
             material_instance.set_storage_buffer('u_ModelData', storage_data)
 
-        if material_instance.has_uniform('u_Texture'):
-            material_instance.set_uniform('u_Texture')
+        if material_instance.has_uniform('u_AlbedoMap'):
+            material_instance.set_uniform('u_AlbedoMap')
+
+        if material_instance.has_uniform('u_NormalMap'):
+            material_instance.set_uniform('u_NormalMap')

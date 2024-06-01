@@ -254,6 +254,12 @@ class WebGPUMaterialLib(object):
                         fields.append((member_name, np.float32, (16, 4)))
                     case 'array<f32, 16>':
                         fields.append((member_name, np.float32, (16, 1)))
+                    case 'array<vec4f, 4>':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<vec4<f32>, 4>':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<f32, 4>':
+                        fields.append((member_name, np.float32, (4, 1)))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             uniform_data = CPUBuffer(*fields)
@@ -314,6 +320,12 @@ class WebGPUMaterialLib(object):
                         fields.append((member_name, np.float32, (16, 4)))
                     case 'array<f32, 16>':
                         fields.append((member_name, np.float32, (16, 1)))
+                    case 'array<vec4f, 4>':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<vec4<f32>, 4>':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<f32, 4>':
+                        fields.append((member_name, np.float32, (4, 1)))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
@@ -374,6 +386,12 @@ class WebGPUMaterialLib(object):
                         fields.append((member_name, np.float32, (16, 4)))
                     case 'array<f32, 16>':
                         fields.append((member_name, np.float32, (16, 1)))
+                    case 'array<vec4f, 4>':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<vec4<f32>, 4>':
+                        fields.append((member_name, np.float32, (4, 4)))
+                    case 'array<f32, 4>':
+                        fields.append((member_name, np.float32, (4, 1)))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)

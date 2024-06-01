@@ -27,8 +27,8 @@ struct ModelData {
 
 @group(0) @binding(0) var<uniform> u_UniformData: UniformData;
 @group(0) @binding(1) var<storage, read> u_ModelData: ModelData;
-@group(1) @binding(0) var u_Texture: texture_2d<f32>;
-@group(1) @binding(1) var u_Sampler: sampler;
+@group(1) @binding(0) var u_AlbedoMap: texture_2d<f32>;
+@group(1) @binding(1) var u_AlbedoSampler: sampler;
 
 @vertex
 fn vs_main(@builtin(instance_index) ID: u32, in: VertexInput) -> VertexOutput {
@@ -43,7 +43,7 @@ fn vs_main(@builtin(instance_index) ID: u32, in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    var textureColor: vec4<f32> = textureSample(u_Texture, u_Sampler, in.v_TexCoord);
+    var textureColor: vec4<f32> = textureSample(u_AlbedoMap, u_AlbedoSampler, in.v_TexCoord);
 
     var normal: vec3<f32> = normalize(in.v_Normal);
     var camDir: vec3<f32> = normalize(u_UniformData.viewPosition - vec4<f32>(in.v_CurrentPosition, 1.0)).xyz;

@@ -178,6 +178,8 @@ class OpenGLStaticMeshRenderingSystem(System):
 
         count = len(light_positions)
 
+        assert count <= 16, f"Maximum supported lights for WebGPU backend are 16, but {count} are defined"
+
         if count != 0:
             if material.instance.has_uniform('u_LightPositions'):
                 material.instance.set_uniform('u_LightPositions', glm.array(light_positions))
