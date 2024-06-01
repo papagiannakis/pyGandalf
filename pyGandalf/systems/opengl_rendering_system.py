@@ -90,6 +90,9 @@ class OpenGLStaticMeshRenderingSystem(System):
                 if entity_material.instance.descriptor.cast_shadows == False:
                     continue
 
+                if len(mesh.attributes) == 0:
+                    continue
+
                 # Bind vao
                 OpenGLRenderer().set_pipeline(mesh)
                 # Bind vbo(s) and ebo
@@ -117,6 +120,9 @@ class OpenGLStaticMeshRenderingSystem(System):
         # Color pass
         for components in self.get_filtered_components():
             mesh, material, transform = components
+
+            if len(mesh.attributes) == 0:
+                continue
 
             # Bind vao
             OpenGLRenderer().set_pipeline(mesh)

@@ -6,9 +6,10 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.utilities.definitions import SHADERS_PATH
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialDescriptor
 
 import numpy as np
+import OpenGL.GL as gl
 
 def create_empty() -> Entity:
     scene: Scene = SceneManager().get_active_scene()
@@ -246,7 +247,7 @@ def create_sphere() -> Entity:
 
     OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), descriptor=TextureDescriptor(width=1, height=1))
     OpenGLShaderLib().build('default_mesh_sphere', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
-    OpenGLMaterialLib().build('M_Sphere', MaterialData('default_mesh_sphere', ['white_texture']))
+    OpenGLMaterialLib().build('M_Sphere', MaterialData('default_mesh_sphere', ['white_texture']), MaterialDescriptor(primitive=gl.GL_TRIANGLE_STRIP))
 
     scene: Scene = SceneManager().get_active_scene()
 
@@ -255,7 +256,7 @@ def create_sphere() -> Entity:
     scene.add_component(entity_sphere, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity_sphere, LinkComponent(None))
     scene.add_component(entity_sphere, StaticMeshComponent('sphere_mesh', [vertices, normals, uvs], indices))
-    scene.add_component(entity_sphere, MaterialComponent('M_Sphere', descriptor=MaterialComponent.Descriptor(primitive=gl.GL_TRIANGLE_STRIP)))
+    scene.add_component(entity_sphere, MaterialComponent('M_Sphere'))
 
     return entity_sphere
 

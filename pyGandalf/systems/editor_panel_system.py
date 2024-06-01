@@ -423,17 +423,17 @@ class EditorPanelSystem(System):
                     material: MaterialComponent = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent)
 
                     if material.instance.has_uniform('u_Color'):
-                        color_changed, new_color = imgui.color_edit3('color', material.color)
-                        if color_changed: material.color = glm.vec3(new_color[0], new_color[1], new_color[2])
+                        color_changed, new_color = imgui.color_edit4('color', material.instance.data.color)
+                        if color_changed: material.instance.data.color = glm.vec4(new_color[0], new_color[1], new_color[2], new_color[3])
 
                     # Get uniform textures
                     textures = OpenGLMaterialLib().get_textures(material.instance.name)
 
                     for index, texture in enumerate(textures):
                         imgui.begin_disabled()
-                        texture_changed, new_texture = imgui.input_text(texture, material.instance.textures[index])
+                        texture_changed, new_texture = imgui.input_text(texture, material.instance.data.textures[index])
                         imgui.end_disabled()
-                        if texture_changed: material.instance.textures[index] = new_texture
+                        if texture_changed: material.instance.data.textures[index] = new_texture
 
                         if imgui.begin_drag_drop_target():
                             payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('textures')
@@ -445,19 +445,19 @@ class EditorPanelSystem(System):
                                     
                                     # TODO: Handle textures that are in subfolders.
                                     if self.drag_and_drop_texture == str(TEXTURES_PATH / texture.path):
-                                        material.instance.textures[0] = texture.name
+                                        material.instance.data.textures[0] = texture.name
                                         texture_already_built = True
                                         break
 
                                 if not texture_already_built:
                                     path: Path = Path(self.drag_and_drop_texture)
                                     instance = OpenGLTextureLib().build(path.stem, path)
-                                    material.instance.textures[0] = path.stem
+                                    material.instance.data.textures[0] = path.stem
                             imgui.end_drag_drop_target()
                     
                     if material.instance.has_uniform('u_Glossiness'):
-                        glossiness_changed, new_glossiness = imgui.drag_float('glossiness', material.glossiness, 0.1)
-                        if glossiness_changed: material.glossiness = new_glossiness
+                        glossiness_changed, new_glossiness = imgui.drag_float('glossiness', material.instance.data.glossiness, 0.1)
+                        if glossiness_changed: material.instance.data.glossiness = new_glossiness
                     
                     imgui.tree_pop()
                 imgui.separator()
@@ -503,7 +503,7 @@ class EditorPanelSystem(System):
                     OpenGLShaderLib().build('default_lit', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
                     OpenGLMaterialLib().build('M_Lit', MaterialData('default_lit', ['white_texture']))
 
-                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent('M_Lit', glm.vec3(1, 1, 1)))
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent('M_Lit'))
                 imgui.end_menu()
 
     def draw_menu_bar(self):

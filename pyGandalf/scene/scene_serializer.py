@@ -11,10 +11,12 @@ from pyGandalf.utilities.logger import logger
 from pyGandalf.utilities.definitions import TEXTURES_PATH, SHADERS_PATH, MODELS_PATH
 from pyGandalf.utilities.usd_serializer import USDSerializer
 
-import inspect
+import glm
 from pxr import Usd, UsdGeom, Sdf, Gf
-from pathlib import Path
+
 import uuid
+import inspect
+from pathlib import Path
 
 class SceneSerializer:
     def __init__(self, scene: Scene) -> None:
@@ -131,6 +133,15 @@ class SceneSerializer:
 
             material_prim_textures = material_prim.CreateAttribute("textures", Sdf.ValueTypeNames.StringArray)
             material_prim_textures.Set(material.data.textures)
+
+            material_prim_textures = material_prim.CreateAttribute("color", Sdf.ValueTypeNames.Color4f)
+            material_prim_textures.Set(Gf.Vec4f(material.data.color.r, material.data.color.g, material.data.color.b, material.data.color.a))
+
+            material_prim_textures = material_prim.CreateAttribute("glossiness", Sdf.ValueTypeNames.Float)
+            material_prim_textures.Set(float(material.data.glossiness))
+
+            material_prim_descriptor = material_prim.CreateAttribute("descriptor", Sdf.ValueTypeNames.String)
+            material_prim_descriptor.Set(str(USDSerializer().to_json(material.descriptor)))
 
         self.stage.DefinePrim("/Meshes")
 
@@ -272,9 +283,17 @@ class SceneSerializer:
 
                 name_attr = str(prim.GetAttribute("name").Get())
                 base_template_attr = str(prim.GetAttribute("base_template").Get())
+
                 textures_attr = [str(texture) for texture in prim.GetAttribute("textures").Get()]
 
-                OpenGLMaterialLib().build(name_attr, MaterialData(base_template_attr, textures_attr))
+                color_attr: Gf.Vec4f = prim.GetAttribute("color").Get()
+                color = glm.vec4(float(color_attr[0]), float(color_attr[1]), float(color_attr[2]), float(color_attr[3]))
+
+                glossiness_attr = float(prim.GetAttribute("glossiness").Get())
+
+                descriptor = USDSerializer().from_json(str(prim.GetAttribute("descriptor").Get()))
+
+                OpenGLMaterialLib().build(name_attr, MaterialData(base_template_attr, textures_attr, color, glossiness_attr), descriptor)
         
         # Traverse all Meshes prims in the stage
         skip_first_mesh_prim = True
