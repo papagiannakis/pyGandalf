@@ -208,3 +208,6 @@ class WebGPUStaticMeshRenderingSystem(System):
 
         if material_instance.has_uniform('u_NormalMap'):
             material_instance.set_uniform('u_NormalMap')
+        
+        if material_instance.has_uniform('u_DisplacementMap'):
+            material_instance.set_uniform('u_DisplacementMap')
