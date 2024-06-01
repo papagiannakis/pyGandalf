@@ -27,6 +27,10 @@ def test_shader_lib():
 
     assert program2 > 0 and program1 != program2
 
+    program3 = OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+
+    assert program3 > 0 and program3 == program2
+
 def test_material_lib():
     program1 = OpenGLShaderLib().build('default_colored_yellow', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
 

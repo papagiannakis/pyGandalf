@@ -119,10 +119,10 @@ class WebGPUShaderLib(object):
             fs_path (Path): The path to the fragment shader code
 
         Returns:
-            int: The shader program
+            int: The shader module
         """
         if cls.instance.shaders.get(name) != None:
-            return
+            return cls.instance.shaders[name].shader_module
         
         shader_source = cls.instance.load_from_file(shader_path)
 
@@ -130,6 +130,8 @@ class WebGPUShaderLib(object):
 
         shader_module, pipeline_layout, bind_group_layouts = cls.instance.create_shader_module(shader_source)
         cls.instance.shaders[name] = ShaderData(name, shader_module, pipeline_layout, bind_group_layouts, shader_rel_path, shader_source)
+
+        return shader_module
     
     def parse(cls, shader_code: str) -> dict:
         """Parses the provided shader code and identifies all the uniforms along with their types.
