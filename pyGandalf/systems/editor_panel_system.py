@@ -531,7 +531,7 @@ class EditorPanelSystem(System):
 
                             OpenGLShaderLib().clean()
 
-                            scene: Scene = Scene()
+                            scene: Scene = Scene(path.name)
                             scene_serializer: SceneSerializer = SceneSerializer(scene)
                             scene_serializer.deserialize(SCENES_PATH / path.name)
                             SceneManager().open_external_scene(scene)

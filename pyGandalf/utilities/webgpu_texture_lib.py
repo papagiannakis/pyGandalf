@@ -50,7 +50,7 @@ class WebGPUTextureLib(object):
         Args:
             name (str): The name of the texture.
             data (TextureData): The data of the texture. You can either give a path (or list of paths if cubemap) or the byte data to use when creating the texture and the width and height.
-            descriptor (TextureDescriptor, optional): The description of the texturewhich consists of various options and flags.
+            descriptor (TextureDescriptor, optional): The description of the texture, which consists of various options and flags.
 
         Returns:
             int: The texture slot.

@@ -251,6 +251,7 @@ class OpenGLMaterialLib(object):
         Args:
             name (str): The name of the material.
             data (MaterialData): The data of the material.
+            descriptor (MaterialDescriptor, optional): The description of the material, which consists of various options and flags.
 
         Returns:
             MaterialInstance: The material instance.
