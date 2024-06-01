@@ -14,7 +14,7 @@ from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialDescriptor
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor, TextureDimension
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
@@ -80,7 +80,7 @@ def main():
     
     # Build Materials
     OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture']))
-    OpenGLMaterialLib().build('M_Skybox', MaterialData('skybox', ['cube_map']))
+    OpenGLMaterialLib().build('M_Skybox', MaterialData('skybox', ['cube_map']), MaterialDescriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE))
 
     # Load models
     OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
@@ -92,10 +92,10 @@ def main():
 
     # Register components to skybox
     scene.add_component(skybox, InfoComponent("skybox"))
-    scene.add_component(skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1000, 1000, 1000)))
+    scene.add_component(skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(skybox, LinkComponent(None))
     scene.add_component(skybox, StaticMeshComponent('skybox', [vertices]))
-    scene.add_component(skybox, MaterialComponent('M_Skybox', descriptor=MaterialComponent.Descriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE)))
+    scene.add_component(skybox, MaterialComponent('M_Skybox'))
 
     # Register components to bunny
     scene.add_component(bunny, InfoComponent("bunny"))

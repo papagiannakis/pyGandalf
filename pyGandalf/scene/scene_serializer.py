@@ -127,7 +127,7 @@ class SceneSerializer:
             material_prim_name.Set(material.name)
 
             material_prim_base_template = material_prim.CreateAttribute("base_template", Sdf.ValueTypeNames.String)
-            material_prim_base_template.Set(material.base_template)
+            material_prim_base_template.Set(material.data.base_template)
 
             material_prim_textures = material_prim.CreateAttribute("textures", Sdf.ValueTypeNames.StringArray)
             material_prim_textures.Set(material.textures)

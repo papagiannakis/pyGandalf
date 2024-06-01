@@ -14,7 +14,7 @@ from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialDescriptor
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
@@ -94,7 +94,7 @@ def main():
     OpenGLShaderLib().build('pbr_mesh', SHADERS_PATH/'lit_pbr.vs', SHADERS_PATH/'lit_pbr.fs')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_PBR', MaterialData('pbr_mesh', ['rusted_sphere_albedo', 'rusted_sphere_normal', 'rusted_sphere_metallic', 'rusted_sphere_roughness']))
+    OpenGLMaterialLib().build('M_PBR', MaterialData('pbr_mesh', ['rusted_sphere_albedo', 'rusted_sphere_normal', 'rusted_sphere_metallic', 'rusted_sphere_roughness']), MaterialDescriptor(primitive=gl.GL_TRIANGLE_STRIP))
 
     vertices, normals, uvs, indices = get_sphere_vertex_data()
 
@@ -108,7 +108,7 @@ def main():
     scene.add_component(rusted_sphere, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(rusted_sphere, LinkComponent(root))
     scene.add_component(rusted_sphere, StaticMeshComponent('sphere_mesh', [vertices, normals, uvs], indices))
-    scene.add_component(rusted_sphere, MaterialComponent('M_PBR', descriptor=MaterialComponent.Descriptor(primitive=gl.GL_TRIANGLE_STRIP)))
+    scene.add_component(rusted_sphere, MaterialComponent('M_PBR'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))

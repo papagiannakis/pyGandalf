@@ -39,7 +39,7 @@ def main():
     OpenGLShaderLib().build('unlit', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', []))
+    OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', [], glm.vec4(0.8, 0.5, 0.3, 1.0)))
 
     # Vertices of the quad
     vertices = np.array([
@@ -56,10 +56,6 @@ def main():
     scene.add_component(quad, InfoComponent("triangle"))
     scene.add_component(quad, StaticMeshComponent('triangle', [vertices]))
     scene.add_component(quad, MaterialComponent('M_Unlit'))
-
-    # Change the color of the triangle from the material
-    material: MaterialComponent = scene.get_component(quad, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
 
     # Register systems to the scene
     scene.register_system(TransformSystem([TransformComponent]))

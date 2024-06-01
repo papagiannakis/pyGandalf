@@ -190,7 +190,7 @@ class OpenGLStaticMeshRenderingSystem(System):
             if material.instance.has_uniform('u_LightCount'):
                 material.instance.set_uniform('u_LightCount', count)
             if material.instance.has_uniform('u_Glossiness'):
-                material.instance.set_uniform('u_Glossiness', material.glossiness)
+                material.instance.set_uniform('u_Glossiness', material.instance.data.glossiness)
         elif light_system is not None:
             if material.instance.has_uniform('u_LightCount'):
                 material.instance.set_uniform('u_LightCount', 0)
@@ -227,4 +227,4 @@ class OpenGLStaticMeshRenderingSystem(System):
                     material.instance.set_uniform('u_ViewPosition', camera_transform.get_world_position())
 
         if material.instance.has_uniform('u_Color'):
-            material.instance.set_uniform('u_Color', material.color)
+            material.instance.set_uniform('u_Color', material.instance.data.color.rgb)

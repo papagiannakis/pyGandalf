@@ -49,7 +49,7 @@ def main():
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture']))
+    OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture'], glm.vec4(0.8, 0.5, 0.3, 1.0), 1.0))
 
     # Load models
     OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
@@ -65,11 +65,6 @@ def main():
     scene.add_component(bunny, LinkComponent(root))
     scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
     scene.add_component(bunny, MaterialComponent('M_Bunny'))
-
-    # Change the material properties of the bunny
-    material: MaterialComponent = scene.get_component(bunny, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
-    material.glossiness = 1.0
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))

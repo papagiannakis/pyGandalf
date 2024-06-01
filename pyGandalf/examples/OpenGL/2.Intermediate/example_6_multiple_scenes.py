@@ -17,7 +17,7 @@ from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialDescriptor
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor, TextureDimension
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
@@ -102,11 +102,11 @@ def main():
     OpenGLShaderLib().build('skybox', SHADERS_PATH/'skybox_vertex.glsl', SHADERS_PATH/'skybox_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture']))
-    OpenGLMaterialLib().build('M_WoodFloor', MaterialData('default_mesh', ['dark_wood_texture']))
-    OpenGLMaterialLib().build('M_MarbleFloor', MaterialData('default_mesh', ['marble_texture']))
-    OpenGLMaterialLib().build('M_SeaSkybox', MaterialData('skybox', ['sea_cube_map']))
-    OpenGLMaterialLib().build('M_CloudySkybox', MaterialData('skybox', ['cloudy_cube_map']))
+    OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture'], glm.vec4(0.05, 0.9, 0.9, 1.0), 0.5))
+    OpenGLMaterialLib().build('M_WoodFloor', MaterialData('default_mesh', ['dark_wood_texture'], glossiness=1.0))
+    OpenGLMaterialLib().build('M_MarbleFloor', MaterialData('default_mesh', ['marble_texture'], glossiness=0.5))
+    OpenGLMaterialLib().build('M_SeaSkybox', MaterialData('skybox', ['sea_cube_map']), MaterialDescriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE))
+    OpenGLMaterialLib().build('M_CloudySkybox', MaterialData('skybox', ['cloudy_cube_map']), MaterialDescriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE))
 
     # Load models
     OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
@@ -132,14 +132,14 @@ def main():
     sea_scene.add_component(sea_skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     sea_scene.add_component(sea_skybox, LinkComponent(None))
     sea_scene.add_component(sea_skybox, StaticMeshComponent('skybox', [vertices]))
-    sea_scene.add_component(sea_skybox, MaterialComponent('M_SeaSkybox', descriptor=MaterialComponent.Descriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE)))
+    sea_scene.add_component(sea_skybox, MaterialComponent('M_SeaSkybox'))
 
     # Register components to floor
     sea_scene.add_component(sea_floor, InfoComponent("sea_floor"))
     sea_scene.add_component(sea_floor, TransformComponent(glm.vec3(0, -0.5, 0), glm.vec3(270, 0, 0), glm.vec3(20, 20, 20)))
     sea_scene.add_component(sea_floor, LinkComponent(sea_root))
     sea_scene.add_component(sea_floor, StaticMeshComponent('floor_mesh', [plane_vertices, plane_normals, plane_texture_coords]))
-    sea_scene.add_component(sea_floor, MaterialComponent('M_WoodFloor')).glossiness = 1.0
+    sea_scene.add_component(sea_floor, MaterialComponent('M_WoodFloor'))
 
     # Register components to bunny
     sea_scene.add_component(sea_bunny, InfoComponent("sea_bunny"))
@@ -195,14 +195,14 @@ def main():
     cloudy_scene.add_component(cloudy_skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     cloudy_scene.add_component(cloudy_skybox, LinkComponent(None))
     cloudy_scene.add_component(cloudy_skybox, StaticMeshComponent('skybox', [vertices]))
-    cloudy_scene.add_component(cloudy_skybox, MaterialComponent('M_CloudySkybox', descriptor=MaterialComponent.Descriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE)))
+    cloudy_scene.add_component(cloudy_skybox, MaterialComponent('M_CloudySkybox'))
 
     # Register components to cloudy_floor
     cloudy_scene.add_component(cloudy_floor, InfoComponent("cloudy_floor"))
     cloudy_scene.add_component(cloudy_floor, TransformComponent(glm.vec3(0, 18, 0), glm.vec3(270, 0, 0), glm.vec3(1000, 1000, 1000)))
     cloudy_scene.add_component(cloudy_floor, LinkComponent(cloudy_root))
     cloudy_scene.add_component(cloudy_floor, StaticMeshComponent('floor_mesh', [plane_vertices, plane_normals, plane_texture_coords]))
-    cloudy_scene.add_component(cloudy_floor, MaterialComponent('M_MarbleFloor')).glossiness = 0.5
+    cloudy_scene.add_component(cloudy_floor, MaterialComponent('M_MarbleFloor'))
 
     # Register components to cloudy_bunny
     cloudy_scene.add_component(cloudy_bunny, InfoComponent("cloudy_bunny"))
@@ -210,11 +210,6 @@ def main():
     cloudy_scene.add_component(cloudy_bunny, LinkComponent(cloudy_root))
     cloudy_scene.add_component(cloudy_bunny, StaticMeshComponent('bunny_mesh'))
     cloudy_scene.add_component(cloudy_bunny, MaterialComponent('M_Bunny'))
-
-    # Change the material properties of the bunny
-    material: MaterialComponent = cloudy_scene.get_component(cloudy_bunny, MaterialComponent)
-    material.color = glm.vec3(0.05, 0.9, 0.9)
-    material.glossiness = 0.5
 
     # Register components to cloudy_light
     cloudy_scene.add_component(cloudy_light, InfoComponent("cloudy_light"))

@@ -137,10 +137,10 @@ def main():
     OpenGLShaderLib().build('default_mesh_parallax_occlusion', SHADERS_PATH / 'lit_blinn_phong_parallax_vertex.glsl', SHADERS_PATH / 'lit_blinn_phong_parallax_occlusion_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Wall_Normal', MaterialData('default_mesh_normal', ['wall_albedo', 'wall_normal']))
-    OpenGLMaterialLib().build('M_Wall_Parallax', MaterialData('default_mesh_parallax', ['wall_albedo', 'wall_normal', 'wall_disp']))
-    OpenGLMaterialLib().build('M_Wall_Steep_Parallax', MaterialData('default_mesh_steep_parallax', ['wall_albedo', 'wall_normal', 'wall_disp']))
-    OpenGLMaterialLib().build('M_Wall_Parallax_Occlusion', MaterialData('default_mesh_parallax_occlusion', ['wall_albedo', 'wall_normal', 'wall_disp']))
+    OpenGLMaterialLib().build('M_Wall_Normal', MaterialData('default_mesh_normal', ['wall_albedo', 'wall_normal'], glossiness=1.0))
+    OpenGLMaterialLib().build('M_Wall_Parallax', MaterialData('default_mesh_parallax', ['wall_albedo', 'wall_normal', 'wall_disp'], glossiness=1.0))
+    OpenGLMaterialLib().build('M_Wall_Steep_Parallax', MaterialData('default_mesh_steep_parallax', ['wall_albedo', 'wall_normal', 'wall_disp'], glossiness=1.0))
+    OpenGLMaterialLib().build('M_Wall_Parallax_Occlusion', MaterialData('default_mesh_parallax_occlusion', ['wall_albedo', 'wall_normal', 'wall_disp'], glossiness=1.0))
 
     # Vertex data for the plane
     vertices, normals, texture_coords, tangent, bitangent = calculate_vertex_data()
@@ -155,28 +155,28 @@ def main():
     scene.add_component(wall_normal, TransformComponent(glm.vec3(-2.5, 1.25, 0), glm.vec3(0, 0, 180), glm.vec3(1, 1, 1)))
     scene.add_component(wall_normal, LinkComponent(root))
     scene.add_component(wall_normal, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_normal, MaterialComponent('M_Wall_Normal')).glossiness = 1.0
+    scene.add_component(wall_normal, MaterialComponent('M_Wall_Normal'))
 
     # Register components to wall with parallax mapping
     scene.add_component(wall_parallax, InfoComponent("wall_parallax"))
     scene.add_component(wall_parallax, TransformComponent(glm.vec3(0, 1.25, 0), glm.vec3(0, 0, 180), glm.vec3(1, 1, 1)))
     scene.add_component(wall_parallax, LinkComponent(root))
     scene.add_component(wall_parallax, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_parallax, MaterialComponent('M_Wall_Parallax')).glossiness = 1.0
+    scene.add_component(wall_parallax, MaterialComponent('M_Wall_Parallax'))
 
     # Register components to wall with steep parallax mapping
     scene.add_component(wall_steep_parallax, InfoComponent("wall_steep_parallax"))
     scene.add_component(wall_steep_parallax, TransformComponent(glm.vec3(-2.5, -1.25, 0), glm.vec3(0, 0, 180), glm.vec3(1, 1, 1)))
     scene.add_component(wall_steep_parallax, LinkComponent(root))
     scene.add_component(wall_steep_parallax, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_steep_parallax, MaterialComponent('M_Wall_Steep_Parallax')).glossiness = 1.0
+    scene.add_component(wall_steep_parallax, MaterialComponent('M_Wall_Steep_Parallax'))
 
     # Register components to wall with parallax occlusion mapping
     scene.add_component(wall_parallax_occlusion, InfoComponent("wall_parallax_occlusion"))
     scene.add_component(wall_parallax_occlusion, TransformComponent(glm.vec3(0, -1.25, 0), glm.vec3(0, 0, 180), glm.vec3(1, 1, 1)))
     scene.add_component(wall_parallax_occlusion, LinkComponent(root))
     scene.add_component(wall_parallax_occlusion, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_parallax_occlusion, MaterialComponent('M_Wall_Parallax_Occlusion')).glossiness = 1.0
+    scene.add_component(wall_parallax_occlusion, MaterialComponent('M_Wall_Parallax_Occlusion'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))

@@ -17,7 +17,7 @@ from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialDescriptor
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
@@ -54,7 +54,7 @@ def main():
     OpenGLShaderLib().build('default_tessellation', SHADERS_PATH/'tessellation_vertex.glsl', SHADERS_PATH/'tessellation_fragment.glsl', SHADERS_PATH/'tessellation_control.glsl', SHADERS_PATH/'tessellation_evaluation.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Terrain', MaterialData('default_tessellation', ['height_map']))
+    OpenGLMaterialLib().build('M_Terrain', MaterialData('default_tessellation', ['height_map']), MaterialDescriptor(primitive=gl.GL_PATCHES, cull_face=gl.GL_FRONT, patch_resolution=patch_resolution, vertices_per_patch=vertices_per_patch))
 
     vertices = []
     tex_coords = []
@@ -123,7 +123,7 @@ def main():
     scene.add_component(terrain, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(terrain, LinkComponent(root))
     scene.add_component(terrain, StaticMeshComponent('terrain_mesh', [vertices, tex_coords]))
-    scene.add_component(terrain, MaterialComponent('M_Terrain', descriptor=MaterialComponent.Descriptor(primitive=gl.GL_PATCHES, cull_face=gl.GL_FRONT, patch_resolution=patch_resolution, vertices_per_patch=vertices_per_patch)))
+    scene.add_component(terrain, MaterialComponent('M_Terrain'))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))

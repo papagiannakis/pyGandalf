@@ -41,7 +41,7 @@ def main():
     OpenGLShaderLib().build('unlit', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', []))
+    OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', [], glm.vec4(0.8, 0.5, 0.3, 1.0)))
 
     # Vertices of the quad
     vertices = np.array([
@@ -58,16 +58,11 @@ def main():
     scene.add_component(quad, InfoComponent("quad"))
     scene.add_component(quad, StaticMeshComponent('quad', [vertices]))
     scene.add_component(quad, MaterialComponent('M_Unlit'))
-
-    # Change the color of the quad from the material
-    material: MaterialComponent = scene.get_component(quad, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
     
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
     scene.add_component(camera, TransformComponent(glm.vec3(0, 0, 5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
-
 
     # Register systems to the scene
     scene.register_system(TransformSystem([TransformComponent]))

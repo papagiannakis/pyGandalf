@@ -14,7 +14,7 @@ from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialDescriptor
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor, TextureDimension
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
@@ -82,7 +82,7 @@ def main():
     OpenGLShaderLib().build('cubemap_refraction', SHADERS_PATH/'cubemap_refraction_vertex.glsl', SHADERS_PATH/'cubemap_refraction_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Skybox', MaterialData('skybox', ['cube_map']))
+    OpenGLMaterialLib().build('M_Skybox', MaterialData('skybox', ['cube_map']), MaterialDescriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE))
     OpenGLMaterialLib().build('M_EnvironmentReflection', MaterialData('cubemap_reflection', ['cube_map']))
     OpenGLMaterialLib().build('M_EnvironmentRefraction', MaterialData('cubemap_refraction', ['cube_map']))
 
@@ -99,7 +99,7 @@ def main():
     scene.add_component(skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(skybox, LinkComponent(None))
     scene.add_component(skybox, StaticMeshComponent('skybox', [vertices]))
-    scene.add_component(skybox, MaterialComponent('M_Skybox', descriptor=MaterialComponent.Descriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE)))
+    scene.add_component(skybox, MaterialComponent('M_Skybox'))
 
     # Register components to reflection bunny - acts like its a bunny made from a mirror
     scene.add_component(reflection_bunny, InfoComponent("reflection_bunny"))

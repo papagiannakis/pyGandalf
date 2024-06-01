@@ -49,7 +49,7 @@ def main():
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo']))
+    OpenGLMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo'], glossiness=2.0))
 
     # Load models
     OpenGLMeshLib().build('pistol_mesh', MODELS_PATH/'fa_flintlockPistol.obj')
@@ -65,10 +65,6 @@ def main():
     scene.add_component(pistol, LinkComponent(root))
     scene.add_component(pistol, StaticMeshComponent('pistol_mesh'))
     scene.add_component(pistol, MaterialComponent('M_Pistol'))
-
-    # Change the material properties of the pistol
-    material: MaterialComponent = scene.get_component(pistol, MaterialComponent)
-    material.glossiness = 2.0
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))

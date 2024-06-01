@@ -31,20 +31,20 @@ class OpenGLRenderer(BaseRenderer):
         gl.glViewport(0, 0, width, height)
 
     def add_batch(cls, render_data, material):
-        if material.descriptor.blend_enabled:
+        if material.instance.descriptor.blend_enabled:
             gl.glEnable(gl.GL_BLEND)
             gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
             gl.glBlendEquation(gl.GL_FUNC_ADD)
 
-        if material.descriptor.cull_enabled:
+        if material.instance.descriptor.cull_enabled:
             gl.glEnable(gl.GL_CULL_FACE)
             gl.glFrontFace(gl.GL_CCW)
 
-        if material.descriptor.depth_enabled:
+        if material.instance.descriptor.depth_enabled:
             gl.glEnable(gl.GL_DEPTH_TEST)
 
-        if material.descriptor.primitive == gl.GL_PATCHES:
-            gl.glPatchParameteri(gl.GL_PATCH_VERTICES, material.descriptor.vertices_per_patch)
+        if material.instance.descriptor.primitive == gl.GL_PATCHES:
+            gl.glPatchParameteri(gl.GL_PATCH_VERTICES, material.instance.descriptor.vertices_per_patch)
 
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)
@@ -73,7 +73,7 @@ class OpenGLRenderer(BaseRenderer):
             render_data.ebo = gl.glGenBuffers(1)
             gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
             
-            if material.descriptor.primitive == gl.GL_TRIANGLE_STRIP:
+            if material.instance.descriptor.primitive == gl.GL_TRIANGLE_STRIP:
                 gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 4, indices_pointer, gl.GL_STATIC_DRAW)
             else:
                 gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 3 * 4, indices_pointer, gl.GL_STATIC_DRAW)
@@ -120,14 +120,14 @@ class OpenGLRenderer(BaseRenderer):
             gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
 
     def set_bind_groups(cls, material):
-        if material.descriptor.depth_mask == gl.GL_FALSE:
+        if material.instance.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_FALSE)
 
-        if material.descriptor.cull_enabled:
-            gl.glCullFace(material.descriptor.cull_face)
+        if material.instance.descriptor.cull_enabled:
+            gl.glCullFace(material.instance.descriptor.cull_face)
 
-        if material.descriptor.depth_enabled:
-            gl.glDepthFunc(material.descriptor.depth_func)
+        if material.instance.descriptor.depth_enabled:
+            gl.glDepthFunc(material.instance.descriptor.depth_func)
 
         # Bind shader program
         gl.glUseProgram(material.instance.shader_program)
@@ -136,47 +136,47 @@ class OpenGLRenderer(BaseRenderer):
         textures = OpenGLMaterialLib().get_textures(material.instance.name)
 
         # Bind textures
-        for index, texture_name in enumerate(material.instance.textures):
+        for index, texture_name in enumerate(material.instance.data.textures):
             OpenGLTextureLib().bind(texture_name)
             if material.instance.has_uniform(textures[index]):
                 material.instance.set_uniform(textures[index], int(OpenGLTextureLib().get_slot(texture_name)))
 
     def draw(cls, render_data, material):
-        if material.descriptor.primitive == gl.GL_PATCHES:
-            gl.glDrawArrays(gl.GL_PATCHES, 0, material.descriptor.vertices_per_patch * material.descriptor.patch_resolution * material.descriptor.patch_resolution)
+        if material.instance.descriptor.primitive == gl.GL_PATCHES:
+            gl.glDrawArrays(gl.GL_PATCHES, 0, material.instance.descriptor.vertices_per_patch * material.instance.descriptor.patch_resolution * material.instance.descriptor.patch_resolution)
         else:
-            gl.glDrawArrays(material.descriptor.primitive, 0, render_data.attributes[0].size)
+            gl.glDrawArrays(material.instance.descriptor.primitive, 0, render_data.attributes[0].size)
 
         # Unbind vao
         gl.glBindVertexArray(0)
 
         # Unbind textures
-        for texture_name in material.instance.textures:
+        for texture_name in material.instance.data.textures:
             OpenGLTextureLib().unbind(texture_name)
 
         # Unbind shader program
         gl.glUseProgram(0)
 
         # Reset depth mask
-        if material.descriptor.depth_mask == gl.GL_FALSE:
+        if material.instance.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_TRUE)
 
     def draw_indexed(cls, render_data, material):
-        gl.glDrawElements(material.descriptor.primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
+        gl.glDrawElements(material.instance.descriptor.primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
 
         # Unbind vao
         gl.glBindVertexArray(0)
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, 0)
 
         # Unbind textures
-        for texture_name in material.instance.textures:
+        for texture_name in material.instance.data.textures:
             OpenGLTextureLib().unbind(texture_name)
 
         # Unbind shader program
         gl.glUseProgram(0)
 
         # Reset depth mask if it was set to false
-        if material.descriptor.depth_mask == gl.GL_FALSE:
+        if material.instance.descriptor.depth_mask == gl.GL_FALSE:
             gl.glDepthMask(gl.GL_TRUE)
 
     def clean(cls):
