@@ -50,7 +50,7 @@ fn vs_main(@builtin(instance_index) ID: u32, in: VertexInput) -> VertexOutput {
     var N: vec3f = normalize(normalMatrix * in.a_Normal);
 
     // Re-orthogonalize T with respect to N
-    // T = normalize(T - dot(T, N) * N);
+    T = normalize(T - dot(T, N) * N);
 
     var TBN: mat3x3f = transpose(mat3x3f(T, B, N));
 
