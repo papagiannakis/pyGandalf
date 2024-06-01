@@ -76,12 +76,7 @@ class OpenGLStaticMeshRenderingSystem(System):
         if OpenGLRenderer().get_shadows_enabled():
             # Create the depth only pre-pass material is not already created
             if self.pre_pass_material == None:
-                pre_pass_material_descriptor = MaterialComponent.Descriptor()
-                pre_pass_material_descriptor.blend_enabled = False
-                pre_pass_material_descriptor.cull_enabled = True
-                pre_pass_material_descriptor.cull_face = gl.GL_BACK
-
-                self.pre_pass_material = MaterialComponent('M_DepthPrePass', descriptor=pre_pass_material_descriptor)
+                self.pre_pass_material = MaterialComponent('M_DepthPrePass')
                 self.pre_pass_material.instance = OpenGLMaterialLib().get('M_DepthPrePass')
 
             OpenGLRenderer().resize(self.SHADOW_WIDTH, self.SHADOW_HEIGHT)
@@ -92,7 +87,7 @@ class OpenGLStaticMeshRenderingSystem(System):
             for components in self.get_filtered_components():
                 mesh, entity_material, transform = components
 
-                if entity_material.descriptor.cast_shadows == False:
+                if entity_material.instance.descriptor.cast_shadows == False:
                     continue
 
                 # Bind vao

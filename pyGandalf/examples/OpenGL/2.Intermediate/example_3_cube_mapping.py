@@ -23,6 +23,7 @@ from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_
 from pyGandalf.utilities.logger import logger
 
 import numpy as np
+import OpenGL.GL as gl
 
 """
 Showcase of a skybox using cube mapping.

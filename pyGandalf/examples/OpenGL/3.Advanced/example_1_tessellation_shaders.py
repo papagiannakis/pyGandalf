@@ -36,6 +36,9 @@ def main():
     # Set the logger DEBUG to report all the logs
     logger.setLevel(logger.DEBUG)
 
+    patch_resolution = 20
+    vertices_per_patch = 4
+
     # Create a new application
     Application().create(OpenGLWindow('Tessellation Shaders', 1280, 720, True), OpenGLRenderer)
 
@@ -61,8 +64,6 @@ def main():
 
     width = OpenGLTextureLib().get_textures()['height_map'].descriptor.width
     height = OpenGLTextureLib().get_textures()['height_map'].descriptor.height
-    patch_resolution = 20
-    vertices_per_patch = 4
 
     for i in range(patch_resolution):
         for j in range(patch_resolution):

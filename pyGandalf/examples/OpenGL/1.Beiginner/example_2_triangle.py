@@ -54,10 +54,6 @@ def main():
     scene.add_component(triangle, StaticMeshComponent('triangle', [vertices]))
     scene.add_component(triangle, MaterialComponent('M_Unlit'))
 
-    # Change the color of the triangle from the material
-    material: MaterialComponent = scene.get_component(triangle, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
-
     # Register systems to the scene
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
