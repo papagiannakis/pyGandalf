@@ -1,5 +1,5 @@
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialInstance
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib, MeshInstance
 
@@ -13,7 +13,7 @@ Application().create(OpenGLWindow(), OpenGLRenderer)
 
 def test_texture_lib():
     slot1 = OpenGLTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png')
-    slot2 = OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    slot2 = OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
 
     assert slot1 != slot2
     assert slot2 != 0 and slot2 != 0
@@ -39,7 +39,7 @@ def test_material_lib():
     assert material1 != material1_variation_1
     
     assert material1.name == material1_variation_1.name
-    assert material1.textures == material1_variation_1.textures
+    assert material1.data.textures == material1_variation_1.data.textures
     assert material1.shader_program == material1_variation_1.shader_program
     assert material1.shader_params == material1_variation_1.shader_params
 
@@ -47,14 +47,14 @@ def test_material_lib():
 
     program2 = OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
 
-    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
     OpenGLTextureLib().build('uoc_logo', TEXTURES_PATH/'uoc_logo.png')
 
     blinn_phong_material1 = OpenGLMaterialLib().build('M_Bilnn-Phong1', MaterialData('default_mesh', ['white_texture']))
     blinn_phong_material2 = OpenGLMaterialLib().build('M_Bilnn-Phong2', MaterialData('default_mesh', ['uoc_logo']))
 
     assert blinn_phong_material1 != blinn_phong_material2
-    assert blinn_phong_material1.textures != blinn_phong_material2.textures
+    assert blinn_phong_material1.data.textures != blinn_phong_material2.data.textures
     assert blinn_phong_material1.shader_program == blinn_phong_material2.shader_program == program2
     assert blinn_phong_material1.shader_params == blinn_phong_material2.shader_params
 

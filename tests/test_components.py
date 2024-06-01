@@ -32,12 +32,8 @@ def test_LinkComponent():
 
 def test_MaterialComponent():
     material_name = "TestMaterial"
-    color = glm.vec3(0.5, 0.5, 0.5)
-    material = MaterialComponent(material_name, color)
+    material = MaterialComponent(material_name)
     assert material.name == material_name
-    assert np.allclose(material.color, color)
-    assert material.glossiness == 5.0
-    assert material.metallicness == 0.0
 
 def test_CameraComponent():
     camera = CameraComponent(45.0, 16/9, 0.1, 100.0, 1.0, CameraComponent.Type.PERSPECTIVE)
