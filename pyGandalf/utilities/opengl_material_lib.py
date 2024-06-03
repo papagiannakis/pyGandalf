@@ -235,7 +235,7 @@ class MaterialData:
         return True
     
     def __hash__(self):
-        return hash((self.base_template, self.color.r, self.color.g, self.color.b, self.color.a, len(self.textures), tuple(texture for texture in self.textures)))
+        return hash((self.base_template, self.color.r, self.color.g, self.color.b, self.color.a, len(self.textures), self.glossiness, tuple(texture for texture in self.textures)))
 
 class OpenGLMaterialLib(object):
     def __new__(cls):

@@ -131,10 +131,10 @@ def main():
     WebGPUTextureLib().build('wall_disp', TextureData(TEXTURES_PATH / 'bricks2_disp.jpg'), descriptor=TextureDescriptor(flip=False))
 
     # Build shaders
-    WebGPUShaderLib().build('default_mesh_normal', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong_normal.wgsl')
-    WebGPUShaderLib().build('default_mesh_parallax', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong_parallax.wgsl')
-    WebGPUShaderLib().build('default_mesh_steep_parallax', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong_steep_parallax.wgsl')
-    WebGPUShaderLib().build('default_mesh_parallax_occlusion', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong_parallax_occlusion.wgsl')
+    WebGPUShaderLib().build('default_mesh_normal', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong_normal.wgsl')
+    WebGPUShaderLib().build('default_mesh_parallax', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong_parallax.wgsl')
+    WebGPUShaderLib().build('default_mesh_steep_parallax', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong_steep_parallax.wgsl')
+    WebGPUShaderLib().build('default_mesh_parallax_occlusion', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong_parallax_occlusion.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_Wall_Normal', MaterialData('default_mesh_normal', ['wall_albedo', 'wall_normal']))

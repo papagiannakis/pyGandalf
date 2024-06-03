@@ -43,7 +43,7 @@ def main():
     WebGPUTextureLib().build('uoc_logo', TextureData(path=TEXTURES_PATH / 'uoc_logo.png'), descriptor=TextureDescriptor(flip=True))
 
     # Build shaders 
-    WebGPUShaderLib().build('unlit_textured', SHADERS_PATH / 'web_gpu' / 'unlit_textured.wgsl')
+    WebGPUShaderLib().build('unlit_textured', SHADERS_PATH / 'webgpu' / 'unlit_textured.wgsl')
     
     # Build materials
     WebGPUMaterialLib().build('M_UnlitTextured', MaterialData('unlit_textured', ['uoc_logo']))

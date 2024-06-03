@@ -75,15 +75,18 @@ class MaterialDescriptor:
     depth_compare: wgpu.CompareFunction = wgpu.CompareFunction.less_equal
 
 class MaterialData:
-    def __init__(self, base_template: str, textures: list[str], color: glm.vec4 = glm.vec4(1.0, 1.0, 1.0, 1.0)):
+    def __init__(self, base_template: str, textures: list[str], color: glm.vec4 = glm.vec4(1.0, 1.0, 1.0, 1.0), glossiness = 3.0):
         self.base_template = base_template
         self.color = color
         self.textures = textures
+        self.glossiness = glossiness
 
     def __eq__(self, other):
         if self.base_template != other.base_template:
             return False
         if self.color != other.color:
+            return False
+        if self.glossiness != other.glossiness:
             return False
         if len(self.textures) != len(other.textures):
             return False
@@ -93,8 +96,7 @@ class MaterialData:
         return True
     
     def __hash__(self):
-        return hash((self.base_template, self.color.r, self.color.g, self.color.b, self.color.a, len(self.textures), tuple(texture for texture in self.textures)))
-
+        return hash((self.base_template, self.color.r, self.color.g, self.color.b, self.color.a, len(self.textures), self.glossiness, tuple(texture for texture in self.textures)))
 
 class MaterialInstance:
     def __init__(self, name, data: MaterialData, descriptor: MaterialDescriptor, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, shader_params = []):
@@ -228,39 +230,7 @@ class WebGPUMaterialLib(object):
             fields = []
             for member_name in uniform_buffer_data['type']['members']:
                 member_type = uniform_buffer_data['type']['members'][member_name]
-                match member_type:
-                    case 'f32':
-                        fields.append((member_name, np.float32, (1,)))
-                    case 'vec2f':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec2<f32>':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec3f':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec3<f32>':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec4f':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'vec4<f32>':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'mat4x4f':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<mat4x4f, 512>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<vec4f, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<vec4<f32>, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<f32, 16>':
-                        fields.append((member_name, np.float32, (16, 1)))
-                    case 'array<vec4f, 4>':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<vec4<f32>, 4>':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<f32, 4>':
-                        fields.append((member_name, np.float32, (4, 1)))
+                fields.append(cls.instance.compute_field_layout(member_type, member_name))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             uniform_data = CPUBuffer(*fields)
@@ -287,46 +257,14 @@ class WebGPUMaterialLib(object):
         for buffer_name in storage_buffers_data.keys():
             storage_buffer_data = storage_buffers_data[buffer_name]
 
-            if len(bind_groups_entries) <= storage_buffers_data['group']:
+            if len(bind_groups_entries) <= storage_buffer_data['group']:
                 bind_groups_entries.append([])
 
             # Find storage buffer layout and fields from shader reflection.
             fields = []
             for member_name in storage_buffer_data['type']['members']:
                 member_type = storage_buffer_data['type']['members'][member_name]
-                match member_type:
-                    case 'f32':
-                        fields.append((member_name, np.float32, (1,)))
-                    case 'vec2f':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec2<f32>':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec3f':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec3<f32>':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec4f':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'vec4<f32>':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'mat4x4f':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<mat4x4f, 512>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<vec4f, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<vec4<f32>, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<f32, 16>':
-                        fields.append((member_name, np.float32, (16, 1)))
-                    case 'array<vec4f, 4>':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<vec4<f32>, 4>':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<f32, 4>':
-                        fields.append((member_name, np.float32, (4, 1)))
+                fields.append(cls.instance.compute_field_layout(member_type, member_name))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
@@ -335,7 +273,7 @@ class WebGPUMaterialLib(object):
 
             # Create storage buffer - data is uploaded each frame
             storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
-                size=storage_data.nbytes * 512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
+                size=storage_data.nbytes, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
             )
 
             # Append storage buffer to dictionary holding all storage buffers
@@ -360,39 +298,7 @@ class WebGPUMaterialLib(object):
             fields = []
             for member_name in read_only_storage_buffer_data['type']['members']:
                 member_type = read_only_storage_buffer_data['type']['members'][member_name]
-                match member_type:
-                    case 'f32':
-                        fields.append((member_name, np.float32, (1,)))
-                    case 'vec2f':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec2<f32>':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec3f':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec3<f32>':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec4f':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'vec4<f32>':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'mat4x4f':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<mat4x4f, 512>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<vec4f, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<vec4<f32>, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<f32, 16>':
-                        fields.append((member_name, np.float32, (16, 1)))
-                    case 'array<vec4f, 4>':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<vec4<f32>, 4>':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<f32, 4>':
-                        fields.append((member_name, np.float32, (4, 1)))
+                fields.append(cls.instance.compute_field_layout(member_type, member_name))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
@@ -401,7 +307,7 @@ class WebGPUMaterialLib(object):
 
             # Create storage buffer - data is uploaded each frame
             storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
-                size=storage_data.nbytes * 512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
+                size=storage_data.nbytes, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
             )
 
             # Append storage buffer to dictionary holding all storage buffers
@@ -513,3 +419,40 @@ class WebGPUMaterialLib(object):
             return int(match.group(1))
         else:
             raise ValueError(f"Invalid declaration format: {declaration}")
+        
+    def compute_field_layout(cls, member_type, member_name):
+        match member_type:
+            case 'f32':
+                return (member_name, np.float32, (1,))
+            case 'vec2f':
+                return (member_name, np.float32, (2,))
+            case 'vec2<f32>':
+                return (member_name, np.float32, (2,))
+            case 'vec3f':
+                return (member_name, np.float32, (3,))
+            case 'vec3<f32>':
+                return (member_name, np.float32, (3,))
+            case 'vec4f':
+                return (member_name, np.float32, (4,))
+            case 'vec4<f32>':
+                return (member_name, np.float32, (4,))
+            case 'mat4x4f':
+                return (member_name, np.float32, (4, 4))
+            case 'array<mat4x4f>':
+                return (member_name, np.float32, (512, 4, 4))
+            case 'array<mat4x4f, 512>':
+                return (member_name, np.float32, (512, 4, 4))
+            case 'array<vec4f, 16>':
+                return (member_name, np.float32, (16, 4, 1))
+            case 'array<vec4<f32>, 16>':
+                return (member_name, np.float32, (16, 4, 1))
+            case 'array<f32, 16>':
+                return (member_name, np.float32, (16, 1, 1))
+            case 'array<vec4f, 4>':
+                return (member_name, np.float32, (4, 4, 1))
+            case 'array<vec4<f32>, 4>':
+                return (member_name, np.float32, (4, 4, 1))
+            case 'array<f32, 4>':
+                return (member_name, np.float32, (4, 1, 1))
+            case 'array<f32, 64>':
+                return (member_name, np.float32, (64, 1, 1))

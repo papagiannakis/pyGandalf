@@ -76,8 +76,8 @@ def main():
     WebGPUTextureLib().build('cube_map', TextureData(path=skybox_textures), descriptor=TextureDescriptor(flip=True, view_dimention=wgpu.TextureViewDimension.cube, array_layer_count=6))
 
     # Build shaders
-    WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong.wgsl')
-    WebGPUShaderLib().build('skybox', SHADERS_PATH / 'web_gpu' / 'skybox.wgsl')
+    WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong.wgsl')
+    WebGPUShaderLib().build('skybox', SHADERS_PATH / 'webgpu' / 'skybox.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture']))

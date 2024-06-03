@@ -1,8 +1,9 @@
 from pyGandalf.scene.entity import Entity
 from pyGandalf.utilities.opengl_material_lib import MaterialInstance as OpenGLMaterialInstance
-from pyGandalf.utilities.webgpu_material_lib import MaterialInstance as WebGPUMaterialInstance
+from pyGandalf.utilities.webgpu_material_lib import CPUBuffer, MaterialInstance as WebGPUMaterialInstance
 
 import glm
+import wgpu
 
 import uuid
 from enum import Enum
@@ -121,3 +122,13 @@ class LightComponent(Component):
     def __init__(self, color, intensity):
         self.color = color
         self.intensity = intensity
+
+class WebGPUComputeComponent(Component):
+    def __init__(self, compute_shader: str) -> None:
+        self.shader: str = compute_shader
+        self.pipeline: wgpu.GPUComputePipeline = None
+        self.map_buffer: wgpu.GPUBuffer = None
+        self.bind_groups: list[wgpu.GPUBindGroup] = []
+        self.storage_buffers: dict[str, wgpu.GPUBuffer] = {}
+        self.storage_buffer_types: dict[str, CPUBuffer] = {}
+        self.enabled = True

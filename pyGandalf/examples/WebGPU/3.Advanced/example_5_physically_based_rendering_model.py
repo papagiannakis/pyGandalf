@@ -49,7 +49,7 @@ def main():
     WebGPUTextureLib().build('cerberus_roughness', TextureData(TEXTURES_PATH / 'Cerberus' / 'Cerberus_R.png'))
 
     # Build shaders
-    WebGPUShaderLib().build('pbr_mesh', SHADERS_PATH / 'web_gpu' / 'lit_pbr.wgsl')
+    WebGPUShaderLib().build('pbr_mesh', SHADERS_PATH / 'webgpu' / 'lit_pbr.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_PBR', MaterialData('pbr_mesh', ['cerberus_albedo', 'cerberus_normal', 'cerberus_metallic', 'cerberus_roughness']))

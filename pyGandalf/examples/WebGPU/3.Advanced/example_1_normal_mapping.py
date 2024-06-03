@@ -129,7 +129,7 @@ def main():
     WebGPUTextureLib().build('brickwall_normal', TextureData(TEXTURES_PATH / 'brickwall_normal.jpg'))
 
     # Build shaders
-    WebGPUShaderLib().build('default_mesh_normals', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong_normal.wgsl')
+    WebGPUShaderLib().build('default_mesh_normals', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong_normal.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_Wall', MaterialData('default_mesh_normals', ['brickwall_albedo', 'brickwall_normal']))

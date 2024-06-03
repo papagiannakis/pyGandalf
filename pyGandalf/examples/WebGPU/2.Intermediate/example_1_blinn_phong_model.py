@@ -46,7 +46,7 @@ def main():
     WebGPUTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
 
     # Build shaders
-    WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong.wgsl')
+    WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture']))

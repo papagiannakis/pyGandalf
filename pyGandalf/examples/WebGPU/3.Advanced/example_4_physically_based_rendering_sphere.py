@@ -91,7 +91,7 @@ def main():
     WebGPUTextureLib().build('rusted_sphere_roughness', TextureData(TEXTURES_PATH / 'rusted_iron' / 'rustediron2_roughness.png'))
 
     # Build shaders
-    WebGPUShaderLib().build('pbr_mesh', SHADERS_PATH / 'web_gpu' / 'lit_pbr.wgsl')
+    WebGPUShaderLib().build('pbr_mesh', SHADERS_PATH / 'webgpu' / 'lit_pbr.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_PBR', MaterialData('pbr_mesh', ['rusted_sphere_albedo', 'rusted_sphere_normal', 'rusted_sphere_metallic', 'rusted_sphere_roughness']), MaterialDescriptor(primitive=wgpu.PrimitiveTopology.triangle_strip))

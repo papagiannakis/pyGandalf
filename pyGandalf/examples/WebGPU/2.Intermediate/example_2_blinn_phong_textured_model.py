@@ -46,7 +46,7 @@ def main():
     WebGPUTextureLib().build('flintlockPistol_albedo', TextureData(path=TEXTURES_PATH / 'fa_flintlockPistol_albedo.jpg'))
 
     # Build shaders
-    WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong.wgsl')
+    WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo']))

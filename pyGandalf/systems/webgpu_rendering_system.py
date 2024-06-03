@@ -1,3 +1,4 @@
+from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.scene.entity import Entity
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPipelineDescription, RenderPassDescription, ColorAttachmentDescription
@@ -113,6 +114,25 @@ class WebGPUStaticMeshRenderingSystem(System):
                     first_instance = 0
         WebGPURenderer().end_render_pass()
     
+    def set_prepass_uniforms(self, material_instance: MaterialInstance):
+        light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
+        
+        if light_system is not None:
+            if light_system.get_state() != SystemState.PAUSE:
+                for components in light_system.get_filtered_components():
+                    light, transform = components
+
+                    if material_instance.has_uniform('u_UniformData'):
+                        from pyGandalf.scene.scene_manager import SceneManager
+                        camera = SceneManager().get_main_camera()
+                        if camera != None:
+                            light_projection = glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)
+                            light_view = glm.lookAt(transform.get_world_position(), glm.vec3(0.0), glm.vec3(0.0, 1.0, 0.0))
+                            uniform_data = material_instance.get_cpu_buffer_type('u_UniformData')
+                            if uniform_data.has_member("lightSpaceMatrix"):
+                                uniform_data["lightSpaceMatrix"] = np.asarray(glm.transpose(light_projection * light_view))
+                    break
+
     def set_uniforms(self, material_instance: MaterialInstance, meshes):
         if material_instance.has_uniform('u_UniformData'):
             uniform_data = material_instance.get_cpu_buffer_type('u_UniformData')
@@ -157,6 +177,17 @@ class WebGPUStaticMeshRenderingSystem(System):
                         light_colors.append(glm.vec4(light.color, 1.0))
                         light_positions.append(glm.vec4(transform.get_world_position(), 1.0))
                         light_intensities.append(glm.vec4(light.intensity, 1.0, 1.0, 1.0))
+
+                        # NOTE: Only works with one light, adding more will keep the last.
+                        if material_instance.has_uniform('u_UniformData'):
+                            from pyGandalf.scene.scene_manager import SceneManager
+                            camera = SceneManager().get_main_camera()
+                            if camera != None:
+                                light_projection = glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)
+                                light_view = glm.lookAt(transform.get_world_position(), glm.vec3(0.0), glm.vec3(0.0, 1.0, 0.0))
+                                uniform_data = material_instance.get_cpu_buffer_type('u_UniformData')
+                                if uniform_data.has_member("lightSpaceMatrix"):
+                                    uniform_data["lightSpaceMatrix"] = np.asarray(glm.transpose(light_projection * light_view))
 
             count = len(light_positions)
 

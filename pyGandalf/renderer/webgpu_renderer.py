@@ -42,7 +42,7 @@ class WebGPURenderer(BaseRenderer):
         cls.instance.canvas = kargs[0]
         power_preference: str = kargs[1]
         cls.instance.adapter = wgpu.gpu.request_adapter(power_preference=power_preference)
-        cls.instance.device = cls.instance.adapter.request_device(required_limits={})
+        cls.instance.device = cls.instance.adapter.request_device(required_features=['VertexWritableStorage'], required_limits={})
 
         cls.instance.present_context = cls.instance.canvas.get_context()
         cls.instance.render_texture_format = cls.instance.present_context.get_preferred_format(cls.instance.device.adapter)

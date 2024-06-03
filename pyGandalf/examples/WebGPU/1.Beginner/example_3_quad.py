@@ -36,7 +36,7 @@ def main():
     quad = scene.enroll_entity()
 
     # Build shaders 
-    WebGPUShaderLib().build('unlit', SHADERS_PATH / 'web_gpu' / 'unlit.wgsl')
+    WebGPUShaderLib().build('unlit', SHADERS_PATH / 'webgpu' / 'unlit.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_Unlit', MaterialData('unlit', []))

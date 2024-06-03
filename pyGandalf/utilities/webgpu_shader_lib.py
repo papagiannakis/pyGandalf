@@ -48,7 +48,7 @@ class WebGPUShaderLib(object):
 
             bind_groups_layout_entries[storage_buffers[buffer_name]['group']].append({
                 "binding": storage_buffers[buffer_name]['binding'],
-                "visibility": wgpu.ShaderStage.VERTEX,
+                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.COMPUTE, # TODO: Fix this visibility properly
                 "buffer": {
                     "type": wgpu.BufferBindingType.storage
                 },
@@ -60,7 +60,7 @@ class WebGPUShaderLib(object):
 
             bind_groups_layout_entries[read_only_storage_buffers[buffer_name]['group']].append({
                 "binding": read_only_storage_buffers[buffer_name]['binding'],
-                "visibility": wgpu.ShaderStage.VERTEX,
+                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.COMPUTE, # TODO: Fix this visibility properly
                 "buffer": {
                     "type": wgpu.BufferBindingType.read_only_storage
                 },
@@ -159,7 +159,7 @@ class WebGPUShaderLib(object):
                 if struct_match:
                     buffer_members.clear()
                     struct_body = struct_match.group(1)
-                    # TODO: Fix pattern to support nested templates, ie: lightColors: array<vec4<32f>, 16>,
+                    # TODO: Fix pattern to support nested templates, ie: lightColors: array<vec4<f32>, 16>,
                     member_pattern = r"(\w+)\s*:\s*(\w+(?:\<.*?\>)?)"
                     members = re.findall(member_pattern, struct_body)
                     print(f" Members:")
@@ -180,10 +180,11 @@ class WebGPUShaderLib(object):
         
         uniform_buffers = parse_buffer('<uniform>')
         storage_buffers = parse_buffer('<storage>')
+        read_write_storage_buffers = parse_buffer('<storage, read_write>')
         read_only_storage_buffers = parse_buffer('<storage, read>')
         other = parse_buffer('')
 
-        return uniform_buffers, storage_buffers, read_only_storage_buffers, other  
+        return uniform_buffers, storage_buffers | read_write_storage_buffers, read_only_storage_buffers, other  
 
     def get(cls, name: str) -> ShaderData:
         """Gets the shader data of the given shader name.

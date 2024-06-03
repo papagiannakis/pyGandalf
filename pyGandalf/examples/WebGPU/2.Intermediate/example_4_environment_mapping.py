@@ -77,9 +77,9 @@ def main():
     WebGPUTextureLib().build('cube_map', TextureData(path=skybox_textures), descriptor=TextureDescriptor(flip=True, view_dimention=wgpu.TextureViewDimension.cube, array_layer_count=6))
 
     # Build shaders
-    WebGPUShaderLib().build('skybox', SHADERS_PATH / 'web_gpu' / 'skybox.wgsl')
-    WebGPUShaderLib().build('cubemap_reflection', SHADERS_PATH / 'web_gpu' / 'cubemap_reflection.wgsl')
-    WebGPUShaderLib().build('cubemap_refraction', SHADERS_PATH / 'web_gpu' / 'cubemap_refraction.wgsl')
+    WebGPUShaderLib().build('skybox', SHADERS_PATH / 'webgpu' / 'skybox.wgsl')
+    WebGPUShaderLib().build('cubemap_reflection', SHADERS_PATH / 'webgpu' / 'cubemap_reflection.wgsl')
+    WebGPUShaderLib().build('cubemap_refraction', SHADERS_PATH / 'webgpu' / 'cubemap_refraction.wgsl')
     
     # Build Materials
     WebGPUMaterialLib().build('M_Skybox', MaterialData('skybox', ['cube_map']), MaterialDescriptor(cull_mode=wgpu.CullMode.back))
