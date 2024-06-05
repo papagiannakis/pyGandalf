@@ -233,11 +233,25 @@ class SceneSerializer:
                     if str(texture_path[0]) == '':
                         OpenGLTextureLib().build(name_attr, None, texture_data, descriptor)
                     else:
-                        OpenGLTextureLib().build(name_attr, TEXTURES_PATH / Path(str(texture_path[0])), texture_data, descriptor)
+                        path: str = str(texture_path[0])
+                        paths = path.split('\\')
+                        if '\\' not in path:
+                            paths = path.split('/')
+                        final_path: Path = Path()
+                        for path_element in paths:
+                            final_path = final_path / path_element
+                        OpenGLTextureLib().build(name_attr, TEXTURES_PATH / final_path, texture_data, descriptor)
                 else:
-                    textures = [TEXTURES_PATH / Path(str(path)) for path in texture_path]
-                    OpenGLTextureLib().build(name_attr, textures, texture_data, descriptor)
-
+                    texture_paths: list[Path] = []
+                    for path in texture_path:
+                        paths = path.split('\\')
+                        if '\\' not in path:
+                            paths = path.split('/')
+                        final_path: Path = Path()
+                        for path_element in paths:
+                            final_path = final_path / path_element
+                        texture_paths.append(TEXTURES_PATH / final_path)
+                    OpenGLTextureLib().build(name_attr, texture_paths, texture_data, descriptor)
         
         # Traverse all Shaders prims in the stage
         skip_first_shader_prim = True
