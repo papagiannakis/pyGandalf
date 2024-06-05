@@ -233,9 +233,9 @@ class SceneSerializer:
                     if str(texture_path[0]) == '':
                         OpenGLTextureLib().build(name_attr, None, texture_data, descriptor)
                     else:
-                        OpenGLTextureLib().build(name_attr, TEXTURES_PATH / str(texture_path[0]), texture_data, descriptor)
+                        OpenGLTextureLib().build(name_attr, TEXTURES_PATH / Path(str(texture_path[0])), texture_data, descriptor)
                 else:
-                    textures = [TEXTURES_PATH / str(path) for path in texture_path]
+                    textures = [TEXTURES_PATH / Path(str(path)) for path in texture_path]
                     OpenGLTextureLib().build(name_attr, textures, texture_data, descriptor)
 
         
