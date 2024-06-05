@@ -41,6 +41,8 @@ class EditorPanelSystem(System):
         self.drag_and_drop_mesh = None
         self.drag_and_drop_scene = None
         self.drag_and_drop_texture = None
+        self.gizmos_pressed = False
+        self.camera_controller_pressed = False
 
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         pass
@@ -585,7 +587,34 @@ class EditorPanelSystem(System):
                     self.vsync_value = enable
 
                 imgui.end_menu()
+
+            if imgui.begin_menu('Help'):
+                gizmos_pressed, _ = imgui.menu_item('Gizmos', '', False)
+                if gizmos_pressed:
+                    self.gizmos_pressed = True
+                camera_controller_pressed, _ = imgui.menu_item('Camera Controller', '', False)
+                if camera_controller_pressed:
+                    self.camera_controller_pressed = True
+                imgui.end_menu()
             imgui.end_main_menu_bar()
+
+            if self.gizmos_pressed:
+                self.gizmos_pressed, self.gizmos_pressed = imgui.begin('Gizmos Help', self.gizmos_pressed)
+                imgui.text_wrapped('1. Select the object that you want to manipulate from the Hierachy panel')
+                imgui.text_wrapped('2. You can press the T key for enabling the translation mode of the gizmo')
+                imgui.text_wrapped('3. You can press the R key for enabling the rotation mode of the gizmo')
+                imgui.text_wrapped('4. You can press the S key for enabling the scale mode of the gizmo')
+                imgui.text_wrapped('5. You can press the Q key for disabling the gizmo')
+                imgui.end()
+
+            if self.camera_controller_pressed:
+                self.gizmos_camera_controller_pressedpressed, self.camera_controller_pressed = imgui.begin('Camera Controller Help', self.camera_controller_pressed)
+                imgui.text_wrapped('When the camera entity has the CameraControllerComponent, you can move aroung by:')
+                imgui.text_wrapped('While pressing the Right Mouse Button:')
+                imgui.text_wrapped('    - WASD: for moving forwards/backwards, left/right')
+                imgui.text_wrapped('    - QE: for moving up/down')
+                imgui.text_wrapped('    - Draging the mouse around pans the camera view')
+                imgui.end()
 
     def draw_content_browser(self):
         padding = 16.0
