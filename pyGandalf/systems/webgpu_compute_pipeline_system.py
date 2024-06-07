@@ -113,7 +113,7 @@ class WebGPUComputePipelineSystem(System):
         )
 
         compute.map_buffer = WebGPURenderer().get_device().create_buffer(
-            size=64*4,
+            size=storage_data.nbytes,
             usage=wgpu.BufferUsage.MAP_READ | wgpu.BufferUsage.COPY_DST
         )
 

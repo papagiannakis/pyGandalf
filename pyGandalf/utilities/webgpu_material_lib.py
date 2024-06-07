@@ -407,16 +407,18 @@ class WebGPUMaterialLib(object):
         """
         return cls.instance.materials
     
-    def extract_array_size(declaration: str) -> int:
+    def extract_array_size(cls, declaration: str) -> tuple[str, int]:
         # Define the regular expression pattern to match the array declaration
-        pattern = r'array<[^,]+, (\d+)>'
+        pattern = r'array<([^,]+), (\d+)>'
         
         # Use re.search to find the match
         match = re.search(pattern, declaration)
         
         if match:
             # Extract the number from the match group and convert it to an integer
-            return int(match.group(1))
+            array_type = match.group(1).strip()
+            array_size = int(match.group(2))
+            return (array_type, array_size)
         else:
             raise ValueError(f"Invalid declaration format: {declaration}")
         
@@ -438,21 +440,30 @@ class WebGPUMaterialLib(object):
                 return (member_name, np.float32, (4,))
             case 'mat4x4f':
                 return (member_name, np.float32, (4, 4))
-            case 'array<mat4x4f>':
-                return (member_name, np.float32, (512, 4, 4))
-            case 'array<mat4x4f, 512>':
-                return (member_name, np.float32, (512, 4, 4))
-            case 'array<vec4f, 16>':
-                return (member_name, np.float32, (16, 4, 1))
-            case 'array<vec4<f32>, 16>':
-                return (member_name, np.float32, (16, 4, 1))
-            case 'array<f32, 16>':
-                return (member_name, np.float32, (16, 1, 1))
-            case 'array<vec4f, 4>':
-                return (member_name, np.float32, (4, 4, 1))
-            case 'array<vec4<f32>, 4>':
-                return (member_name, np.float32, (4, 4, 1))
-            case 'array<f32, 4>':
-                return (member_name, np.float32, (4, 1, 1))
-            case 'array<f32, 64>':
-                return (member_name, np.float32, (64, 1, 1))
+            
+        if 'array' in member_type:
+            if ',' not in member_type:
+                logger.error(f'Array type with unspecified array size is not supported right now, please specify the array size of array: {member_name}')
+                exit(-1)
+
+            array_type, array_size = cls.instance.extract_array_size(member_type)
+
+            match array_type:
+                case 'mat4x4f':
+                    return (member_name, np.float32, (array_size, 4, 4))
+                case 'mat4x4<f32>':
+                    return (member_name, np.float32, (array_size, 4, 4))
+                case 'vec4f':
+                    return (member_name, np.float32, (array_size, 1, 4))
+                case 'vec4<f32>':
+                    return (member_name, np.float32, (array_size, 1, 4))
+                case 'vec3f':
+                    return (member_name, np.float32, (array_size, 1, 3))
+                case 'vec3<f32>':
+                    return (member_name, np.float32, (array_size, 1, 3))
+                case 'vec2f':
+                    return (member_name, np.float32, (array_size, 1, 2))
+                case 'vec2<f32>':
+                    return (member_name, np.float32, (array_size, 1, 2))
+                case 'f32':
+                    return (member_name, np.float32, (array_size, 1, 1))

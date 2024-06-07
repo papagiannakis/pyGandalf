@@ -154,13 +154,12 @@ class WebGPUShaderLib(object):
                 print(f" Group: {group}")
                 print(f" Binding: {binding}")
                 print(f" Type: {type}")
-                struct_pattern = r"struct " + re.escape(type) + r" \{([^}]*)\}"
+                struct_pattern = r"struct " + re.escape(type) + r"\s*\{([^}]*)\}"
                 struct_match = re.search(struct_pattern, shader_code)
                 if struct_match:
                     buffer_members.clear()
                     struct_body = struct_match.group(1)
-                    # TODO: Fix pattern to support nested templates, ie: lightColors: array<vec4<f32>, 16>,
-                    member_pattern = r"(\w+)\s*:\s*(\w+(?:\<.*?\>)?)"
+                    member_pattern = r"(\w+)\s*:\s*(<?[\w\s,<>]+>?),"
                     members = re.findall(member_pattern, struct_body)
                     print(f" Members:")
                     for member in members:

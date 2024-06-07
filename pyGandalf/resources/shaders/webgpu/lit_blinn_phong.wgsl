@@ -15,14 +15,14 @@ struct UniformData {
     projectionMatrix: mat4x4f,
     objectColor: vec4f,
     viewPosition: vec4<f32>,
-    lightPositions: array<vec4f, 16>,
+    lightPositions: array<vec4<f32>, 16>,
     lightColors: array<vec4f, 16>,
     lightIntensities: array<vec4f, 16>,
     lightCount: f32,
 };
 
-struct ModelData {
-    modelMatrix: array<mat4x4f>,
+struct ModelData{
+    modelMatrix: array<mat4x4f, 512>,
 };
 
 @group(0) @binding(0) var<uniform> u_UniformData: UniformData;

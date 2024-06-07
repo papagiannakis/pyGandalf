@@ -12,7 +12,7 @@ struct UniformData {
 };
 
 struct ModelData {
-    modelMatrix: array<mat4x4f>,
+    modelMatrix: array<mat4x4f, 512>,
 };
 
 @group(0) @binding(0) var<uniform> u_UniformData: UniformData;
