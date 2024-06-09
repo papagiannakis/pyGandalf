@@ -60,7 +60,8 @@ class WebGPURenderer(BaseRenderer):
         cls.instance.current_texture = cls.instance.present_context.get_current_texture()
     
     def end_frame(cls):
-        cls.instance.device.queue.submit([cls.instance.command_encoder.finish()])
+        if cls.instance.command_encoder != None:
+            cls.instance.device.queue.submit([cls.instance.command_encoder.finish()])
         cls.instance.canvas.request_draw()
     
     def resize(cls, width, height):

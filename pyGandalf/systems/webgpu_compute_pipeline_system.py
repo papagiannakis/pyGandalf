@@ -6,12 +6,10 @@ from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, CPUBuffer
 
-import glm
 import wgpu
 import numpy as np
 
 import asyncio
-import struct
 
 class WebGPUComputePipelineSystem(System):
     """
@@ -51,8 +49,13 @@ class WebGPUComputePipelineSystem(System):
                 size=storage_data.nbytes, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST | wgpu.BufferUsage.COPY_SRC
             )
 
+            compute.map_buffers.append(WebGPURenderer().get_device().create_buffer(
+                size=storage_data.nbytes,
+                usage=wgpu.BufferUsage.MAP_READ | wgpu.BufferUsage.COPY_DST
+            ))
+
             # Append storage buffer to dictionary holding all storage buffers
-            compute.storage_buffers[buffer_name] = storage_buffer
+            compute.output_storage_buffers[buffer_name] = storage_buffer
 
             bind_groups_entries[storage_buffer_data['group']].append({
                 "binding": storage_buffer_data['binding'],
@@ -86,7 +89,7 @@ class WebGPUComputePipelineSystem(System):
             )
 
             # Append storage buffer to dictionary holding all storage buffers
-            compute.storage_buffers[buffer_name] = storage_buffer
+            compute.input_storage_buffers[buffer_name] = storage_buffer
             bind_groups_entries[read_only_storage_buffer_data['group']].append({
                 "binding": read_only_storage_buffer_data['binding'],
                 "resource": {
@@ -108,100 +111,60 @@ class WebGPUComputePipelineSystem(System):
             layout=compute_shader.pipeline_layout,
             compute={
                 "module": compute_shader.shader_module,
-                "entry_point": "computeStuff",
+                "entry_point": compute.entry_point,
             }
-        )
-
-        compute.map_buffer = WebGPURenderer().get_device().create_buffer(
-            size=storage_data.nbytes,
-            usage=wgpu.BufferUsage.MAP_READ | wgpu.BufferUsage.COPY_DST
         )
 
     def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         compute = components
+        
+        def dispatch():
+            # Create the encoder is it is None
+            if compute.encoder == None:
+                compute.encoder = WebGPURenderer().get_device().create_command_encoder()
 
-        if not compute.enabled:
-            return
+            # Begin the compute pass
+            compute_pass: wgpu.GPUComputePassEncoder = compute.encoder.begin_compute_pass()
 
-        compute_encoder: wgpu.GPUCommandEncoder = WebGPURenderer().get_device().create_command_encoder()
+            # Use compute pass
+            compute_pass.set_pipeline(compute.pipeline)
 
-        invocation_count = int(compute.storage_buffers['inputBuffer'].size / 4.0)
+            # Set the pass bind groups
+            for index, bind_group in enumerate(compute.bind_groups):
+                compute_pass.set_bind_group(index, bind_group, [], 0, 1)
 
-        input_storage_data = self.get_cpu_buffer_type(compute, 'inputBuffer')
+            # Calculate the workgroup count.
+            workgroup_count = int(np.ceil((compute.invocation_count + compute.work_group - 1) / compute.work_group))
 
-        if input_storage_data != None:
-            input_data = np.zeros((invocation_count, 1, 1))
+            # Dispatch the work groups
+            compute_pass.dispatch_workgroups(workgroup_count, 1, 1)
 
-            for i in range(invocation_count):
-                input_data[i] = 0.1 * i
+            # Finalize compute pass
+            compute_pass.end()
 
-            input_storage_data["data"] = np.ascontiguousarray(input_data)
+            # Before submiting commands copy the output buffers to the mapped buffers. (Thats because storage buffers cant be marked as MAP_READ)
+            for i, output_buffer in enumerate(compute.output_storage_buffers.values()):
+                compute.encoder.copy_buffer_to_buffer(output_buffer, 0, compute.map_buffers[i], 0, output_buffer.size)
 
-            self.set_storage_buffer(compute, compute_encoder, 'inputBuffer', input_storage_data)
+            # Submit the compute commands to the gpu
+            WebGPURenderer().get_device().queue.submit([compute.encoder.finish()])
 
-        compute_pass: wgpu.GPUComputePassEncoder = compute_encoder.begin_compute_pass()
+            # Retrieve the output buffer data asynchronously from the gpu
+            asyncio.run(self.retrieve_output(compute))
 
-        # Use compute pass
-        compute_pass.set_pipeline(compute.pipeline)
-
-        # Set the pass bind groups
-        for index, bind_group in enumerate(compute.bind_groups):
-            compute_pass.set_bind_group(index, bind_group, [], 0, 1)
-
-        workgroup_size = 32
-        workgroup_count = int(np.ceil((invocation_count + workgroup_size - 1) / workgroup_size))
-
-        compute_pass.dispatch_workgroups(workgroup_count, 1, 1)
-
-        # Finalize compute pass
-        compute_pass.end()
-
-        # Before encoder.finish
-        compute_encoder.copy_buffer_to_buffer(compute.storage_buffers['outputBuffer'], 0, compute.map_buffer, 0, compute.storage_buffers['inputBuffer'].size)
-
-        WebGPURenderer().get_device().queue.submit([compute_encoder.finish()])
-
-        self.show_results(compute)
-
-    def get_cpu_buffer_type(self, compute, buffer_name: str) -> CPUBuffer | None:
-        if buffer_name in compute.storage_buffer_types.keys():
-            return compute.storage_buffer_types[buffer_name]
-        return None
+        if compute.dispatch:
+            dispatch()
     
-    def set_storage_buffer(self, compute: WebGPUComputeComponent, encoder: wgpu.GPUCommandEncoder, storage_name: str, storage_data: CPUBuffer):
-        storage_buffer = compute.storage_buffers[storage_name]
+    async def retrieve_output(self, compute: WebGPUComputeComponent):
+        compute.output.clear()
+        compute.output_ready = False
 
-        temporary_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer_with_data(
-            data=storage_data.mem, usage=wgpu.BufferUsage.COPY_SRC
-        )
+        for i, output_buffer in enumerate(compute.output_storage_buffers.values()): 
+            await compute.map_buffers[i].map_async(mode=wgpu.MapMode.READ, size=output_buffer.size)
+            output = compute.map_buffers[i].read_mapped(buffer_offset=0, size=output_buffer.size, copy=True)
+            compute.output.append(output)
+            compute.map_buffers[i].unmap()
 
-        encoder.copy_buffer_to_buffer(
-            temporary_buffer, 0, storage_buffer, 0, storage_data.mem.nbytes
-        )
-
-        temporary_buffer.destroy()
-    
-    def show_results(self, compute: WebGPUComputeComponent):
-        compute.map_buffer.map(mode=wgpu.MapMode.READ, size=compute.storage_buffers['inputBuffer'].size)
-        output = compute.map_buffer.read_mapped(buffer_offset=0, size=compute.storage_buffers['inputBuffer'].size, copy=False)
-
-        print(len(output) / 4.0)
-
-        # Iterate over the byte array in chunks of 4 bytes
-        float_list = []
-        for i in range(0, len(output), 4):
-            # Extract 4 bytes
-            four_bytes = output[i:i+4]
-            # Unpack bytes as float (assuming little-endian format)
-            float_value = struct.unpack('<f', four_bytes)[0]
-            float_list.append(float_value)
-
-        input_storage_data = self.get_cpu_buffer_type(compute, 'inputBuffer')
-
-        # Print the resulting float values
-        for i, f in enumerate(float_list):
-            print(f"({i}) input: {input_storage_data['data'][0][i][0]} -> output: {f}")
-                
-        compute.map_buffer.unmap()
-
-        compute.enabled = False
+        compute.dispatch = False
+        compute.output_ready = True
+        compute.encoder = None
