@@ -23,9 +23,20 @@ class ComputeUtilities(object):
         Returns:
             CPUBuffer | None: A CPUBuffer instance with the given name from the given compute component.
         """
-        if buffer_name in compute.storage_buffer_types.keys():
-            return compute.storage_buffer_types[buffer_name]
+        if buffer_name in compute.buffer_types.keys():
+            return compute.buffer_types[buffer_name]
         return None
+    
+    def set_uniform_buffer(cls, compute: WebGPUComputeComponent, uniform_name: str, uniform_data: CPUBuffer):
+        """Sets the uniform buffer with the provided name (if valid), with the provided data.
+
+        Args:
+            compute (WebGPUComputeComponent): The compute component to retrieve the buffer from.
+            uniform_name (str): The name of the uniform buffer to set.
+            uniform_data (CPUBuffer): The new data for the uniform buffer.
+        """
+        uniform_buffer = compute.uniform_buffers[uniform_name]
+        WebGPURenderer().write_buffer(uniform_buffer, uniform_data.mem)
     
     def set_storage_buffer(cls, compute: WebGPUComputeComponent, storage_name: str, storage_data: CPUBuffer):
         """Stores the given data to the gpu storage buffer with the given name.

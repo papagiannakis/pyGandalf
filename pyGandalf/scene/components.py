@@ -123,17 +123,25 @@ class LightComponent(Component):
         self.intensity = intensity
 
 class WebGPUComputeComponent(Component):
-    def __init__(self, compute_shader: str, work_group: int, invocation_count: int, entry_point: str = 'computeStuff') -> None:
+    def __init__(self, compute_shader: str, textures: list[str], entry_point: str) -> None:
         self.shader: str = compute_shader
         self.pipeline: wgpu.GPUComputePipeline = None
         self.encoder: wgpu.GPUCommandEncoder = None
         self.map_buffers: list[wgpu.GPUBuffer] = []
         self.bind_groups: list[wgpu.GPUBindGroup] = []
+
+        self.uniform_buffers: dict[str, wgpu.GPUBuffer] = {}
         self.input_storage_buffers: dict[str, wgpu.GPUBuffer] = {}
         self.output_storage_buffers: dict[str, wgpu.GPUBuffer] = {}
-        self.storage_buffer_types: dict[str, CPUBuffer] = {}
-        self.work_group = work_group
-        self.invocation_count = invocation_count
+        self.other_uniforms: dict = {}
+        self.buffer_types: dict[str, CPUBuffer] = {}
+
+        self.textures: list[str] = textures
+
+        self.work_group = -1
+        self.invocation_count_x = 1
+        self.invocation_count_y = 1
+        self.invocation_count_z = 1
         self.entry_point = entry_point
         self.output: list[bytearray] = []
         self.output_ready = False

@@ -37,7 +37,9 @@ class ComputeShowcaseComponent(Component):
 
 class ComputeShowcaseSystem(System):
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
-        pass
+        showcase, compute = components
+        compute.work_group = 32
+        compute.invocation_count_x = 64
 
     def on_update_entity(self, ts: float, entity: Entity, components: Component | tuple[Component]):
         showcase, compute = components
@@ -46,9 +48,9 @@ class ComputeShowcaseSystem(System):
             input_storage_data = ComputeUtilities().get_cpu_buffer(compute, 'inputBuffer')
 
             if input_storage_data != None:
-                input_data = np.zeros((compute.invocation_count, 1, 1))
+                input_data = np.zeros((compute.invocation_count_x, 1, 1))
 
-                for i in range(compute.invocation_count):
+                for i in range(compute.invocation_count_x):
                     input_data[i] = 0.1 * i
 
                 input_storage_data["data"] = np.ascontiguousarray(input_data)
@@ -58,7 +60,7 @@ class ComputeShowcaseSystem(System):
                 compute.dispatch = True
                 showcase.output_requested = True
 
-                print('Output data:')
+                print('Input data:')
                 print(input_storage_data.data)
 
         if compute.output_ready and showcase.output_requested:
@@ -83,7 +85,7 @@ def main():
     compute = scene.enroll_entity()
 
     # Build shaders
-    WebGPUShaderLib().build('test_compute', SHADERS_PATH / 'webgpu' / 'test_compute.wgsl')
+    WebGPUShaderLib().build('simple_compute', SHADERS_PATH / 'webgpu' / 'simple_compute.wgsl')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
@@ -94,7 +96,7 @@ def main():
     scene.add_component(compute, InfoComponent("compute"))
     scene.add_component(compute, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(compute, LinkComponent(root))
-    scene.add_component(compute, WebGPUComputeComponent('test_compute', 32, 64))
+    scene.add_component(compute, WebGPUComputeComponent('simple_compute', [], 'computeStuff'))
     scene.add_component(compute, ComputeShowcaseComponent())
 
     # Register the systems

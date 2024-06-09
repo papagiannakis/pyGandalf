@@ -36,7 +36,7 @@ class WebGPUShaderLib(object):
 
             bind_groups_layout_entries[uniform_buffers[buffer_name]['group']].append({
                 "binding": uniform_buffers[buffer_name]['binding'],
-                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.FRAGMENT,
+                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.FRAGMENT | wgpu.ShaderStage.COMPUTE, # TODO: Fix this visibility properly
                 "buffer": {
                     "type": wgpu.BufferBindingType.uniform
                 },
@@ -74,7 +74,7 @@ class WebGPUShaderLib(object):
                 case 'texture_2d<f32>':
                     bind_groups_layout_entries[other[uniform_name]['group']].append({
                         "binding": other[uniform_name]['binding'],
-                        "visibility": wgpu.ShaderStage.FRAGMENT,
+                        "visibility": wgpu.ShaderStage.FRAGMENT | wgpu.ShaderStage.COMPUTE,
                         "texture": {  
                             "sample_type": wgpu.TextureSampleType.float,
                             "view_dimension": wgpu.TextureViewDimension.d2,
@@ -96,6 +96,16 @@ class WebGPUShaderLib(object):
                         "texture": {  
                             "sample_type": wgpu.TextureSampleType.float,
                             "view_dimension": wgpu.TextureViewDimension.cube,
+                        }
+                    })
+                case 'texture_storage_2d<rgba8unorm, write>':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.COMPUTE,
+                        "storage_texture": {  
+                            "format": wgpu.TextureFormat.rgba8unorm,
+                            "access": wgpu.StorageTextureAccess.write_only,
+                            "view_dimension": wgpu.TextureViewDimension.d2,
                         }
                     })
                 case 'sampler':

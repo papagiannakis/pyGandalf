@@ -4,6 +4,7 @@ from pyGandalf.systems.system import System
 
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
+from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData, TextureDescriptor, TextureInstance
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, CPUBuffer
 
 import wgpu
@@ -23,9 +24,43 @@ class WebGPUComputePipelineSystem(System):
         compute_shader = WebGPUShaderLib().get(compute.shader)
 
         # Parse shader params
-        _, storage_buffers_data, read_only_storage_buffers_data, _ = WebGPUShaderLib().parse(compute_shader.shader_code)
+        uniform_buffers_data, storage_buffers_data, read_only_storage_buffers_data, other = WebGPUShaderLib().parse(compute_shader.shader_code)
 
         bind_groups_entries = [[]]
+
+        for buffer_name in uniform_buffers_data.keys():
+            uniform_buffer_data = uniform_buffers_data[buffer_name]
+
+            if len(bind_groups_entries) <= uniform_buffer_data['group']:
+                bind_groups_entries.append([])
+
+            # Find uniform buffer layout and fields from shader reflection.
+            fields = []
+            for member_name in uniform_buffer_data['type']['members']:
+                member_type = uniform_buffer_data['type']['members'][member_name]
+                fields.append(WebGPUMaterialLib().compute_field_layout(member_type, member_name))
+
+            # Instantiate a struct for the uniform buffer data with the given fields
+            uniform_data = CPUBuffer(*fields)
+            compute.buffer_types[buffer_name] = uniform_data
+
+            # Create a uniform buffer
+            uniform_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
+                size=uniform_data.nbytes, usage=wgpu.BufferUsage.UNIFORM | wgpu.BufferUsage.COPY_DST
+            )
+
+            # Append uniform buffer to dictionary holding all uniform buffers
+            compute.uniform_buffers[buffer_name] = uniform_buffer
+
+            # Create a bind group entry for the uniform buffer
+            bind_groups_entries[uniform_buffers_data[buffer_name]['group']].append({
+                "binding": uniform_buffers_data[buffer_name]['binding'],
+                "resource": {
+                    "buffer": uniform_buffer,
+                    "offset": 0,
+                    "size": uniform_buffer.size,
+                },
+            })
 
         for buffer_name in storage_buffers_data.keys():
             storage_buffer_data = storage_buffers_data[buffer_name]
@@ -42,7 +77,7 @@ class WebGPUComputePipelineSystem(System):
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
 
-            compute.storage_buffer_types[buffer_name] = storage_data
+            compute.buffer_types[buffer_name] = storage_data
 
             # Create storage buffer - data is uploaded each frame
             storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
@@ -81,7 +116,7 @@ class WebGPUComputePipelineSystem(System):
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
 
-            compute.storage_buffer_types[buffer_name] = storage_data
+            compute.buffer_types[buffer_name] = storage_data
 
             # Create storage buffer - data is uploaded each frame
             storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
@@ -98,6 +133,68 @@ class WebGPUComputePipelineSystem(System):
                     "size": storage_buffer.size,
                 },
             })
+
+        texture_index = 0
+
+        for uniform_name in other.keys():
+            other_data = other[uniform_name]
+
+            if len(bind_groups_entries) <= other_data['group']:
+                bind_groups_entries.append([])
+
+            match other_data['type']['name']:
+                case 'texture_2d<f32>':
+                    # Retrieve texture.
+                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(compute.textures[texture_index])
+
+                    # Append uniform buffer to dictionary holding all uniform buffers
+                    compute.other_uniforms[uniform_name] = texture_inst
+
+                    # Create a bind group entry for the uniform buffer
+                    bind_groups_entries[other_data['group']].append({
+                        "binding": other_data['binding'],
+                        "resource": texture_inst.view
+                    })
+                    texture_index += 1
+                case 'texture_depth_2d':
+                    # Retrieve texture.
+                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(compute.textures[texture_index])
+
+                    # Append uniform buffer to dictionary holding all uniform buffers
+                    compute.other_uniforms[uniform_name] = texture_inst
+
+                    # Create a bind group entry for the uniform buffer
+                    bind_groups_entries[other_data['group']].append({
+                        "binding": other_data['binding'],
+                        "resource": texture_inst.view
+                    })
+                    texture_index += 1
+                case 'texture_cube<f32>':
+                    # Retrieve texture.
+                    texture_inst = WebGPUTextureLib().get_instance(compute.textures[texture_index])
+
+                    # Append uniform buffer to dictionary holding all uniform buffers
+                    compute.other_uniforms[uniform_name] = texture_inst
+
+                    # Create a bind group entry for the uniform buffer
+                    bind_groups_entries[other_data['group']].append({
+                        "binding": other_data['binding'],
+                        "resource": texture_inst.view
+                    })
+                    texture_index += 1
+                case 'texture_storage_2d<rgba8unorm, write>':
+                    # Retrieve texture.
+                    texture_inst = WebGPUTextureLib().get_instance(compute.textures[texture_index])
+
+                    # Append uniform buffer to dictionary holding all uniform buffers
+                    compute.other_uniforms[uniform_name] = texture_inst
+
+                    # Create a bind group entry for the uniform buffer
+                    bind_groups_entries[other_data['group']].append({
+                        "binding": other_data['binding'],
+                        "resource": texture_inst.view
+                    })
+                    texture_index += 1
 
         # Create compute shader bind groups
         for index, bind_group_entry in enumerate(bind_groups_entries):
@@ -134,10 +231,12 @@ class WebGPUComputePipelineSystem(System):
                 compute_pass.set_bind_group(index, bind_group, [], 0, 1)
 
             # Calculate the workgroup count.
-            workgroup_count = int(np.ceil((compute.invocation_count + compute.work_group - 1) / compute.work_group))
+            workgroup_count_x = int(np.ceil((compute.invocation_count_x + compute.work_group - 1) / compute.work_group))
+            workgroup_count_y = int(np.ceil((compute.invocation_count_y + compute.work_group - 1) / compute.work_group))
+            workgroup_count_z = int(np.ceil((compute.invocation_count_z + compute.work_group - 1) / compute.work_group))
 
             # Dispatch the work groups
-            compute_pass.dispatch_workgroups(workgroup_count, 1, 1)
+            compute_pass.dispatch_workgroups(workgroup_count_x, workgroup_count_y, workgroup_count_z)
 
             # Finalize compute pass
             compute_pass.end()
