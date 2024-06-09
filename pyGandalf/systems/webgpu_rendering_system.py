@@ -1,14 +1,17 @@
-from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.systems.system import System, SystemState
 from pyGandalf.scene.entity import Entity
+from pyGandalf.scene.scene_manager import SceneManager
+
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPipelineDescription, RenderPassDescription, ColorAttachmentDescription
-from pyGandalf.scene.components import Component, TransformComponent
+from pyGandalf.scene.components import Component, TransformComponent, WebGPUStaticMeshComponent, WebGPUMaterialComponent
 from pyGandalf.systems.light_system import LightSystem
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialInstance, CPUBuffer
+from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData, TextureDescriptor, TextureInstance
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
 
 import glm
+import wgpu
 import numpy as np
 
 import hashlib
@@ -18,23 +21,32 @@ class WebGPUStaticMeshRenderingSystem(System):
     The system responsible for rendering static meshes on WebGPU.
     """
 
-    def __init__(self, filters: list[type]):
-        super().__init__(filters)
-        self.batches: dict[str, dict[str, list]] = {}
-
-    def calculate_hash(self, attributes, indices, primitive):
+    def calculate_hash(self, attributes, indices):
         # Convert numpy arrays to their string representations
         attributes_str = ",".join([np.array2string(arr) for arr in attributes])
         indices_str = None if indices is None else np.array2string(indices)
-        primitive_str = str(primitive)
 
         # Concatenate string representations
-        combined_str = f"{attributes_str}_{indices_str}_{primitive_str}"
+        combined_str = f"{attributes_str}_{indices_str}"
 
         # Compute hash value
         hash_value = hashlib.sha256(combined_str.encode()).hexdigest()
 
         return hash_value
+    
+    def on_create_system(self):
+        self.batches: dict[str, dict[str, list]] = {}
+        self.pre_pass_material = None
+        self.pre_pass_render_data = None
+        self.render_pipeline_descriptions: list[RenderPipelineDescription] = []
+
+        self.SHADOW_WIDTH = 1024
+        self.SHADOW_HEIGHT = 1024
+
+        gfx_texture_descriptor: TextureDescriptor = TextureDescriptor()
+        gfx_texture_descriptor.format = WebGPURenderer().get_render_texture_format()
+        gfx_texture_descriptor.usage = wgpu.TextureUsage.RENDER_ATTACHMENT | wgpu.TextureUsage.TEXTURE_BINDING
+        WebGPUTextureLib().build('gfx_texture', TextureData(width=self.SHADOW_WIDTH, height=self.SHADOW_HEIGHT), descriptor=gfx_texture_descriptor)
 
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
@@ -60,7 +72,7 @@ class WebGPUStaticMeshRenderingSystem(System):
         WebGPURenderer().create_buffers(mesh)
 
         # Calculate mesh hash
-        mesh.hash = self.calculate_hash(mesh.attributes, mesh.indices, mesh.primitive)
+        mesh.hash = self.calculate_hash(mesh.attributes, mesh.indices)
 
         # Categorize meshes based on material and then on mesh hash
         if material.name not in self.batches.keys():
@@ -71,12 +83,69 @@ class WebGPUStaticMeshRenderingSystem(System):
         self.batches[material.name][mesh.hash].append(components)
 
     def on_update_system(self, ts):
-        base_pass_desc: RenderPassDescription = RenderPassDescription()
+        if WebGPURenderer().get_shadows_enabled():
+            if self.pre_pass_material == None:
+                self.pre_pass_material = WebGPUMaterialComponent('M_DepthPrePass')
+                self.pre_pass_material.instance = WebGPUMaterialLib().get('M_DepthPrePass')
+
+            self.render_pipeline_descriptions.clear()
+
+            shadow_pass_color_attachment: ColorAttachmentDescription = ColorAttachmentDescription()
+            shadow_pass_color_attachment.resolve_target = None
+            shadow_pass_color_attachment.view = WebGPUTextureLib().get_instance('gfx_texture').view
+
+            shadow_pass_desc: RenderPassDescription = RenderPassDescription()
+            shadow_pass_desc.color_attachments.append(shadow_pass_color_attachment)
+            shadow_pass_desc.depth_texture_view = WebGPUTextureLib().get_instance('depth_texture').view
+
+            WebGPURenderer().begin_render_pass(shadow_pass_desc)
+            for material in self.batches.keys():
+                current_batch = self.batches[material]
+                material_instance = WebGPUMaterialLib().get(material)
+
+                if material_instance.descriptor.cast_shadows == False:
+                    continue
+
+                self.set_prepass_uniforms(self.pre_pass_material.instance, current_batch.values())
+
+                first_instance = 0
+
+                for mesh_hash in current_batch.keys():
+                    current_mesh_group = current_batch[mesh_hash]
+
+                    mesh_group_size = len(current_mesh_group)
+
+                    mesh, _, _ = current_mesh_group[0]
+
+                    self.render_pipeline_descriptions.append(RenderPipelineDescription())
+                    self.render_pipeline_descriptions[-1].render_data = WebGPUStaticMeshComponent('shadow_render_data', [mesh.attributes[0]], mesh.indices)
+                    self.render_pipeline_descriptions[-1].material_instance = self.pre_pass_material.instance
+                    WebGPURenderer().create_render_pipeline(self.render_pipeline_descriptions[-1])
+                    WebGPURenderer().create_buffers(self.render_pipeline_descriptions[-1].render_data)
+
+                    WebGPURenderer().set_pipeline(self.render_pipeline_descriptions[-1].render_data)
+                    WebGPURenderer().set_buffers(self.render_pipeline_descriptions[-1].render_data)
+                    WebGPURenderer().set_bind_groups(self.pre_pass_material)
+
+                    if mesh_group_size == 1:
+                        if (mesh.indices is None):
+                            WebGPURenderer().draw(self.render_pipeline_descriptions[-1].render_data, 1, first_instance)
+                        else:
+                            WebGPURenderer().draw_indexed(self.render_pipeline_descriptions[-1].render_data, 1, first_instance)
+                        first_instance += 1
+                    else:
+                        if (mesh.indices is None):
+                            WebGPURenderer().draw(self.render_pipeline_descriptions[-1].render_data, mesh_group_size)
+                        else:
+                            WebGPURenderer().draw_indexed(self.render_pipeline_descriptions[-1].render_data, mesh_group_size)
+                        first_instance = 0
+            WebGPURenderer().end_render_pass()
+
         color_attachment: ColorAttachmentDescription = ColorAttachmentDescription()
         color_attachment.view = WebGPURenderer().get_current_texture().create_view()
         color_attachment.clear_value = (WebGPURenderer().clear_color.r, WebGPURenderer().clear_color.g, WebGPURenderer().clear_color.b, WebGPURenderer().clear_color.a)
+        base_pass_desc: RenderPassDescription = RenderPassDescription()
         base_pass_desc.depth_stencil_attachment=True
-        base_pass_desc.depth_texture_view = WebGPURenderer().get_depth_texture_view()
         base_pass_desc.color_attachments.append(color_attachment)
 
         WebGPURenderer().begin_render_pass(base_pass_desc)
@@ -114,7 +183,7 @@ class WebGPUStaticMeshRenderingSystem(System):
                     first_instance = 0
         WebGPURenderer().end_render_pass()
     
-    def set_prepass_uniforms(self, material_instance: MaterialInstance):
+    def set_prepass_uniforms(self, material_instance: MaterialInstance, meshes):
         light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
         
         if light_system is not None:
@@ -123,15 +192,30 @@ class WebGPUStaticMeshRenderingSystem(System):
                     light, transform = components
 
                     if material_instance.has_uniform('u_UniformData'):
-                        from pyGandalf.scene.scene_manager import SceneManager
                         camera = SceneManager().get_main_camera()
                         if camera != None:
-                            light_projection = glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)
-                            light_view = glm.lookAt(transform.get_world_position(), glm.vec3(0.0), glm.vec3(0.0, 1.0, 0.0))
+                            light_projection = glm.transpose(glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far))
+                            light_view = glm.transpose(glm.lookAtLH(transform.get_world_position(), glm.vec3(0.0), glm.vec3(0.0, 1.0, 0.0)))
                             uniform_data = material_instance.get_cpu_buffer_type('u_UniformData')
                             if uniform_data.has_member("lightSpaceMatrix"):
-                                uniform_data["lightSpaceMatrix"] = np.asarray(glm.transpose(light_projection * light_view))
+                                uniform_data["lightSpaceMatrix"] = np.asarray(light_projection * light_view)
                     break
+        
+        storage_data = material_instance.get_cpu_buffer_type('u_ModelData')
+
+        if storage_data != None:
+            if storage_data.has_member('modelMatrix'):
+                object_data = np.zeros((512, 4, 4))
+
+                i = 0
+                for mesh in meshes:
+                    for components in mesh:
+                        _, _, transform = components
+                        object_data[i] = glm.transpose(transform.world_matrix)
+                        i += 1
+
+                storage_data["modelMatrix"] = np.ascontiguousarray(object_data)
+            material_instance.set_storage_buffer('u_ModelData', storage_data)
 
     def set_uniforms(self, material_instance: MaterialInstance, meshes):
         if material_instance.has_uniform('u_UniformData'):
@@ -183,11 +267,11 @@ class WebGPUStaticMeshRenderingSystem(System):
                             from pyGandalf.scene.scene_manager import SceneManager
                             camera = SceneManager().get_main_camera()
                             if camera != None:
-                                light_projection = glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far)
-                                light_view = glm.lookAt(transform.get_world_position(), glm.vec3(0.0), glm.vec3(0.0, 1.0, 0.0))
+                                light_projection = glm.transpose(glm.perspectiveLH(glm.radians(camera.fov), camera.aspect_ratio, camera.near, camera.far))
+                                light_view = glm.transpose(glm.lookAtLH(transform.get_world_position(), glm.vec3(0.0), glm.vec3(0.0, 1.0, 0.0)))
                                 uniform_data = material_instance.get_cpu_buffer_type('u_UniformData')
                                 if uniform_data.has_member("lightSpaceMatrix"):
-                                    uniform_data["lightSpaceMatrix"] = np.asarray(glm.transpose(light_projection * light_view))
+                                    uniform_data["lightSpaceMatrix"] = np.asarray(light_projection * light_view)
 
             count = len(light_positions)
 
@@ -248,3 +332,9 @@ class WebGPUStaticMeshRenderingSystem(System):
         
         if material_instance.has_uniform('u_DisplacementMap'):
             material_instance.set_uniform('u_DisplacementMap')
+
+        if material_instance.has_uniform('u_ShadowSampler'):
+            material_instance.set_uniform('u_ShadowSampler')
+
+        if material_instance.has_uniform('u_Sampler'):
+            material_instance.set_uniform('u_Sampler')

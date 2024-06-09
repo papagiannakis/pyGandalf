@@ -24,6 +24,7 @@ fn vs_main(@builtin(instance_index) ID: u32, in: VertexInput) -> VertexOutput {
 }
 
 @fragment
-fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    // Noop
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+    var depth = in.v_Position.z / in.v_Position.w;
+    return vec4f(depth, depth, depth, depth);
 }

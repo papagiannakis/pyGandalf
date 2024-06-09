@@ -98,11 +98,10 @@ class StaticMeshComponent(Component):
         self.hash = uuid.uuid4()
 
 class WebGPUStaticMeshComponent(Component):
-    def __init__(self, name, attributes = None, indices = None, primitive = None):
+    def __init__(self, name, attributes = None, indices = None):
         self.name = name
         self.attributes = attributes
         self.indices = indices
-        self.primitive = primitive
 
         self.render_pipeline = None
         self.buffers = []

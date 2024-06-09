@@ -20,11 +20,8 @@ class OpenGLStaticMeshRenderingSystem(System):
     The system responsible for rendering.
     """
 
-    def __init__(self, filters: list[type]):
-        super().__init__(filters)
-        self.pre_pass_material = None
-
     def on_create_system(self):
+        self.pre_pass_material = None
         self.SHADOW_WIDTH = 1024
         self.SHADOW_HEIGHT = 1024
 

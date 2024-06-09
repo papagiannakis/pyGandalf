@@ -8,12 +8,11 @@ struct VertexOutput {
     @location(0) v_Normal : vec3<f32>,
     @location(1) v_TexCoord : vec2<f32>,
     @location(2) v_WorldPosition : vec3<f32>,
-    @location(2) v_FragPosLightSpace : vec3<f32>,
+    @location(3) v_FragPosLightSpace : vec4<f32>,
 };
 
 struct UniformData {
     viewMatrix: mat4x4f,
-    projectionMatrix: mat4x4f,
     projectionMatrix: mat4x4f,
     lightSpaceMatrix: mat4x4f,
     objectColor: vec4f,
@@ -33,8 +32,8 @@ struct ModelData {
 @group(0) @binding(1) var<storage, read> u_ModelData: ModelData;
 @group(1) @binding(0) var u_AlbedoMap: texture_2d<f32>;
 @group(1) @binding(1) var u_AlbedoSampler: sampler;
-@group(1) @binding(2) var u_ShadowMap: texture_2d<f32>;
-@group(1) @binding(3) var u_ShadowSampler: sampler;
+@group(1) @binding(2) var u_ShadowMap: texture_depth_2d;
+@group(1) @binding(3) var u_ShadowSampler: sampler_comparison;
 
 @vertex
 fn vs_main(@builtin(instance_index) ID: u32, in: VertexInput) -> VertexOutput {
@@ -48,37 +47,89 @@ fn vs_main(@builtin(instance_index) ID: u32, in: VertexInput) -> VertexOutput {
     return out;
 }
 
-fn ShadowCalculation(fragPosLightSpace: vec4f) -> f32
+fn ShadowCalculation(in: VertexOutput) -> f32
 {
+    // // perform perspective divide
+    // var projCoords = in.v_FragPosLightSpace.xyz / in.v_FragPosLightSpace.w;
+    // // transform to [0,1] range
+    // projCoords = projCoords * 0.5 + 0.5;
+    // // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    // var closestDepth: f32 = textureSampleCompare(u_ShadowMap, u_ShadowSampler, projCoords.xy, projCoords.z);
+    // // get depth of current fragment from light's perspective
+    // var currentDepth: f32 = projCoords.z;
+    // // check whether current frag pos is in shadow
+    // var shadow: f32 = 0.0;
+    // if (currentDepth > closestDepth)
+    // {
+    //     shadow = 1.0;
+    // }
+    // else
+    // {
+    //     shadow = 0.0;
+    // }
+
+    // return shadow;
+
+    // var projCoord = in.v_FragPosLightSpace.xyz / in.v_FragPosLightSpace.w; 
+    // var uv = vec2f(0.0, 0.0); 
+
+    // uv = projCoord.xy * vec2f(0.5, -0.5) + vec2f(0.5, 0.5); 
+
+    // var visibility = 0.0;
+    // let oneOverShadowDepthTextureSize = 1 / f32(1024);
+    // for (var y = -1; y <= 1; y++) {
+    //     for (var x = -1; x <= 1; x++) {
+    //         let offset = vec2f(vec2(x, y)) * oneOverShadowDepthTextureSize;
+    //         visibility += textureSampleCompare(
+    //             u_ShadowMap, u_ShadowSampler,
+    //             uv.xy + offset, projCoord.z - 0.0001
+    //         );
+    //     }
+    // }
+    // visibility /= 9.0;  
+
+    // return visibility;
+
+    /////
+
     // perform perspective divide
-    var projCoords: vec3f = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    var projCoords: vec3f = in.v_FragPosLightSpace.xyz / in.v_FragPosLightSpace.w;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    var closestDepth: f32 = texture(u_ShadowMap, projCoords.xy).r; 
+    var closestDepth: f32 = textureSampleCompare(u_ShadowMap, u_ShadowSampler, projCoords.xy, projCoords.z);
     // get depth of current fragment from light's perspective
     var currentDepth: f32 = projCoords.z;
 
     // calculate bias (based on depth map resolution and slope)
-    var normal: vec3f = normalize(v_Normal);
-    var lightDir: vec3f = normalize(u_LightPositions[u_LightCount - 1] - v_Position);
+    var normal: vec3f = normalize(in.v_Normal);
+    var lightDir: vec3f = normalize(u_UniformData.lightPositions[i32(u_UniformData.lightCount - 1)] - vec4f(in.v_WorldPosition, 1.0)).xyz;
     var bias: f32 = max(0.005 * (1.0 - dot(normal, lightDir)), 0.001);
 
     // PCF
     var shadow: f32 = 0.0;
-    var texelSize: vec2f = 1.0 / textureSize(u_ShadowMap, 0);
+    let texelSize = 1 / f32(1024); //textureDimensions(u_ShadowMap, 0);
     for(var x: i32 = -1; x <= 1; x = x + 1)
     {
         for(var y: i32 = -1; y <= 1; y = y + 1)
         {
-            var pcfDepth: f32 = textureSample(u_ShadowMap, u_ShadowSampler, projCoords.xy + vec2f(x, y) * texelSize).r; 
-            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+            var pcfDepth: f32 = textureSampleCompare(u_ShadowMap, u_ShadowSampler, projCoords.xy + vec2f(f32(x), f32(y)) * texelSize, projCoords.z - 0.0001);
+            if (currentDepth - bias > pcfDepth)
+            {
+                shadow += 1.0;
+            }
+            else
+            {
+                shadow += 0.0;
+            }
         }    
     }
     shadow /= 9.0;
 
     if (projCoords.z > 1.0)
+    {
         shadow = 0.0;
+    }
     
     return shadow;
 }
@@ -117,14 +168,14 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     ambient = ambientCoefficient * ambient;
 
-    var shadow: f32 = ShadowCalculation(in.v_FragPosLightSpace); 
+    var shadow: f32 = ShadowCalculation(in); 
 
     var BlinnPhong: vec3<f32> = (ambient + (1.0 - shadow) * (diffuse + specular));
     var finalColor: vec3<f32> = textureColor.rgb * BlinnPhong;
     finalColor = pow(finalColor, vec3<f32>(1.0 / 1.2));
 
     // gamma correct
-    let physicalColor = pow(finalColor * u_UniformData.objectColor.rgb, vec3<f32>(2.2));
+    let physicalColor: vec3<f32> = pow(finalColor * u_UniformData.objectColor.rgb, vec3<f32>(2.2));
     
-    return vec4f(physicalColor.r, physicalColor.g, physicalColor.b, textureColor.a);
+    return vec4<f32>(physicalColor.r, physicalColor.g, physicalColor.b, textureColor.a);
 }

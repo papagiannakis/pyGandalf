@@ -54,6 +54,7 @@ class WebGPURenderer(BaseRenderer):
         cls.instance.current_texture = None
         cls.instance.depth_texture_view = None
         cls.instance.clear_color = glm.vec4(0.8, 0.5, 0.3, 1.0)
+        cls.instance.shadows_enabled = False
 
     def begin_frame(cls):
         cls.instance.current_texture = cls.instance.present_context.get_current_texture()
@@ -197,27 +198,28 @@ class WebGPURenderer(BaseRenderer):
         depth_stencil_attachment = None
 
         if render_pass_desc.depth_stencil_attachment:
-            depth_texture : wgpu.GPUTexture = cls.instance.device.create_texture(
-                label="depth_texture",
-                size=[cls.instance.current_texture.width, cls.instance.current_texture.height, 1],
-                mip_level_count=1,
-                sample_count=1,
-                dimension="2d",
-                format=wgpu.TextureFormat.depth24plus,
-                usage=wgpu.TextureUsage.RENDER_ATTACHMENT
-            )
+            if render_pass_desc.depth_texture_view == None:
+                depth_texture : wgpu.GPUTexture = cls.instance.device.create_texture(
+                    label="depth_texture",
+                    size=[cls.instance.current_texture.width, cls.instance.current_texture.height, 1],
+                    mip_level_count=1,
+                    sample_count=1,
+                    dimension="2d",
+                    format=wgpu.TextureFormat.depth24plus,
+                    usage=wgpu.TextureUsage.RENDER_ATTACHMENT
+                )
 
-            cls.instance.depth_texture_view = depth_texture.create_view(
-                label="depth_texture_view",
-                format=wgpu.TextureFormat.depth24plus,
-                dimension="2d",
-                aspect=wgpu.TextureAspect.depth_only,
-                base_mip_level=0,
-                mip_level_count=1,
-                base_array_layer=0,
-                array_layer_count=1,
-            )
-            render_pass_desc.depth_texture_view = cls.instance.depth_texture_view
+                cls.instance.depth_texture_view = depth_texture.create_view(
+                    label="depth_texture_view",
+                    format=wgpu.TextureFormat.depth24plus,
+                    dimension="2d",
+                    aspect=wgpu.TextureAspect.depth_only,
+                    base_mip_level=0,
+                    mip_level_count=1,
+                    base_array_layer=0,
+                    array_layer_count=1,
+                )
+                render_pass_desc.depth_texture_view = cls.instance.depth_texture_view
 
             depth_stencil_attachment = {
                 "view": render_pass_desc.depth_texture_view,
@@ -294,8 +296,17 @@ class WebGPURenderer(BaseRenderer):
     def get_current_texture(cls) -> wgpu.GPUTexture:
         return cls.instance.current_texture
     
+    def get_render_texture_format(cls) -> wgpu.TextureFormat:
+        return cls.instance.render_texture_format
+    
     def get_depth_texture_view(cls) -> wgpu.GPUTextureView:
         return cls.instance.depth_texture_view
     
     def set_clear_color(cls, clear_color: glm.vec4):
         cls.instance.clear_color = clear_color
+
+    def set_shadows_enabled(cls, shadows_enabled: bool):
+        cls.instance.shadows_enabled = shadows_enabled
+
+    def get_shadows_enabled(cls):
+        return cls.instance.shadows_enabled

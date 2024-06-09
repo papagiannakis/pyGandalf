@@ -10,6 +10,8 @@ from dataclasses import dataclass
 class TextureDescriptor:
     flip: bool = False
     dimention: wgpu.TextureDimension = wgpu.TextureDimension.d2
+    view_aspect: wgpu.TextureAspect = wgpu.TextureAspect.all
+    view_format: wgpu.TextureFormat = None
     view_dimention: wgpu.TextureViewDimension = wgpu.TextureViewDimension.d2
     usage: wgpu.TextureUsage = wgpu.TextureUsage.COPY_DST | wgpu.TextureUsage.TEXTURE_BINDING | wgpu.TextureUsage.RENDER_ATTACHMENT
     format: wgpu.TextureFormat = wgpu.TextureFormat.rgba8unorm
@@ -18,6 +20,7 @@ class TextureDescriptor:
     address_mode_w: wgpu.AddressMode = wgpu.AddressMode.clamp_to_edge
     min_filter: wgpu.FilterMode = wgpu.FilterMode.linear
     mag_filter: wgpu.FilterMode = wgpu.FilterMode.linear
+    sampler_compare: wgpu.CompareFunction = None
     array_layer_count: int = 1
 
 @dataclass
@@ -93,8 +96,9 @@ class WebGPUTextureLib(object):
 
         view = texture.create_view(
             dimension=descriptor.view_dimention,
+            aspect=descriptor.view_aspect,
+            format=descriptor.view_format,
             array_layer_count=descriptor.array_layer_count,
-            aspect=wgpu.TextureAspect.all,
         )
 
         sampler = WebGPURenderer().get_device().create_sampler(
@@ -103,24 +107,26 @@ class WebGPUTextureLib(object):
             address_mode_w=descriptor.address_mode_w,
             min_filter=descriptor.min_filter,
             mag_filter=descriptor.mag_filter,
+            compare=descriptor.sampler_compare,
             mipmap_filter=wgpu.FilterMode.nearest,
             max_anisotropy=1,
         )
 
-        WebGPURenderer().get_device().queue.write_texture(
-            {
-                "texture": texture,
-                "mip_level": 0,
-                "origin": (0, 0, 0)
-            },
-            data.image_bytes,
-            {
-                "offset": 0,
-                "bytes_per_row": data.width * 4,
-                "rows_per_image": data.height,
-            },
-            size
-        )
+        if data.image_bytes != None:
+            WebGPURenderer().get_device().queue.write_texture(
+                {
+                    "texture": texture,
+                    "mip_level": 0,
+                    "origin": (0, 0, 0)
+                },
+                data.image_bytes,
+                {
+                    "offset": 0,
+                    "bytes_per_row": data.width * 4,
+                    "rows_per_image": data.height,
+                },
+                size
+            )
 
         cls.instance.textures[name] = TextureInstance(texture, view, sampler, data, descriptor)
         cls.instance.slots[name] = cls.instance.current_slot

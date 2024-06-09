@@ -80,6 +80,15 @@ class WebGPUShaderLib(object):
                             "view_dimension": wgpu.TextureViewDimension.d2,
                         }
                     })
+                case 'texture_depth_2d':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.FRAGMENT,
+                        "texture": {
+                            "sample_type": wgpu.TextureSampleType.depth,
+                            "view_dimension": wgpu.TextureViewDimension.d2,
+                        }
+                    })
                 case 'texture_cube<f32>':
                     bind_groups_layout_entries[other[uniform_name]['group']].append({
                         "binding": other[uniform_name]['binding'],
@@ -97,7 +106,14 @@ class WebGPUShaderLib(object):
                             "type": wgpu.SamplerBindingType.filtering
                         },
                     })
-            
+                case 'sampler_comparison':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.FRAGMENT,
+                        "sampler": {
+                            "type": wgpu.SamplerBindingType.comparison
+                        },
+                    })            
 
         # Create the wgou binding objects
         bind_group_layouts = []

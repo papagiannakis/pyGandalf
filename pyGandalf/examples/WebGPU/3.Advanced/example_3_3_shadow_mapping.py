@@ -15,7 +15,7 @@ from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
-from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData
+from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData, MaterialDescriptor
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData, TextureDescriptor
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
 from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
@@ -94,6 +94,13 @@ def main():
     ], dtype=np.float32)
 
     # Build textures
+    depth_texture_descriptor: TextureDescriptor = TextureDescriptor()
+    depth_texture_descriptor.view_format = wgpu.TextureFormat.depth32float
+    depth_texture_descriptor.view_aspect = wgpu.TextureAspect.depth_only
+    depth_texture_descriptor.format = wgpu.TextureFormat.depth32float
+    depth_texture_descriptor.usage = wgpu.TextureUsage.RENDER_ATTACHMENT | wgpu.TextureUsage.TEXTURE_BINDING
+    depth_texture_descriptor.sampler_compare = wgpu.CompareFunction.less_equal
+    WebGPUTextureLib().build('depth_texture', TextureData(width=1024, height=1024), descriptor=depth_texture_descriptor)
     WebGPUTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
     WebGPUTextureLib().build('brickwall_texture', TextureData(TEXTURES_PATH / 'brickwall.jpg'))
 
@@ -103,10 +110,10 @@ def main():
     # WebGPUShaderLib().build('debug_quad_depth', SHADERS_PATH / 'webgpu' / 'debug_quad_depth.wgsl')
     
     # Build Materials
-    WebGPUMaterialLib().build('M_LitShadows', MaterialData('shadow_mesh', ['white_texture', 'depth_texture'], glossiness=1.5))
+    WebGPUMaterialLib().build('M_LitShadows', MaterialData('shadow_mesh', ['white_texture', 'depth_texture'], glossiness=1.0))
     WebGPUMaterialLib().build('M_BrickFloor', MaterialData('shadow_mesh', ['brickwall_texture', 'depth_texture'], glossiness=0.75))
-    WebGPUMaterialLib().build('M_DepthPrePass', MaterialData('depth_pre_pass', []))
-    # WebGPUMaterialLib().build('M_DebugQuadDepth', MaterialData('debug_quad_depth', ['depth_texture'], glossiness=1.0))
+    WebGPUMaterialLib().build('M_DepthPrePass', MaterialData('depth_pre_pass', []), MaterialDescriptor(depth_compare=wgpu.CompareFunction.less, depth_format=wgpu.TextureFormat.depth32float))
+    # WebGPUMaterialLib().build('M_DebugQuadDepth', MaterialData('debug_quad_depth', ['depth_texture'], glossiness=1.0), MaterialDescriptor(cast_shadows=False))
 
     # Load models
     OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
@@ -119,15 +126,14 @@ def main():
 
     # Register components to bunny
     scene.add_component(bunny, InfoComponent("bunny"))
-    scene.add_component(bunny, TransformComponent(glm.vec3(-1, 0, 0), glm.vec3(0, 10, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(bunny, TransformComponent(glm.vec3(-1, 0, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(bunny, LinkComponent(root))
     scene.add_component(bunny, WebGPUStaticMeshComponent('bunny_mesh'))
     scene.add_component(bunny, WebGPUMaterialComponent('M_LitShadows'))
-    scene.add_component(bunny, RotateAroundComponent([0, 1, 0], 30))
 
     # Register components to monkey
     scene.add_component(monkey, InfoComponent("monkey"))
-    scene.add_component(monkey, TransformComponent(glm.vec3(2, 1.2, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(monkey, TransformComponent(glm.vec3(-1, 0, 1.5), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(monkey, LinkComponent(root))
     scene.add_component(monkey, WebGPUStaticMeshComponent('monkey_mesh'))
     scene.add_component(monkey, WebGPUMaterialComponent('M_LitShadows'))
@@ -137,24 +143,24 @@ def main():
     scene.add_component(floor, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(270, 0, 0), glm.vec3(15, 15, 15)))
     scene.add_component(floor, LinkComponent(root))
     scene.add_component(floor, WebGPUStaticMeshComponent('floor_mesh', [plane_vertices, plane_normals, plane_texture_coords]))
-    scene.add_component(floor, WebGPUMaterialComponent('M_BrickFloor'))
+    scene.add_component(floor, WebGPUMaterialComponent('M_LitShadows'))
 
     # # Register components to debug_depth_quad
     # scene.add_component(debug_depth_quad, InfoComponent("debug_depth_quad"))
-    # scene.add_component(debug_depth_quad, TransformComponent(glm.vec3(-4, 4, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    # scene.add_component(debug_depth_quad, TransformComponent(glm.vec3(-4, 4, 0), glm.vec3(0, 180, 0), glm.vec3(2, 2, 2)))
     # scene.add_component(debug_depth_quad, LinkComponent(root))
     # scene.add_component(debug_depth_quad, WebGPUStaticMeshComponent('debug_depth_quad_mesh', [plane_vertices, plane_texture_coords]))
     # scene.add_component(debug_depth_quad, WebGPUMaterialComponent('M_DebugQuadDepth'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
-    scene.add_component(light, TransformComponent(glm.vec3(0, 2, 2), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(light, TransformComponent(glm.vec3(0, 2, -2), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(light, LinkComponent(root))
     scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 0.75))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
-    scene.add_component(camera, TransformComponent(glm.vec3(0, 3, 6), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(camera, TransformComponent(glm.vec3(0, 3, -6), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, LinkComponent(root))
     scene.add_component(camera, CameraComponent(65, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
