@@ -8,7 +8,7 @@ from pyGandalf.systems.light_system import LightSystem
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialInstance, CPUBuffer
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData, TextureDescriptor, TextureInstance
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
 
 import glm
 import wgpu
@@ -56,7 +56,7 @@ class WebGPUStaticMeshRenderingSystem(System):
 
         # Retrieve mesh data if loading from a model
         if mesh.attributes is None:
-            mesh_instance = OpenGLMeshLib().get(mesh.name)
+            mesh_instance = MeshLib().get(mesh.name)
             mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
             mesh.indices = mesh_instance.indices
 

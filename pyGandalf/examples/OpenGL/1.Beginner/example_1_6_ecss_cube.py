@@ -48,7 +48,7 @@ def main():
     camera = scene.enroll_entity()
 
     # Build shaders 
-    OpenGLShaderLib().build('unlit', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
+    OpenGLShaderLib().build('unlit', SHADERS_PATH / 'opengl' / 'unlit_simple.vs', SHADERS_PATH / 'opengl' / 'unlit_simple.fs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_UnlitRed', MaterialData('unlit', [], glm.vec4(1.0, 0.0, 0.0, 1.0)))

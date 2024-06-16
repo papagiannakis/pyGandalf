@@ -36,7 +36,7 @@ def main():
     triangle = scene.enroll_entity()
 
     # Build shaders 
-    OpenGLShaderLib().build('unlit', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
+    OpenGLShaderLib().build('unlit', SHADERS_PATH / 'opengl' / 'unlit_simple.vs', SHADERS_PATH / 'opengl' / 'unlit_simple.fs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', []))

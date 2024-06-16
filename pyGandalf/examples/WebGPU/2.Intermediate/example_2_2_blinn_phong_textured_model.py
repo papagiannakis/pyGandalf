@@ -17,7 +17,7 @@ from pyGandalf.scene.components import *
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, MODELS_PATH, TEXTURES_PATH
 from pyGandalf.utilities.logger import logger
@@ -52,7 +52,7 @@ def main():
     WebGPUMaterialLib().build('M_Pistol', MaterialData('default_mesh', ['flintlockPistol_albedo']))
 
     # Load models
-    OpenGLMeshLib().build('pistol_mesh', MODELS_PATH/'fa_flintlockPistol.obj')
+    MeshLib().build('pistol_mesh', MODELS_PATH/'fa_flintlockPistol.obj')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))

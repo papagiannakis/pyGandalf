@@ -73,6 +73,8 @@ class OpenGLShaderLib(object):
             name (str): The name of the shader
             vs_path (Path): The path to the vertex shader code
             fs_path (Path): The path to the fragment shader code
+            tcs_path (Path): The path to the tessallation control shader code
+            tes_path (Path): The path to the tessallation evaluation shader code
 
         Returns:
             int: The shader program

@@ -12,7 +12,7 @@ from pyGandalf.scene.components import *
 from pyGandalf.scene.scene_manager import SceneManager
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData, TextureDescriptor
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.logger import logger
@@ -40,10 +40,10 @@ def main():
     camera = scene.enroll_entity()
 
     # Build textures
-    OpenGLTextureLib().build('uoc_logo', TEXTURES_PATH / 'uoc_logo.png', descriptor=TextureDescriptor(flip=True))
+    OpenGLTextureLib().build('uoc_logo', TextureData(TEXTURES_PATH / 'uoc_logo.png'), descriptor=TextureDescriptor(flip=True))
 
     # Build shaders 
-    OpenGLShaderLib().build('unlit_textured', SHADERS_PATH/'unlit_textured_vertex.glsl', SHADERS_PATH/'unlit_textured_fragment.glsl')
+    OpenGLShaderLib().build('unlit_textured', SHADERS_PATH / 'opengl' / 'unlit_textured.vs', SHADERS_PATH / 'opengl' / 'unlit_textured.fs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_UnlitTextured', MaterialData('unlit_textured', ['uoc_logo']))

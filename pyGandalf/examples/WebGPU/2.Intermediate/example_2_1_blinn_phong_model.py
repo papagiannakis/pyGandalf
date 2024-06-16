@@ -17,7 +17,7 @@ from pyGandalf.scene.components import *
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData, TextureDescriptor
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, MODELS_PATH
 from pyGandalf.utilities.logger import logger
@@ -52,7 +52,7 @@ def main():
     WebGPUMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture']))
 
     # Load models
-    OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
+    MeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))

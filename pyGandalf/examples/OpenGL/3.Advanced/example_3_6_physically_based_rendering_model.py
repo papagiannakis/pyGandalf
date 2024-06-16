@@ -15,9 +15,9 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
 from pyGandalf.utilities.logger import logger
@@ -43,19 +43,19 @@ def main():
     light = scene.enroll_entity()
 
     # Build textures
-    OpenGLTextureLib().build('cerberus_albedo', TEXTURES_PATH / 'Cerberus' / 'Cerberus_A.png')
-    OpenGLTextureLib().build('cerberus_normal', TEXTURES_PATH / 'Cerberus' / 'Cerberus_N.png')
-    OpenGLTextureLib().build('cerberus_metallic', TEXTURES_PATH / 'Cerberus' / 'Cerberus_M.png')
-    OpenGLTextureLib().build('cerberus_roughness', TEXTURES_PATH / 'Cerberus' / 'Cerberus_R.png')
+    OpenGLTextureLib().build('cerberus_albedo', TextureData(TEXTURES_PATH / 'Cerberus' / 'Cerberus_A.png'))
+    OpenGLTextureLib().build('cerberus_normal', TextureData(TEXTURES_PATH / 'Cerberus' / 'Cerberus_N.png'))
+    OpenGLTextureLib().build('cerberus_metallic', TextureData(TEXTURES_PATH / 'Cerberus' / 'Cerberus_M.png'))
+    OpenGLTextureLib().build('cerberus_roughness', TextureData(TEXTURES_PATH / 'Cerberus' / 'Cerberus_R.png'))
 
     # Build shaders
-    OpenGLShaderLib().build('pbr_mesh', SHADERS_PATH/'lit_pbr.vs', SHADERS_PATH/'lit_pbr.fs')
+    OpenGLShaderLib().build('pbr_mesh', SHADERS_PATH / 'opengl' / 'lit_pbr.vs', SHADERS_PATH / 'opengl' / 'lit_pbr.fs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_PBR', MaterialData('pbr_mesh', ['cerberus_albedo', 'cerberus_normal', 'cerberus_metallic', 'cerberus_roughness']))
 
     # Load models
-    OpenGLMeshLib().build('cerberus_mesh', MODELS_PATH/'cerberus_lp.obj')
+    MeshLib().build('cerberus_mesh', MODELS_PATH/'cerberus_lp.obj')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))

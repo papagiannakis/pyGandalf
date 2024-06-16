@@ -4,9 +4,9 @@ from pyGandalf.systems.system import System, SystemState
 from pyGandalf.systems.light_system import LightSystem
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData, TextureDescriptor
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
 
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.entity import Entity
@@ -17,7 +17,7 @@ import OpenGL.GL as gl
 
 class OpenGLStaticMeshRenderingSystem(System):
     """
-    The system responsible for rendering.
+    The system responsible for rendering static meshes.
     """
 
     def on_create_system(self):
@@ -28,8 +28,6 @@ class OpenGLStaticMeshRenderingSystem(System):
         self.framebuffer_id = gl.glGenFramebuffers(1)
 
         depth_texture_descriptor = TextureDescriptor()
-        depth_texture_descriptor.width=self.SHADOW_WIDTH
-        depth_texture_descriptor.height=self.SHADOW_HEIGHT
         depth_texture_descriptor.internal_format=gl.GL_DEPTH_COMPONENT
         depth_texture_descriptor.format=gl.GL_DEPTH_COMPONENT
         depth_texture_descriptor.type=gl.GL_FLOAT
@@ -39,7 +37,7 @@ class OpenGLStaticMeshRenderingSystem(System):
         depth_texture_descriptor.max_filter=gl.GL_NEAREST
 
         # Create depth texture
-        OpenGLTextureLib().build('depth_texture', img_data=None, descriptor=depth_texture_descriptor)
+        OpenGLTextureLib().build('depth_texture', TextureData(image_bytes=None, width=self.SHADOW_WIDTH, height=self.SHADOW_WIDTH), descriptor=depth_texture_descriptor)
         depth_texture_id = OpenGLTextureLib().get_id('depth_texture')
 
         gl.glBindTexture(gl.GL_TEXTURE_2D, depth_texture_id)
@@ -60,7 +58,7 @@ class OpenGLStaticMeshRenderingSystem(System):
         material.instance = OpenGLMaterialLib().get(material.name)
 
         if mesh.load_from_file == True:
-            mesh_instance = OpenGLMeshLib().get(mesh.name)
+            mesh_instance = MeshLib().get(mesh.name)
             mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
             mesh.indices = mesh_instance.indices
 

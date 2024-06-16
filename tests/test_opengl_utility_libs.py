@@ -1,7 +1,7 @@
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialInstance
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib, MeshInstance
+from pyGandalf.utilities.mesh_lib import MeshLib, MeshInstance
 
 from pyGandalf.utilities.definitions import *
 
@@ -63,9 +63,9 @@ def test_material_lib():
     assert blinn_phong_material1.shader_params == blinn_phong_material2.shader_params
 
 def test_mesh_lib():
-    mesh1 = OpenGLMeshLib().build('monkeh_mesh1', MODELS_PATH/'monkey_flat.obj')
-    mesh2 = OpenGLMeshLib().build('monkeh_mesh2', MODELS_PATH/'monkey_flat.obj')
-    mesh3 = OpenGLMeshLib().build('monkeh_mesh3', MODELS_PATH/'fa_flintlockPistol.obj')
+    mesh1 = MeshLib().build('monkeh_mesh1', MODELS_PATH/'monkey_flat.obj')
+    mesh2 = MeshLib().build('monkeh_mesh2', MODELS_PATH/'monkey_flat.obj')
+    mesh3 = MeshLib().build('monkeh_mesh3', MODELS_PATH/'fa_flintlockPistol.obj')
 
     assert mesh1 == mesh2
     assert mesh1 != mesh3 and mesh2 != mesh3

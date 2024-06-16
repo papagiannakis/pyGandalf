@@ -1,7 +1,7 @@
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData, TextureDescriptor
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData, MaterialInstance
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib, MeshInstance
+from pyGandalf.utilities.mesh_lib import MeshLib, MeshInstance
 
 from pyGandalf.utilities.definitions import *
 

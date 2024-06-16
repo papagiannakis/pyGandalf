@@ -15,7 +15,7 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
@@ -125,11 +125,11 @@ def main():
     light = scene.enroll_entity()
 
     # Build textures
-    OpenGLTextureLib().build('brickwall_albedo', TEXTURES_PATH/'brickwall.jpg')
-    OpenGLTextureLib().build('brickwall_normal', TEXTURES_PATH/'brickwall_normal.jpg')
+    OpenGLTextureLib().build('brickwall_albedo', TextureData(TEXTURES_PATH / 'brickwall.jpg'))
+    OpenGLTextureLib().build('brickwall_normal', TextureData(TEXTURES_PATH / 'brickwall_normal.jpg'))
 
     # Build shaders
-    OpenGLShaderLib().build('default_mesh_normals', SHADERS_PATH/'lit_blinn_phong_normal_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_normal_fragment.glsl')
+    OpenGLShaderLib().build('default_mesh_normals', SHADERS_PATH / 'opengl' / 'lit_blinn_phong_normal.vs', SHADERS_PATH / 'opengl' / 'lit_blinn_phong_normal.fs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Wall', MaterialData('default_mesh_normals', ['brickwall_albedo', 'brickwall_normal']))

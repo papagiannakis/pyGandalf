@@ -1,10 +1,11 @@
 from pyGandalf.scene.entity import Entity
-from pyGandalf.scene.components import Component, LinkComponent, TransformComponent
+from pyGandalf.scene.components import Component, LinkComponent
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.systems.system import System
 
+from pyGandalf.utilities.component_lib import ComponentLib
+
 import glm
-import uuid
 
 class LinkSystem(System):
     """
@@ -42,7 +43,7 @@ class LinkSystem(System):
                 parent_link = SceneManager().get_active_scene().get_component(link.parent, LinkComponent)
                 transform = self.get_world_space_transform(link.parent, parent_link)
 
-        return transform * SceneManager().get_active_scene().get_component(entity, TransformComponent).local_matrix
+        return transform * SceneManager().get_active_scene().get_component(entity, ComponentLib().Transform).local_matrix
     
     def add_children(self, entity: Entity, link: LinkComponent):
         # If the entity has a parent, add it as a child of the parent

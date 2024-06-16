@@ -15,7 +15,7 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData, TextureDescriptor
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
@@ -126,15 +126,15 @@ def main():
     wall_parallax_occlusion = scene.enroll_entity()
     light = scene.enroll_entity()
 
-    OpenGLTextureLib().build('wall_albedo', TEXTURES_PATH / 'bricks2.jpg', descriptor=TextureDescriptor(flip=False))
-    OpenGLTextureLib().build('wall_normal', TEXTURES_PATH / 'bricks2_normal.jpg', descriptor=TextureDescriptor(flip=False))
-    OpenGLTextureLib().build('wall_disp', TEXTURES_PATH / 'bricks2_disp.jpg', descriptor=TextureDescriptor(flip=False))
+    OpenGLTextureLib().build('wall_albedo', TextureData(TEXTURES_PATH / 'bricks2.jpg'), TextureDescriptor(flip=False))
+    OpenGLTextureLib().build('wall_normal', TextureData(TEXTURES_PATH / 'bricks2_normal.jpg'), TextureDescriptor(flip=False))
+    OpenGLTextureLib().build('wall_disp', TextureData(TEXTURES_PATH / 'bricks2_disp.jpg'), TextureDescriptor(flip=False))
 
     # Build shaders
-    OpenGLShaderLib().build('default_mesh_normal', SHADERS_PATH / 'lit_blinn_phong_normal_vertex.glsl', SHADERS_PATH / 'lit_blinn_phong_normal_fragment.glsl')
-    OpenGLShaderLib().build('default_mesh_parallax', SHADERS_PATH / 'lit_blinn_phong_parallax_vertex.glsl', SHADERS_PATH / 'lit_blinn_phong_parallax_fragment.glsl')
-    OpenGLShaderLib().build('default_mesh_steep_parallax', SHADERS_PATH / 'lit_blinn_phong_parallax_vertex.glsl', SHADERS_PATH / 'lit_blinn_phong_steep_parallax_fragment.glsl')
-    OpenGLShaderLib().build('default_mesh_parallax_occlusion', SHADERS_PATH / 'lit_blinn_phong_parallax_vertex.glsl', SHADERS_PATH / 'lit_blinn_phong_parallax_occlusion_fragment.glsl')
+    OpenGLShaderLib().build('default_mesh_normal', SHADERS_PATH  / 'opengl' /  'lit_blinn_phong_normal.vs', SHADERS_PATH  / 'opengl' /  'lit_blinn_phong_normal.fs')
+    OpenGLShaderLib().build('default_mesh_parallax', SHADERS_PATH  / 'opengl' /  'lit_blinn_phong_parallax.vs', SHADERS_PATH  / 'opengl' /  'lit_blinn_phong_parallax.fs')
+    OpenGLShaderLib().build('default_mesh_steep_parallax', SHADERS_PATH  / 'opengl' /  'lit_blinn_phong_parallax.vs', SHADERS_PATH  / 'opengl' /  'lit_blinn_phong_steep_parallax.fs')
+    OpenGLShaderLib().build('default_mesh_parallax_occlusion', SHADERS_PATH  / 'opengl' /  'lit_blinn_phong_parallax.vs', SHADERS_PATH  / 'opengl' /  'lit_blinn_phong_parallax_occlusion.fs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Wall_Normal', MaterialData('default_mesh_normal', ['wall_albedo', 'wall_normal'], glossiness=1.0))

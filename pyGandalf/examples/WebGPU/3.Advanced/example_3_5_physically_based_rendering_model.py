@@ -17,7 +17,7 @@ from pyGandalf.scene.components import *
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialData, MaterialDescriptor
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData
 from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
 from pyGandalf.utilities.logger import logger
@@ -55,7 +55,7 @@ def main():
     WebGPUMaterialLib().build('M_PBR', MaterialData('pbr_mesh', ['cerberus_albedo', 'cerberus_normal', 'cerberus_metallic', 'cerberus_roughness']))
 
     # Load models
-    OpenGLMeshLib().build('cerberus_mesh', MODELS_PATH / 'cerberus_lp.obj')
+    MeshLib().build('cerberus_mesh', MODELS_PATH / 'cerberus_lp.obj')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
