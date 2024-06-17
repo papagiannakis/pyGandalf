@@ -1,3 +1,4 @@
+from pyGandalf.scene.components import Component
 from pyGandalf.scene.entity import Entity
 from pyGandalf.core.input_manager import InputManager
 from pyGandalf.systems.system import System, SystemState
@@ -36,9 +37,15 @@ class EditorPanelSystem(System):
         self.wireframe_value = False
         self.vsync_value = False
         self.gizmo_operation: imguizmo.im_guizmo.OPERATION = imguizmo.im_guizmo.OPERATION.translate
+        self.camera_pivot_distance = 10.0
         self.drag_and_drop_mesh = None
         self.drag_and_drop_scene = None
         self.drag_and_drop_texture = None
+        self.gizmos_pressed = False
+        self.camera_controller_pressed = False
+
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
+        pass
 
     def on_gui_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         editor_panel = components
@@ -129,11 +136,20 @@ class EditorPanelSystem(System):
             if payload != None:
                 EditorVisibleComponent.SELECTED = False
                 EditorVisibleComponent.SELECTED_ENTITY = None
+
+                OpenGLShaderLib().clean()
+
                 path: Path = Path(self.drag_and_drop_scene)
                 scene: Scene = Scene(path.stem)
                 scene_serializer: SceneSerializer = SceneSerializer(scene)
                 scene_serializer.deserialize(path)
                 SceneManager().open_external_scene(scene)
+
+                # TODO: Fix this properly!
+                if 'Shadow' in scene.name:
+                    OpenGLRenderer().set_shadows_enabled(True)
+                else:
+                    OpenGLRenderer().set_shadows_enabled(False)
 
         # Gizmos
         if camera != None and camera_entity != None:
@@ -191,7 +207,7 @@ class EditorPanelSystem(System):
             camera_transform: TransformComponent = context.get_component(camera_entity, TransformComponent)
             new_view: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.view_manipulate(
                 np.asmatrix(camera.view, dtype=np.float32),
-                10.0,
+                self.camera_pivot_distance,
                 imgui.ImVec2(view_manipulate_right - 128, view_manipulate_top),
                 imgui.ImVec2(128, 128),
                 0x10101010,
@@ -412,30 +428,34 @@ class EditorPanelSystem(System):
                         color_changed, new_color = imgui.color_edit3('color', material.color)
                         if color_changed: material.color = glm.vec3(new_color[0], new_color[1], new_color[2])
 
-                    if material.instance.has_uniform('u_AlbedoMap'):
+                    # Get uniform textures
+                    textures = OpenGLMaterialLib().get_textures(material.instance.name)
+
+                    for index, texture in enumerate(textures):
                         imgui.begin_disabled()
-                        albedo_changed, new_albedo = imgui.input_text('albedo', material.instance.textures[0])
+                        texture_changed, new_texture = imgui.input_text(texture, material.instance.textures[index])
                         imgui.end_disabled()
-                        if albedo_changed: material.instance.textures[0] = new_albedo
+                        if texture_changed: material.instance.textures[index] = new_texture
 
-                    if imgui.begin_drag_drop_target():
-                        payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('textures')
-                        if payload != None:
-                            texture_already_built = False
-                            for texture in OpenGLTextureLib().get_textures().values():
-                                if texture.path == None:
-                                    continue
+                        if imgui.begin_drag_drop_target():
+                            payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('textures')
+                            if payload != None:
+                                texture_already_built = False
+                                for texture in OpenGLTextureLib().get_textures().values():
+                                    if texture.path == None:
+                                        continue
+                                    
+                                    # TODO: Handle textures that are in subfolders.
+                                    if self.drag_and_drop_texture == str(TEXTURES_PATH / texture.path):
+                                        material.instance.textures[0] = texture.name
+                                        texture_already_built = True
+                                        break
 
-                                if self.drag_and_drop_texture == str(TEXTURES_PATH / texture.path):
-                                    material.instance.textures[0] = texture.name
-                                    texture_already_built = True
-                                    break
-
-                            if not texture_already_built:
-                                path: Path = Path(self.drag_and_drop_texture)
-                                instance = OpenGLTextureLib().build(path.stem, path)
-                                material.instance.textures[0] = path.stem
-                        imgui.end_drag_drop_target()
+                                if not texture_already_built:
+                                    path: Path = Path(self.drag_and_drop_texture)
+                                    instance = OpenGLTextureLib().build(path.stem, path)
+                                    material.instance.textures[0] = path.stem
+                            imgui.end_drag_drop_target()
                     
                     if material.instance.has_uniform('u_Glossiness'):
                         glossiness_changed, new_glossiness = imgui.drag_float('glossiness', material.glossiness, 0.1)
@@ -479,8 +499,9 @@ class EditorPanelSystem(System):
                 modified_static_mesh, _ = imgui.menu_item('Static Mesh Component', '', False)
                 if modified_static_mesh:
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, StaticMeshComponent('empty', [], None))
-
-                    OpenGLTextureLib().build('white_texture', None, [0xffffffff.to_bytes(4, byteorder='big'), 1, 1])
+                    
+                    # TODO: Extend editor to be able to choose shader
+                    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
                     OpenGLShaderLib().build('default_lit', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
                     OpenGLMaterialLib().build('M_Lit', MaterialData('default_lit', ['white_texture']))
 
@@ -509,16 +530,27 @@ class EditorPanelSystem(System):
                         if file_pressed:
                             EditorVisibleComponent.SELECTED = False
                             EditorVisibleComponent.SELECTED_ENTITY = None
-                            scene: Scene = Scene()
+
+                            OpenGLShaderLib().clean()
+
+                            scene: Scene = Scene(path.name)
                             scene_serializer: SceneSerializer = SceneSerializer(scene)
                             scene_serializer.deserialize(SCENES_PATH / path.name)
                             SceneManager().open_external_scene(scene)
+
+                            # TODO: Fix this properly!
+                            if 'Shadow' in scene.name:
+                                OpenGLRenderer().set_shadows_enabled(True)
+                            else:
+                                OpenGLRenderer().set_shadows_enabled(False)
+
                     imgui.end_menu()
                 close_pressed, _ = imgui.menu_item('Close', 'Alt + F4', False)
                 if close_pressed:
                     from pyGandalf.core.application import Application
                     Application().quit()
                 imgui.end_menu()
+
             if imgui.begin_menu('View'):
                 editor_panel_system: EditorPanelSystem = EditorManager().get_scene().get_system(EditorPanelSystem)
                 if editor_panel_system != None:
@@ -527,7 +559,12 @@ class EditorPanelSystem(System):
                         if modified:
                             panel[0].enabled = show
                 imgui.end_menu()
+                
             if imgui.begin_menu('Settings'):
+                modified_camera_distance, new_distance = imgui.slider_float('Camera Pivot Distance', self.camera_pivot_distance, 0.0, 50.0)
+                if modified_camera_distance:
+                    self.camera_pivot_distance = new_distance
+
                 modified_wireframe, show = imgui.checkbox('Wireframe', self.wireframe_value)
                 if modified_wireframe:
                     if show:
@@ -550,7 +587,34 @@ class EditorPanelSystem(System):
                     self.vsync_value = enable
 
                 imgui.end_menu()
+
+            if imgui.begin_menu('Help'):
+                gizmos_pressed, _ = imgui.menu_item('Gizmos', '', False)
+                if gizmos_pressed:
+                    self.gizmos_pressed = True
+                camera_controller_pressed, _ = imgui.menu_item('Camera Controller', '', False)
+                if camera_controller_pressed:
+                    self.camera_controller_pressed = True
+                imgui.end_menu()
             imgui.end_main_menu_bar()
+
+            if self.gizmos_pressed:
+                self.gizmos_pressed, self.gizmos_pressed = imgui.begin('Gizmos Help', self.gizmos_pressed)
+                imgui.text_wrapped('1. Select the object that you want to manipulate from the Hierachy panel')
+                imgui.text_wrapped('2. You can press the T key for enabling the translation mode of the gizmo')
+                imgui.text_wrapped('3. You can press the R key for enabling the rotation mode of the gizmo')
+                imgui.text_wrapped('4. You can press the S key for enabling the scale mode of the gizmo')
+                imgui.text_wrapped('5. You can press the Q key for disabling the gizmo')
+                imgui.end()
+
+            if self.camera_controller_pressed:
+                self.gizmos_camera_controller_pressedpressed, self.camera_controller_pressed = imgui.begin('Camera Controller Help', self.camera_controller_pressed)
+                imgui.text_wrapped('When the camera entity has the CameraControllerComponent, you can move aroung by:')
+                imgui.text_wrapped('While pressing the Right Mouse Button:')
+                imgui.text_wrapped('    - WASD: for moving forwards/backwards, left/right')
+                imgui.text_wrapped('    - QE: for moving up/down')
+                imgui.text_wrapped('    - Draging the mouse around pans the camera view')
+                imgui.end()
 
     def draw_content_browser(self):
         padding = 16.0

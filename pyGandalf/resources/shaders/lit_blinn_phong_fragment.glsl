@@ -25,7 +25,7 @@ void main()
 {
     vec3 textureColor;
 
-    textureColor = texture(u_AlbedoMap,  v_TexCoord).rgb;
+    textureColor = texture(u_AlbedoMap, v_TexCoord).rgb;
 
     float ambientCoefficient = 0.1;
     vec3 normal = normalize(v_Normal);

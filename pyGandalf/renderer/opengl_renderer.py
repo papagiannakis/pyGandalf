@@ -1,11 +1,6 @@
 from pyGandalf.renderer.base_renderer import BaseRenderer
 from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
-
-from pyGandalf.scene.scene_manager import SceneManager
-from pyGandalf.scene.components import TransformComponent, CameraComponent
-
-from pyGandalf.systems.system import SystemState
-from pyGandalf.systems.light_system import LightSystem
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
 
 from pyGandalf.utilities.logger import logger
 
@@ -25,6 +20,9 @@ class OpenGLRenderer(BaseRenderer):
         cls.instance.depth_attachment = 0
         cls.instance.framebuffer_width = 0
         cls.instance.framebuffer_height = 0
+        cls.instance.shadows_enabled = False
+
+        cls.instance.clear_color = glm.vec4(0.25, 0.25, 0.25, 1.0)
 
         if cls.instance.use_framebuffer:
             cls.instance.invalidate_framebuffer(1280, 720)
@@ -33,16 +31,20 @@ class OpenGLRenderer(BaseRenderer):
         gl.glViewport(0, 0, width, height)
 
     def add_batch(cls, render_data, material):
-        gl.glEnable(gl.GL_BLEND)
-        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-        gl.glBlendEquation(gl.GL_FUNC_ADD)
+        if material.descriptor.blend_enabled:
+            gl.glEnable(gl.GL_BLEND)
+            gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+            gl.glBlendEquation(gl.GL_FUNC_ADD)
 
-        gl.glEnable(gl.GL_CULL_FACE)
-        gl.glCullFace(gl.GL_BACK)
-        gl.glFrontFace(gl.GL_CCW)
+        if material.descriptor.cull_enabled:
+            gl.glEnable(gl.GL_CULL_FACE)
+            gl.glFrontFace(gl.GL_CCW)
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
-        gl.glDepthFunc(gl.GL_LESS)
+        if material.descriptor.depth_enabled:
+            gl.glEnable(gl.GL_DEPTH_TEST)
+
+        if material.descriptor.primitive == gl.GL_PATCHES:
+            gl.glPatchParameteri(gl.GL_PATCH_VERTICES, material.descriptor.vertices_per_patch)
 
         # Vertex Array Object (VAO)
         render_data.vao = gl.glGenVertexArrays(1)
@@ -70,7 +72,11 @@ class OpenGLRenderer(BaseRenderer):
             # Element Buffer Object (EBO)
             render_data.ebo = gl.glGenBuffers(1)
             gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
-            gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 3 * 4, indices_pointer, gl.GL_STATIC_DRAW)
+            
+            if material.descriptor.primitive == gl.GL_TRIANGLE_STRIP:
+                gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 4, indices_pointer, gl.GL_STATIC_DRAW)
+            else:
+                gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 3 * 4, indices_pointer, gl.GL_STATIC_DRAW)
 
         # Use the shader program
         gl.glUseProgram(material.instance.shader_program)
@@ -82,71 +88,27 @@ class OpenGLRenderer(BaseRenderer):
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, cls.instance.framebuffer_id)
             gl.glViewport(0, 0, int(cls.instance.framebuffer_width), int(cls.instance.framebuffer_height))
 
-        gl.glClearColor(0.8, 0.5, 0.3, 1.0)
+        gl.glClearColor(cls.instance.clear_color.r, cls.instance.clear_color.g, cls.instance.clear_color.b, cls.instance.clear_color.a)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
     def end_frame(cls):
         if cls.instance.use_framebuffer:
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-    def update_uniforms(cls, model, material):
-        light_system: LightSystem = SceneManager().get_active_scene().get_system(LightSystem)
+    def begin_render_pass(cls):
+        pass
 
-        light_positions: list[glm.vec3] = []
-        light_colors: list[glm.vec3] = []
-        light_intensities: list[np.float32] = []
-        
-        if light_system is not None:
-            if light_system.get_state() != SystemState.PAUSE:
-                for components in light_system.get_filtered_components():
-                    light, transform = components
-                    light_colors.append(light.color)
-                    light_positions.append(transform.get_world_position())
-                    light_intensities.append(light.intensity)
+    def end_render_pass(cls):
+        pass
 
-        count = len(light_positions)
-
-        if count != 0:
-            material.instance.set_uniform('u_LightPositions', glm.array(light_positions))
-            material.instance.set_uniform('u_LightColors', glm.array(light_colors))
-            material.instance.set_uniform('u_LightIntensities', np.asarray(light_intensities, dtype=np.float32))
-            material.instance.set_uniform('u_LightCount', count)
-            material.instance.set_uniform('u_Glossiness', material.glossiness)
-        elif light_system is not None:
-            material.instance.set_uniform('u_LightCount', 0)
-
-        camera = SceneManager().get_main_camera()
-        if camera != None:
-            material.instance.set_uniform('u_ModelViewProjection', camera.projection * camera.view * model)
-            material.instance.set_uniform('u_Model', model)
-        else:
-            material.instance.set_uniform('u_ViewProjection', glm.mat4(1.0))
-            material.instance.set_uniform('u_Model', glm.mat4(1.0))
-
-        if material.instance.has_uniform('u_ViewPosition'):
-            camera_entity = SceneManager().get_main_camera_entity()
-            if camera_entity != None:
-                camera_transform = SceneManager().get_active_scene().get_component(camera_entity, TransformComponent)
-                if camera_transform != None and not camera_transform.static:
-                    material.instance.set_uniform('u_ViewPosition', camera_transform.get_world_position())
-
-        if material.instance.has_uniform('u_Color'):
-            material.instance.set_uniform('u_Color', material.color)
-    
-    def draw(cls, model, render_data, material):
-        # Bind shader program
-        gl.glUseProgram(material.instance.shader_program)
-        
-        # Bind textures
-        for texture_name in material.instance.textures:
-            OpenGLTextureLib().bind(texture_name)
-            material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
-
-        # Set Uniforms
-        cls.instance.update_uniforms(model, material)
-        
+    def set_pipeline(cls, render_data):
         # Bind vao
         gl.glBindVertexArray(render_data.vao)
+
+    def set_buffers(cls, render_data):
+        # Bind ebo
+        if render_data.indices is not None:
+            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
 
         # Bind vertex buffer and their layout
         for index, attribute in enumerate(render_data.attributes):
@@ -157,9 +119,33 @@ class OpenGLRenderer(BaseRenderer):
             gl.glEnableVertexAttribArray(index)
             gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
 
-        primitive = render_data.primitive if render_data.primitive != None else gl.GL_TRIANGLES
+    def set_bind_groups(cls, material):
+        if material.descriptor.depth_mask == gl.GL_FALSE:
+            gl.glDepthMask(gl.GL_FALSE)
 
-        gl.glDrawArrays(primitive, 0, render_data.attributes[0].size)
+        if material.descriptor.cull_enabled:
+            gl.glCullFace(material.descriptor.cull_face)
+
+        if material.descriptor.depth_enabled:
+            gl.glDepthFunc(material.descriptor.depth_func)
+
+        # Bind shader program
+        gl.glUseProgram(material.instance.shader_program)
+        
+        # Get uniform textures
+        textures = OpenGLMaterialLib().get_textures(material.instance.name)
+
+        # Bind textures
+        for index, texture_name in enumerate(material.instance.textures):
+            OpenGLTextureLib().bind(texture_name)
+            if material.instance.has_uniform(textures[index]):
+                material.instance.set_uniform(textures[index], int(OpenGLTextureLib().get_slot(texture_name)))
+
+    def draw(cls, render_data, material):
+        if material.descriptor.primitive == gl.GL_PATCHES:
+            gl.glDrawArrays(gl.GL_PATCHES, 0, material.descriptor.vertices_per_patch * material.descriptor.patch_resolution * material.descriptor.patch_resolution)
+        else:
+            gl.glDrawArrays(material.descriptor.primitive, 0, render_data.attributes[0].size)
 
         # Unbind vao
         gl.glBindVertexArray(0)
@@ -171,36 +157,12 @@ class OpenGLRenderer(BaseRenderer):
         # Unbind shader program
         gl.glUseProgram(0)
 
-    def draw_indexed(cls, model, render_data, material):
-        # Bind shader program
-        gl.glUseProgram(material.instance.shader_program)
-        
-        # Bind textures
-        for texture_name in material.instance.textures:
-            OpenGLTextureLib().bind(texture_name)
-            material.instance.set_uniform('u_AlbedoMap', int(OpenGLTextureLib().get_slot(texture_name)))
+        # Reset depth mask
+        if material.descriptor.depth_mask == gl.GL_FALSE:
+            gl.glDepthMask(gl.GL_TRUE)
 
-        # Set Uniforms
-        cls.instance.update_uniforms(model, material)
-
-        # Bind vao
-        gl.glBindVertexArray(render_data.vao)
-
-        # Bind ebo
-        gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
-
-        # Bind vertex buffer and their layout
-        for index, attribute in enumerate(render_data.attributes):
-            # Vertex Buffer Object (VBO)
-            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.vbo[index])
-
-            # Set vertex buffer layout
-            gl.glEnableVertexAttribArray(index)
-            gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
-
-        primitive = render_data.primitive if render_data.primitive != None else gl.GL_TRIANGLES
-
-        gl.glDrawElements(primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
+    def draw_indexed(cls, render_data, material):
+        gl.glDrawElements(material.descriptor.primitive, render_data.indices.size, gl.GL_UNSIGNED_INT, None)
 
         # Unbind vao
         gl.glBindVertexArray(0)
@@ -212,6 +174,10 @@ class OpenGLRenderer(BaseRenderer):
 
         # Unbind shader program
         gl.glUseProgram(0)
+
+        # Reset depth mask if it was set to false
+        if material.descriptor.depth_mask == gl.GL_FALSE:
+            gl.glDepthMask(gl.GL_TRUE)
 
     def clean(cls):
         pass
@@ -267,3 +233,11 @@ class OpenGLRenderer(BaseRenderer):
     def set_fill_mode(cls, mode):
         gl.glPolygonMode(gl.GL_FRONT_AND_BACK, mode)
 
+    def set_clear_color(cls, clear_color: glm.vec4):
+        cls.instance.clear_color = clear_color
+
+    def set_shadows_enabled(cls, shadows_enabled: bool):
+        cls.instance.shadows_enabled = shadows_enabled
+
+    def get_shadows_enabled(cls):
+        return cls.instance.shadows_enabled

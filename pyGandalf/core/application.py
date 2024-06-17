@@ -6,7 +6,7 @@ from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 from pyGandalf.renderer.imgui_renderer import ImGuiRenderer, ImGuiTheme
 from pyGandalf.core.base_window import BaseWindow
 from pyGandalf.core.input_manager import InputManager
-from pyGandalf.core.event_manager import EventManager, EventType
+from pyGandalf.core.event_manager import EventManager
 
 import glfw
 
@@ -25,13 +25,13 @@ class Application(object):
             cls.instance.is_editor_attached = False
         return cls.instance
     
-    def get_window(cls):
+    def get_window(cls) -> BaseWindow:
         return cls.instance.window
     
-    def get_renderer(cls):
+    def get_renderer(cls) -> BaseRenderer:
         return cls.instance.renderer()
     
-    def is_running(cls):
+    def is_running(cls) -> bool:
         return cls.instance.is_application_running
     
     def set_is_running(cls, is_running):

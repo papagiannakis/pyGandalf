@@ -61,6 +61,10 @@ class MaterialInstance:
                 assert isinstance(uniform_data, int), f"Uniform type with name: {uniform_name} is not an integer number"
                 gl.glUniform1i(uniform_location, uniform_data)
                 return
+            case 'samplerCube':
+                assert isinstance(uniform_data, int), f"Uniform type with name: {uniform_name} is not an integer number"
+                gl.glUniform1i(uniform_location, uniform_data)
+                return
             case 'vec2':
                 assert isinstance(uniform_data, glm.vec2), f"Uniform type with name: {uniform_name} is not a 2x1 glm array of float32 type"
                 gl.glUniform2f(uniform_location, uniform_data.x, uniform_data.y)
@@ -238,9 +242,16 @@ class OpenGLMaterialLib(object):
         shader_program = shader_data.shader_program
         shader_params_vertex = OpenGLShaderLib().parse(shader_data.vs_code)
         shader_params_fragment = OpenGLShaderLib().parse(shader_data.fs_code)
+        shader_params_tess_control = {}
+        shader_params_tess_eval = {}
+        
+        if shader_data.tcs_code != None:
+            shader_params_tess_control = OpenGLShaderLib().parse(shader_data.tcs_code)
+        if shader_data.tes_code != None:
+            shader_params_tess_eval = OpenGLShaderLib().parse(shader_data.tes_code)
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
-        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment)
+        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment | shader_params_tess_control | shader_params_tess_eval)
+        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment | shader_params_tess_control | shader_params_tess_eval)
 
         return cls.instance.materials[name]
 
@@ -254,6 +265,18 @@ class OpenGLMaterialLib(object):
             MaterialInstance: The material instance with the given name.
         """
         return cls.instance.materials.get(name)
+    
+    def get_textures(cls, name: str):
+        mat: MaterialInstance = cls.instance.materials[name]
+
+        textures = []
+        for uniform_name in mat.shader_params.keys():
+            uniform_type = mat.shader_params[uniform_name]
+            if 'sampler' in uniform_type:
+                textures.append(uniform_name)
+        
+        return textures
+
     
     def get_materials(cls) -> dict[str, MaterialInstance]:
         """Returns a dictionary the holds all the material instances. As the key is the name of the material, as the value is the material instance.

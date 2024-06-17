@@ -12,7 +12,7 @@ out vec2 v_TexCoord;
 
 void main()
 {
-    v_Position = a_Position;
+    v_Position = (u_Model * vec4(a_Position, 1.0)).xyz;
     v_Normal = (transpose(inverse(u_Model)) * vec4(a_Normal, 0.0)).xyz;
     v_TexCoord = a_TexCoord;
 

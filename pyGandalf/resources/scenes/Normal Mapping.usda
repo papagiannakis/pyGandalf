@@ -1,0 +1,244 @@
+#usda 1.0
+
+def "Hierachy"
+{
+    def "Entityc6295c7b9b7e4428aa4911a5839bada1"
+    {
+        custom bool enabled = 1
+        custom string id = "c6295c7b9b7e4428aa4911a5839bada1"
+
+        def "InfoComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.InfoComponent", "tag": "root", "enabled": true}'
+        }
+
+        def "TransformComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.TransformComponent", "translation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, 0.0, 0.0]}}, "rotation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, 0.0, 0.0]}}, "scale": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, 1.0, 1.0]}}, "local_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 1.0, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, 1.0, 0.0]}, {"py/tuple": [0.0, 0.0, 0.0, 1.0]}]}}, "world_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 1.0, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, 1.0, 0.0]}, {"py/tuple": [0.0, 0.0, 0.0, 1.0]}]}}, "quaternion": {"py/object": "glm.quat", "py/state": {"py/tuple": [1.0, 0.0, 0.0, 0.0]}}, "dirty": false, "static": false}'
+        }
+
+        def "LinkComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": 0, "parent": null, "prev_parent": null, "children": [{"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "058c743f42234843a8618aed0138a358"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "073b9288471646a1b1a2709240211292"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "c582e5c43cd0476686ef02fa5d8417f5"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "5449d95dfe8b4bf1ab2f3a5b2d693897"}, "enabled": true}]}'
+        }
+    }
+
+    def "Entity058c743f42234843a8618aed0138a358"
+    {
+        custom bool enabled = 1
+        custom string id = "058c743f42234843a8618aed0138a358"
+
+        def "InfoComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.InfoComponent", "tag": "camera", "enabled": true}'
+        }
+
+        def "TransformComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.TransformComponent", "translation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, -0.25, 4.0]}}, "rotation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, 0.0, 0.0]}}, "scale": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, 1.0, 1.0]}}, "local_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 1.0, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, 1.0, 0.0]}, {"py/tuple": [0.0, -0.25, 4.0, 1.0]}]}}, "world_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 1.0, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, 1.0, 0.0]}, {"py/tuple": [0.0, -0.25, 4.0, 1.0]}]}}, "quaternion": {"py/object": "glm.quat", "py/state": {"py/tuple": [1.0, 0.0, 0.0, 0.0]}}, "dirty": false, "static": false}'
+        }
+
+        def "LinkComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "c6295c7b9b7e4428aa4911a5839bada1"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+        }
+
+        def "CameraComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.CameraComponent", "zoom_level": 1.2, "fov": 45, "near": 0.1, "far": 1000, "aspect_ratio": 1.7967914438502675, "type": {"py/reduce": [{"py/type": "pyGandalf.scene.components.CameraComponent.Type"}, {"py/tuple": [1]}]}, "view": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, -0.0, 0.0, -0.0]}, {"py/tuple": [-0.0, 1.0, -0.0, 0.0]}, {"py/tuple": [0.0, -0.0, 1.0, -0.0]}, {"py/tuple": [-0.0, 0.25, -4.0, 1.0]}]}}, "projection": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.3436248302459717, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 2.4142134189605713, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, -1.0001999139785767, -1.0]}, {"py/tuple": [0.0, 0.0, -0.20002000033855438, 0.0]}]}}, "view_projection": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.3578253984451294, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 2.4142134189605713, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, -1.0001999139785767, -1.0]}, {"py/tuple": [0.0, 0.6035533547401428, 3.8007795810699463, 4.0]}]}}, "primary": true}'
+        }
+
+        def "CameraControllerComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.CameraControllerComponent", "front": {"py/object": "glm.vec3", "py/state": {"py/tuple": [-6.123234262925839e-17, -0.0, -1.0]}}, "right": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, -0.0, -6.123234262925839e-17]}}, "up": {"py/object": "glm.vec3", "py/state": {"py/tuple": [-0.0, -1.0, 0.0]}}, "world_up": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, 1.0, 0.0]}}, "yaw": -90.0, "pitch": 0.0, "movement_speed": 3.5, "mouse_sensitivity": 1.25, "zoom": 45.0, "prev_mouse_x": 0.0, "prev_mouse_y": 0.0}'
+        }
+    }
+
+    def "Entity073b9288471646a1b1a2709240211292"
+    {
+        custom bool enabled = 1
+        custom string id = "073b9288471646a1b1a2709240211292"
+
+        def "InfoComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.InfoComponent", "tag": "wall_side", "enabled": true}'
+        }
+
+        def "TransformComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.TransformComponent", "translation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, 0.0, 0.0]}}, "rotation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, 0.0, 180.0]}}, "scale": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, 1.0, 1.0]}}, "local_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [-1.0, -8.742277657347586e-08, 0.0, 0.0]}, {"py/tuple": [8.742277657347586e-08, -1.0, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, 1.0, 0.0]}, {"py/tuple": [0.0, 0.0, 0.0, 1.0]}]}}, "world_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [-1.0, -8.742277657347586e-08, 0.0, 0.0]}, {"py/tuple": [8.742277657347586e-08, -1.0, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, 1.0, 0.0]}, {"py/tuple": [0.0, 0.0, 0.0, 1.0]}]}}, "quaternion": {"py/object": "glm.quat", "py/state": {"py/tuple": [-4.371138828673793e-08, -0.0, 0.0, 1.0]}}, "dirty": false, "static": false}'
+        }
+
+        def "LinkComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "c6295c7b9b7e4428aa4911a5839bada1"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+        }
+
+        def "MaterialComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.MaterialComponent", "name": "M_Wall", "instance": {"py/object": "pyGandalf.utilities.opengl_material_lib.MaterialInstance", "name": "M_Wall", "base_template": "default_mesh_normals", "shader_program": 3, "textures": ["brickwall_albedo", "brickwall_normal"], "shader_params": {"u_ModelViewProjection": "mat4", "u_Model": "mat4", "u_LightPositions": "vec3[16]", "u_LightCount": "int", "u_ViewPosition": "vec3", "u_AlbedoMap": "sampler2D", "u_NormalMap": "sampler2D", "u_Color": "vec3", "u_LightColors": "vec3[16]", "u_LightIntensities": "float[16]", "u_Glossiness": "float", "u_Metalicness": "float"}}, "descriptor": {"py/object": "pyGandalf.scene.components.MaterialComponent.Descriptor", "primitive": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_TRIANGLES", 4]}, "py/state": "GL_TRIANGLES"}, "cast_shadows": true, "cull_enabled": true, "cull_face": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_BACK", 1029]}, "py/state": "GL_BACK"}, "patch_resolution": 20, "vertices_per_patch": 4, "depth_enabled": true, "depth_func": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_LEQUAL", 515]}, "py/state": "GL_LEQUAL"}, "depth_mask": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_TRUE", 1]}, "py/state": "GL_TRUE"}, "blend_enabled": true, "blend_func_source": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_SRC_ALPHA", 770]}, "py/state": "GL_SRC_ALPHA"}, "blend_func_destination": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_ONE_MINUS_SRC_ALPHA", 771]}, "py/state": "GL_ONE_MINUS_SRC_ALPHA"}, "blend_equation": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_FUNC_ADD", 32774]}, "py/state": "GL_FUNC_ADD"}}, "color": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, 1.0, 1.0]}}, "glossiness": 5.0, "metallicness": 0.0}'
+        }
+
+        def "StaticMeshComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.StaticMeshComponent", "name": "wall_mesh", "attributes": [{"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["f4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, false, {"py/b64": "AACAvwAAgD8AAAAAAACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAvwAAgD8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 2]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAgD8AAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAA"}]}]}], "indices": null, "vao": {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["u4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, {"py/b64": "AQAAAA=="}]}]}, "vbo": [{"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AQAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AgAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AwAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BAAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BQAAAA=="}]}]}], "ebo": 0, "batch": 0, "load_from_file": false, "hash": {"py/object": "uuid.UUID", "hex": "8ac82ce7289846c4bfe74933e30ba4bd"}}'
+        }
+    }
+
+    def "Entityc582e5c43cd0476686ef02fa5d8417f5"
+    {
+        custom bool enabled = 1
+        custom string id = "c582e5c43cd0476686ef02fa5d8417f5"
+
+        def "InfoComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.InfoComponent", "tag": "wall_bottom", "enabled": true}'
+        }
+
+        def "TransformComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.TransformComponent", "translation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, -1.0, 1.0]}}, "rotation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [-90.0, 0.0, 0.0]}}, "scale": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, 1.0, 1.0]}}, "local_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 5.960464477539063e-08, -0.9999999403953552, 0.0]}, {"py/tuple": [0.0, 0.9999999403953552, 5.960464477539063e-08, 0.0]}, {"py/tuple": [0.0, -1.0, 1.0, 1.0]}]}}, "world_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 5.960464477539063e-08, -0.9999999403953552, 0.0]}, {"py/tuple": [0.0, 0.9999999403953552, 5.960464477539063e-08, 0.0]}, {"py/tuple": [0.0, -1.0, 1.0, 1.0]}]}}, "quaternion": {"py/object": "glm.quat", "py/state": {"py/tuple": [0.7071067690849304, -0.7071067690849304, 0.0, 0.0]}}, "dirty": false, "static": false}'
+        }
+
+        def "LinkComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "c6295c7b9b7e4428aa4911a5839bada1"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+        }
+
+        def "MaterialComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.MaterialComponent", "name": "M_Wall", "instance": {"py/object": "pyGandalf.utilities.opengl_material_lib.MaterialInstance", "name": "M_Wall", "base_template": "default_mesh_normals", "shader_program": 3, "textures": ["brickwall_albedo", "brickwall_normal"], "shader_params": {"u_ModelViewProjection": "mat4", "u_Model": "mat4", "u_LightPositions": "vec3[16]", "u_LightCount": "int", "u_ViewPosition": "vec3", "u_AlbedoMap": "sampler2D", "u_NormalMap": "sampler2D", "u_Color": "vec3", "u_LightColors": "vec3[16]", "u_LightIntensities": "float[16]", "u_Glossiness": "float", "u_Metalicness": "float"}}, "descriptor": {"py/object": "pyGandalf.scene.components.MaterialComponent.Descriptor", "primitive": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_TRIANGLES", 4]}, "py/state": "GL_TRIANGLES"}, "cast_shadows": true, "cull_enabled": true, "cull_face": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_BACK", 1029]}, "py/state": "GL_BACK"}, "patch_resolution": 20, "vertices_per_patch": 4, "depth_enabled": true, "depth_func": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_LEQUAL", 515]}, "py/state": "GL_LEQUAL"}, "depth_mask": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_TRUE", 1]}, "py/state": "GL_TRUE"}, "blend_enabled": true, "blend_func_source": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_SRC_ALPHA", 770]}, "py/state": "GL_SRC_ALPHA"}, "blend_func_destination": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_ONE_MINUS_SRC_ALPHA", 771]}, "py/state": "GL_ONE_MINUS_SRC_ALPHA"}, "blend_equation": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_FUNC_ADD", 32774]}, "py/state": "GL_FUNC_ADD"}}, "color": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, 1.0, 1.0]}}, "glossiness": 5.0, "metallicness": 0.0}'
+        }
+
+        def "StaticMeshComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.StaticMeshComponent", "name": "wall_mesh", "attributes": [{"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["f4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, false, {"py/b64": "AACAvwAAgD8AAAAAAACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAvwAAgD8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 2]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAgD8AAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAA"}]}]}], "indices": null, "vao": {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["u4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, {"py/b64": "AgAAAA=="}]}]}, "vbo": [{"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BgAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BwAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CAAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CQAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CgAAAA=="}]}]}], "ebo": 0, "batch": 0, "load_from_file": false, "hash": {"py/object": "uuid.UUID", "hex": "e8d937c1b42b4267af05dc4dd51b71cd"}}'
+        }
+    }
+
+    def "Entity5449d95dfe8b4bf1ab2f3a5b2d693897"
+    {
+        custom bool enabled = 1
+        custom string id = "5449d95dfe8b4bf1ab2f3a5b2d693897"
+
+        def "InfoComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.InfoComponent", "tag": "light", "enabled": true}'
+        }
+
+        def "TransformComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.TransformComponent", "translation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [-0.9350000023841858, 1.6579999923706055, 1.5429999828338623]}}, "rotation": {"py/object": "glm.vec3", "py/state": {"py/tuple": [0.0, 0.0, 0.0]}}, "scale": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, 1.0, 1.0]}}, "local_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 1.0, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, 1.0, 0.0]}, {"py/tuple": [-0.9350000023841858, 1.6579999923706055, 1.5429999828338623, 1.0]}]}}, "world_matrix": {"py/object": "glm.mat4x4", "py/state": {"py/tuple": [{"py/tuple": [1.0, 0.0, 0.0, 0.0]}, {"py/tuple": [0.0, 1.0, 0.0, 0.0]}, {"py/tuple": [0.0, 0.0, 1.0, 0.0]}, {"py/tuple": [-0.9350000023841858, 1.6579999923706055, 1.5429999828338623, 1.0]}]}}, "quaternion": {"py/object": "glm.quat", "py/state": {"py/tuple": [1.0, 0.0, 0.0, 0.0]}}, "dirty": false, "static": false}'
+        }
+
+        def "LinkComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "c6295c7b9b7e4428aa4911a5839bada1"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+        }
+
+        def "LightComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LightComponent", "color": {"py/object": "glm.vec3", "py/state": {"py/tuple": [1.0, 1.0, 1.0]}}, "intensity": 1.75}'
+        }
+    }
+}
+
+def "Systems"
+{
+    def "TransformSystem"
+    {
+        custom string[] filters = ["TransformComponent"]
+        custom string name = "TransformSystem"
+    }
+
+    def "LinkSystem"
+    {
+        custom string[] filters = ["LinkComponent", "TransformComponent"]
+        custom string name = "LinkSystem"
+    }
+
+    def "CameraSystem"
+    {
+        custom string[] filters = ["CameraComponent", "TransformComponent"]
+        custom string name = "CameraSystem"
+    }
+
+    def "LightSystem"
+    {
+        custom string[] filters = ["LightComponent", "TransformComponent"]
+        custom string name = "LightSystem"
+    }
+
+    def "OpenGLStaticMeshRenderingSystem"
+    {
+        custom string[] filters = ["StaticMeshComponent", "MaterialComponent", "TransformComponent"]
+        custom string name = "OpenGLStaticMeshRenderingSystem"
+    }
+
+    def "CameraControllerSystem"
+    {
+        custom string[] filters = ["CameraControllerComponent", "CameraComponent", "TransformComponent"]
+        custom string name = "CameraControllerSystem"
+    }
+}
+
+def "Textures"
+{
+    def "brickwall_albedo"
+    {
+        custom int[] data = []
+        custom string descriptor = '{"py/object": "pyGandalf.utilities.opengl_texture_lib.TextureDescriptor", "flip": false, "dimention": {"py/reduce": [{"py/type": "pyGandalf.utilities.opengl_texture_lib.TextureDimension"}, {"py/tuple": [0]}]}, "internal_format": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_RGBA8", 32856]}, "py/state": "GL_RGBA8"}, "format": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_RGBA", 6408]}, "py/state": "GL_RGBA"}, "type": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_UNSIGNED_BYTE", 5121]}, "py/state": "GL_UNSIGNED_BYTE"}, "wrap_s": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_REPEAT", 10497]}, "py/state": "GL_REPEAT"}, "wrap_t": {"py/id": 5}, "min_filter": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_LINEAR", 9729]}, "py/state": "GL_LINEAR"}, "max_filter": {"py/id": 6}, "width": 1024, "height": 1024}'
+        custom int id = 3
+        custom string name = "brickwall_albedo"
+        custom string[] path = ["brickwall.jpg"]
+        custom float slot = 0
+    }
+
+    def "brickwall_normal"
+    {
+        custom int[] data = []
+        custom string descriptor = '{"py/object": "pyGandalf.utilities.opengl_texture_lib.TextureDescriptor", "flip": false, "dimention": {"py/reduce": [{"py/type": "pyGandalf.utilities.opengl_texture_lib.TextureDimension"}, {"py/tuple": [0]}]}, "internal_format": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_RGBA8", 32856]}, "py/state": "GL_RGBA8"}, "format": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_RGBA", 6408]}, "py/state": "GL_RGBA"}, "type": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_UNSIGNED_BYTE", 5121]}, "py/state": "GL_UNSIGNED_BYTE"}, "wrap_s": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_REPEAT", 10497]}, "py/state": "GL_REPEAT"}, "wrap_t": {"py/id": 5}, "min_filter": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_LINEAR", 9729]}, "py/state": "GL_LINEAR"}, "max_filter": {"py/id": 6}, "width": 1024, "height": 1024}'
+        custom int id = 4
+        custom string name = "brickwall_normal"
+        custom string[] path = ["brickwall_normal.jpg"]
+        custom float slot = 1
+    }
+
+    def "depth_texture"
+    {
+        custom int[] data = []
+        custom string descriptor = '{"py/object": "pyGandalf.utilities.opengl_texture_lib.TextureDescriptor", "flip": false, "dimention": {"py/reduce": [{"py/type": "pyGandalf.utilities.opengl_texture_lib.TextureDimension"}, {"py/tuple": [0]}]}, "internal_format": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_DEPTH_COMPONENT", 6402]}, "py/state": "GL_DEPTH_COMPONENT"}, "format": {"py/id": 2}, "type": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_FLOAT", 5126]}, "py/state": "GL_FLOAT"}, "wrap_s": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_CLAMP_TO_BORDER", 33069]}, "py/state": "GL_CLAMP_TO_BORDER"}, "wrap_t": {"py/id": 4}, "min_filter": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_NEAREST", 9728]}, "py/state": "GL_NEAREST"}, "max_filter": {"py/id": 5}, "width": 1024, "height": 1024}'
+        custom int id = 5
+        custom string name = "depth_texture"
+        custom string[] path = [""]
+        custom float slot = 2
+    }
+}
+
+def "Shaders"
+{
+    def "default_mesh_normals"
+    {
+        custom string fs_path = "lit_blinn_phong_normal_fragment.glsl"
+        custom string name = "default_mesh_normals"
+        custom int shader_program = 3
+        custom string tcs_path = ""
+        custom string tes_path = ""
+        custom string vs_path = "lit_blinn_phong_normal_vertex.glsl"
+    }
+}
+
+def "Materials"
+{
+    def "M_Wall"
+    {
+        custom string base_template = "default_mesh_normals"
+        custom string name = "M_Wall"
+        custom string[] textures = ["brickwall_albedo", "brickwall_normal"]
+    }
+}
+
+def "Meshes"
+{
+}
+

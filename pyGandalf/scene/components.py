@@ -3,9 +3,10 @@ from pyGandalf.utilities.opengl_material_lib import MaterialInstance as OpenGLMa
 from pyGandalf.utilities.webgpu_material_lib import MaterialInstance as WebGPUMaterialInstance
 
 import glm
+import OpenGL.GL as gl
 
-from enum import Enum
 import uuid
+from enum import Enum
 
 class Component(object):
     pass
@@ -41,9 +42,26 @@ class LinkComponent(Component):
         self.children: list[Entity] = []
 
 class MaterialComponent(Component):
-    def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0)):
+    class Descriptor:
+        def __init__(self, primitive=gl.GL_TRIANGLES, cull_face=gl.GL_BACK, cast_shadows=True, depth_mask=gl.GL_TRUE, patch_resolution=20, vertices_per_patch=4):
+            self.primitive: gl.Constant = primitive
+            self.cast_shadows = cast_shadows
+            self.cull_enabled: bool = True
+            self.cull_face: gl.Constant = cull_face
+            self.patch_resolution: int = patch_resolution
+            self.vertices_per_patch: int = vertices_per_patch
+            self.depth_enabled: bool = True
+            self.depth_func: gl.Constant = gl.GL_LEQUAL
+            self.depth_mask: gl.Constant = depth_mask
+            self.blend_enabled: bool = True
+            self.blend_func_source: gl.Constant = gl.GL_SRC_ALPHA
+            self.blend_func_destination: gl.Constant = gl.GL_ONE_MINUS_SRC_ALPHA
+            self.blend_equation: gl.Constant = gl.GL_FUNC_ADD
+            
+    def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0), descriptor: Descriptor = Descriptor()):
         self.name = name
         self.instance: OpenGLMaterialInstance = None
+        self.descriptor = descriptor
         self.color = color
         self.glossiness = 5.0
         self.metallicness = 0.0
@@ -85,11 +103,10 @@ class CameraControllerComponent(Component):
         self.prev_mouse_y = 0.0
 
 class StaticMeshComponent(Component):
-    def __init__(self, name, attributes = None, indices = None, primitive = None):
+    def __init__(self, name, attributes = None, indices = None):
         self.name = name
         self.attributes = attributes
         self.indices = indices
-        self.primitive = primitive
 
         self.vao = 0
         self.vbo = []

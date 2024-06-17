@@ -28,6 +28,7 @@ class OpenGLMeshLib(object):
     def build(cls, name: str, path: Path):
         filename = str(path)
         if cls.instance.meshes.get(filename) != None:
+            cls.instance.meshes_names[name] = filename
             return cls.instance.meshes[filename]
 
         mesh = None
@@ -69,7 +70,9 @@ class OpenGLMeshLib(object):
             vertices = np.asarray(mesh.vertices, dtype=np.float32)
             indices = np.asarray(mesh.faces, dtype=np.uint32)
             normals = np.asarray(mesh.vertex_normals, dtype=np.float32)
-            texcoords = np.asarray(mesh.visual.uv, dtype=np.float32)
+
+            if hasattr(mesh.visual, 'uv'):
+                texcoords = np.asarray(mesh.visual.uv, dtype=np.float32)
 
         rel_path = Path(os.path.relpath(path, MODELS_PATH))
 

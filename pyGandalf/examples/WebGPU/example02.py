@@ -51,6 +51,9 @@ class DemoSystem(System):
     The system responsible showcasing new features.
     """
 
+    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
+        pass
+        
     def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         demo, transform, info = components
 
@@ -120,7 +123,7 @@ def main():
     WebGPUTextureLib().build('rabbit_albedo', TEXTURES_PATH/'fg_spkRabbit_albedo.jpg')
     WebGPUTextureLib().build('flintlockPistol_albedo', TEXTURES_PATH/'fa_flintlockPistol_albedo.jpg')
     WebGPUTextureLib().build('dark_wood_texture', TEXTURES_PATH/'dark_wood_texture.jpg')
-    WebGPUTextureLib().build('marble_texture', TEXTURES_PATH/'4K_carrara_gioa_p1004___polished___marble_diffuse.png')
+    WebGPUTextureLib().build('marble_texture', TEXTURES_PATH/'marble_diffuse.png')
 
     # Build shaders
     WebGPUShaderLib().build('default_mesh', SHADERS_PATH/ 'web_gpu' / 'lit_blinn_phong.wgsl')

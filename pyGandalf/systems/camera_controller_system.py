@@ -28,7 +28,28 @@ class CameraControllerSystem(System):
             self.invert_controls = False
 
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
-        pass
+        camera_controller, camera, transform = components
+
+        camera_controller.yaw += transform.rotation.y
+        camera_controller.pitch += transform.rotation.x
+
+        if camera_controller.pitch > 89.0:
+            camera_controller.pitch = 89.0
+        if camera_controller.pitch < -89.0:
+            camera_controller.pitch = -89.0
+
+        invert_value = -1.0 if self.invert_controls else 1.0
+
+        # Update front vector
+        front = glm.vec3()
+        front.x = glm.cos(glm.radians(camera_controller.yaw)) * glm.cos(glm.radians(camera_controller.pitch))
+        front.y = glm.sin(glm.radians(camera_controller.pitch))
+        front.z = glm.sin(glm.radians(-camera_controller.yaw)) * glm.cos(glm.radians(camera_controller.pitch))
+        camera_controller.front = invert_value * glm.normalize(front)
+
+        # Update right and up vectors
+        camera_controller.right = invert_value * glm.normalize(glm.cross(camera_controller.front, -camera_controller.world_up))
+        camera_controller.up = invert_value * glm.normalize(glm.cross(camera_controller.right, camera_controller.front))
 
     def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
         camera_controller, camera, transform = components
