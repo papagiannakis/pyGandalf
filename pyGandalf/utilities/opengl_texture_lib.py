@@ -172,7 +172,13 @@ class OpenGLTextureLib(object):
         Returns:
             float: The texture slot.
         """
-        return float(cls.instance.textures.get(name).slot)
+        texture: TextureInstance = cls.instance.textures.get(name)
+
+        if texture == None:
+            logger.error(f"No such texture exists: '{name}'")
+            return
+
+        return float(texture.slot)
     
     def bind(cls, name: str):
         """Binds the texture with the given name.
@@ -182,6 +188,10 @@ class OpenGLTextureLib(object):
         """
         texture: TextureInstance = cls.instance.textures.get(name)
         target = None
+
+        if texture == None:
+            logger.error(f"No such texture exists: '{name}'")
+            return
 
         match texture.descriptor.dimention:
             case TextureDimension.D2:
@@ -200,6 +210,10 @@ class OpenGLTextureLib(object):
         """
         texture: TextureInstance = cls.instance.textures.get(name)
         target = None
+
+        if texture == None:
+            logger.error(f"No such texture exists: '{name}'")
+            return
 
         match texture.descriptor.dimention:
             case TextureDimension.D2:

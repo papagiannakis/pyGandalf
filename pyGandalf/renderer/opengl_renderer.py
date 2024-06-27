@@ -31,6 +31,10 @@ class OpenGLRenderer(BaseRenderer):
         gl.glViewport(0, 0, width, height)
 
     def add_batch(cls, render_data, material):
+        if material.instance == None:
+            logger.error('Material instance is None')
+            return -1
+
         if material.instance.descriptor.blend_enabled:
             gl.glEnable(gl.GL_BLEND)
             gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -139,7 +143,10 @@ class OpenGLRenderer(BaseRenderer):
         for index, texture_name in enumerate(material.instance.data.textures):
             OpenGLTextureLib().bind(texture_name)
             if material.instance.has_uniform(textures[index]):
-                material.instance.set_uniform(textures[index], int(OpenGLTextureLib().get_slot(texture_name)))
+                slot = OpenGLTextureLib().get_slot(texture_name)
+                if slot == None:
+                    return
+                material.instance.set_uniform(textures[index], int(slot))
 
     def draw(cls, render_data, material):
         if material.instance.descriptor.primitive == gl.GL_PATCHES:

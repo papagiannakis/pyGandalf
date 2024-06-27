@@ -263,6 +263,10 @@ class OpenGLMaterialLib(object):
 
         shader_data = OpenGLShaderLib().get(data.base_template)
 
+        if shader_data == None:
+            logger.error(f"No such material exists: '{data.base_template}'")
+            return None
+
         shader_program = shader_data.shader_program
         shader_params_vertex = OpenGLShaderLib().parse(shader_data.vs_code)
         shader_params_fragment = OpenGLShaderLib().parse(shader_data.fs_code)

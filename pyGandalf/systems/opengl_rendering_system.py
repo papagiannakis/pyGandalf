@@ -11,6 +11,8 @@ from pyGandalf.utilities.mesh_lib import MeshLib
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.entity import Entity
 
+from pyGandalf.utilities.logger import logger
+
 import glm
 import numpy as np
 import OpenGL.GL as gl
@@ -56,6 +58,10 @@ class OpenGLStaticMeshRenderingSystem(System):
         mesh.vbo.clear()
 
         material.instance = OpenGLMaterialLib().get(material.name)
+
+        if material.instance == None:
+            logger.error(f"No such material exists: '{material.name}'")
+            return
 
         if mesh.load_from_file == True:
             mesh_instance = MeshLib().get(mesh.name)
@@ -117,6 +123,9 @@ class OpenGLStaticMeshRenderingSystem(System):
             mesh, material, transform = components
 
             if len(mesh.attributes) == 0:
+                continue
+
+            if material.instance == None:
                 continue
 
             # Bind vao
