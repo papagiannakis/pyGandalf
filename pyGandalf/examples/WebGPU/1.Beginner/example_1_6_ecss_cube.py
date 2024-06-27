@@ -52,7 +52,9 @@ def main():
     WebGPUShaderLib().build('unlit', SHADERS_PATH / 'webgpu' / 'unlit.wgsl')
     
     # Build Materials
-    WebGPUMaterialLib().build('M_Unlit', MaterialData('unlit', []))
+    WebGPUMaterialLib().build('M_UnlitRed', MaterialData('unlit', [], color=glm.vec4(1.0, 0.0, 0.0, 1.0)))
+    WebGPUMaterialLib().build('M_UnlitBlue', MaterialData('unlit', [], color=glm.vec4(0.0, 0.0, 1.0, 1.0)))
+    WebGPUMaterialLib().build('M_UnlitYellow', MaterialData('unlit', [], color=glm.vec4(1.0, 1.0, 0.0, 1.0)))
 
     # Vertices of the square
     vertices = np.array([
@@ -79,42 +81,42 @@ def main():
     scene.add_component(cube_face_front, TransformComponent(glm.vec3(0.0, 0.0, 0.5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_front, LinkComponent(cube))
     scene.add_component(cube_face_front, WebGPUStaticMeshComponent('cube_face_front', [vertices]))
-    scene.add_component(cube_face_front, WebGPUMaterialComponent('M_Unlit')).color = glm.vec3(1.0, 0.0, 0.0)
+    scene.add_component(cube_face_front, WebGPUMaterialComponent('M_UnlitRed'))
 
     # Register components to cube_face_back
     scene.add_component(cube_face_back, InfoComponent("cube_face_back"))
     scene.add_component(cube_face_back, TransformComponent(glm.vec3(0.0, 0.0, -0.5), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_back, LinkComponent(cube))
     scene.add_component(cube_face_back, WebGPUStaticMeshComponent('cube_face_back', [vertices]))
-    scene.add_component(cube_face_back, WebGPUMaterialComponent('M_Unlit')).color = glm.vec3(1.0, 0.0, 0.0)
+    scene.add_component(cube_face_back, WebGPUMaterialComponent('M_UnlitRed'))
 
     # Register components to cube_face_right
     scene.add_component(cube_face_right, InfoComponent("cube_face_right"))
     scene.add_component(cube_face_right, TransformComponent(glm.vec3(0.5, 0.0, 0.0), glm.vec3(0, 90, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_right, LinkComponent(cube))
     scene.add_component(cube_face_right, WebGPUStaticMeshComponent('cube_face_right', [vertices]))
-    scene.add_component(cube_face_right, WebGPUMaterialComponent('M_Unlit')).color = glm.vec3(0.0, 0.0, 1.0)
+    scene.add_component(cube_face_right, WebGPUMaterialComponent('M_UnlitBlue'))
 
     # Register components to cube_face_left
     scene.add_component(cube_face_left, InfoComponent("cube_face_left"))
     scene.add_component(cube_face_left, TransformComponent(glm.vec3(-0.5, 0.0, 0.0), glm.vec3(0, 90, 180), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_left, LinkComponent(cube))
     scene.add_component(cube_face_left, WebGPUStaticMeshComponent('cube_face_left', [vertices]))
-    scene.add_component(cube_face_left, WebGPUMaterialComponent('M_Unlit')).color = glm.vec3(0.0, 0.0, 1.0)
+    scene.add_component(cube_face_left, WebGPUMaterialComponent('M_UnlitBlue'))
 
     # Register components to cube_face_top
     scene.add_component(cube_face_top, InfoComponent("cube_face_top"))
     scene.add_component(cube_face_top, TransformComponent(glm.vec3(0.0, 0.5, 0.0), glm.vec3(90, 0, 180), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_top, LinkComponent(cube))
     scene.add_component(cube_face_top, WebGPUStaticMeshComponent('cube_face_top', [vertices]))
-    scene.add_component(cube_face_top, WebGPUMaterialComponent('M_Unlit')).color = glm.vec3(1.0, 1.0, 0.0)
+    scene.add_component(cube_face_top, WebGPUMaterialComponent('M_UnlitYellow'))
 
     # Register components to cube_face_bottom
     scene.add_component(cube_face_bottom, InfoComponent("cube_face_bottom"))
     scene.add_component(cube_face_bottom, TransformComponent(glm.vec3(0.0, -0.5, 0.0), glm.vec3(90, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(cube_face_bottom, LinkComponent(cube))
     scene.add_component(cube_face_bottom, WebGPUStaticMeshComponent('cube_face_bottom', [vertices]))
-    scene.add_component(cube_face_bottom, WebGPUMaterialComponent('M_Unlit')).color = glm.vec3(1.0, 1.0, 0.0)
+    scene.add_component(cube_face_bottom, WebGPUMaterialComponent('M_UnlitYellow'))
 
     # Register components to camera. NOTE: the z-axis is flipped compared to OpenGL!
     scene.add_component(camera, InfoComponent("camera"))

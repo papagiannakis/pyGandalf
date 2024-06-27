@@ -27,10 +27,10 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(OpenGLWindow('Trianlge', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('Triangle', 1280, 720, True), OpenGLRenderer)
 
     # Create a new scene
-    scene = Scene('Trianlge')
+    scene = Scene('Triangle')
 
     # Enroll a triangle entity to registry
     triangle = scene.enroll_entity()

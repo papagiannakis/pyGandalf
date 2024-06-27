@@ -27,10 +27,10 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(WebGPUWindow('Trianlge', 1280, 720, True), WebGPURenderer)
+    Application().create(WebGPUWindow('Triangle', 1280, 720, True), WebGPURenderer)
 
     # Create a new scene
-    scene = Scene('Trianlge')
+    scene = Scene('Triangle')
 
     # Enroll a triangle entity to registry
     triangle = scene.enroll_entity()

@@ -59,7 +59,7 @@ def main():
     scene.add_component(quad, WebGPUStaticMeshComponent('quad', [vertices]))
     scene.add_component(quad, WebGPUMaterialComponent('M_Unlit'))
 
-    # Register components to camera
+    # Register components to camera. NOTE: the z-axis is flipped compared to OpenGL!
     scene.add_component(camera, InfoComponent("camera"))
     scene.add_component(camera, TransformComponent(glm.vec3(0, 0, -5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
