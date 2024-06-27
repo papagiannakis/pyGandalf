@@ -212,6 +212,10 @@ class WebGPUMaterialLib(object):
 
         shader_data = WebGPUShaderLib().get(data.base_template)
 
+        if shader_data == None:
+            logger.error(f"No such material exists: '{data.base_template}'")
+            return None
+
         # Parse shader params
         uniform_buffers_data, storage_buffers_data, read_only_storage_buffers_data, other = WebGPUShaderLib().parse(shader_data.shader_code)
 
@@ -332,11 +336,15 @@ class WebGPUMaterialLib(object):
             if len(bind_groups_entries) <= other_data['group']:
                 bind_groups_entries.append([])
 
+            # Retrieve texture.
+            texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
+
+            if texture_inst == None:
+                logger.error(f"No such texture exists: '{data.textures[texture_index]}'")
+                continue
+
             match other_data['type']['name']:
                 case 'texture_2d<f32>':
-                    # Retrieve texture.
-                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
-
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_inst
 
@@ -347,9 +355,6 @@ class WebGPUMaterialLib(object):
                     })
                     texture_index_use_count += 1
                 case 'texture_depth_2d':
-                    # Retrieve texture.
-                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
-
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_inst
 
@@ -360,9 +365,6 @@ class WebGPUMaterialLib(object):
                     })
                     texture_index_use_count += 1
                 case 'texture_cube<f32>':
-                    # Retrieve texture.
-                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
-
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_inst
 
@@ -374,9 +376,6 @@ class WebGPUMaterialLib(object):
                     texture_index_use_count += 1
 
                 case 'sampler':
-                    # Retrieve texture.
-                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
-
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_inst
 
@@ -387,9 +386,6 @@ class WebGPUMaterialLib(object):
                     })
                     texture_index_use_count += 1                
                 case 'sampler_comparison':
-                    # Retrieve texture.
-                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
-
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_inst
 

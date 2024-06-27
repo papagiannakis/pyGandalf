@@ -10,6 +10,8 @@ from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialI
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureData, TextureDescriptor, TextureInstance
 from pyGandalf.utilities.mesh_lib import MeshLib
 
+from pyGandalf.utilities.logger import logger
+
 import glm
 import wgpu
 import numpy as np
@@ -53,6 +55,10 @@ class WebGPUStaticMeshRenderingSystem(System):
 
         # Retrieve and set the material instance
         material.instance = WebGPUMaterialLib().get(material.name)
+
+        if material.instance == None:
+            logger.error(f"No such material exists: '{material.name}'")
+            return
 
         # Retrieve mesh data if loading from a model
         if mesh.attributes is None:
@@ -154,6 +160,9 @@ class WebGPUStaticMeshRenderingSystem(System):
             material_instance = WebGPUMaterialLib().get(material)
             # WebGPURenderer().set_pipeline(material_instance)
 
+            if material_instance == None:
+                continue
+
             self.set_uniforms(material_instance, current_batch.values())
 
             first_instance = 0
@@ -164,6 +173,10 @@ class WebGPUStaticMeshRenderingSystem(System):
                 mesh_group_size = len(current_mesh_group)
 
                 mesh, material, _ = current_mesh_group[0]
+
+                # if there is nothing to render, continue
+                if len(mesh.attributes) == 0:
+                    return
 
                 WebGPURenderer().set_pipeline(mesh)
                 WebGPURenderer().set_buffers(mesh)
