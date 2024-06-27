@@ -66,7 +66,7 @@ class OpenGLRenderer(BaseRenderer):
             gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.vbo[-1])
             gl.glBufferData(gl.GL_ARRAY_BUFFER, len(attribute) * len(attribute[0]) * 4, attribute_pointer, gl.GL_STATIC_DRAW)
 
-            gl.glEnableVertexAttribArray(0)
+            gl.glEnableVertexAttribArray(index)
             gl.glVertexAttribPointer(index, len(attribute[0]), gl.GL_FLOAT, gl.GL_FALSE, len(attribute[0]) * 4, ctypes.c_void_p(0))
 
         if render_data.indices is not None:
