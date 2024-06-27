@@ -116,7 +116,7 @@ def main():
     scene.add_component(cube_face_bottom, WebGPUStaticMeshComponent('cube_face_bottom', [vertices]))
     scene.add_component(cube_face_bottom, WebGPUMaterialComponent('M_Unlit')).color = glm.vec3(1.0, 1.0, 0.0)
 
-    # Register components to camera
+    # Register components to camera. NOTE: the z-axis is flipped compared to OpenGL!
     scene.add_component(camera, InfoComponent("camera"))
     scene.add_component(camera, TransformComponent(glm.vec3(0, 0, -5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, LinkComponent(root))
