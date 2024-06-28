@@ -47,8 +47,8 @@ def on_create():
     gl.glVertexAttribPointer(0, len(vertices[0]), gl.GL_FLOAT, gl.GL_FALSE, len(vertices[0]) * 4, ctypes.c_void_p(0))
 
     # Read shaders
-    vertex_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_textured.vs')
-    fragment_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_textured.fs')
+    vertex_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_simple.vs')
+    fragment_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_simple.fs')
 
     # Compile shaders
     vertex_shader = compile_shader(vertex_shader_code, gl.GL_VERTEX_SHADER)
@@ -68,7 +68,7 @@ def on_create():
 
     return vao, vbo, shader_program
 
-def on_update(vao, vbo, shader_program):
+def on_update(vao, vbo, shader_program, t):
     # Bind vao
     gl.glBindVertexArray(vao)
 
@@ -85,7 +85,7 @@ def on_update(vao, vbo, shader_program):
     # Set model, view and projection uniform
     uniform_location = gl.glGetUniformLocation(shader_program, 'u_ModelViewProjection')
     if uniform_location != -1:
-        T = glm.translate(glm.mat4(1.0), glm.vec3(0, 0, 0))
+        T = glm.translate(glm.mat4(1.0), glm.vec3(t, 0, 0))
         R = glm.quat(glm.vec3(glm.radians(0.0), glm.radians(0.0), glm.radians(0.0)))
         S = glm.scale(glm.mat4(1.0), glm.vec3(1, 1, 1))
         
@@ -103,6 +103,8 @@ def on_update(vao, vbo, shader_program):
 
     # Unbind shader program
     gl.glUseProgram(0)
+
+
 
 def main():
     # Initialize GLFW
@@ -134,11 +136,14 @@ def main():
 
     vao, vbo, shader_program = on_create()
 
+    t = -1
+
     while not glfw.window_should_close(window):
         glfw.poll_events()
         gl.glClearColor(0.25, 0.25, 0.25, 1.0)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-        on_update(vao, vbo, shader_program)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)        
+        t += 0.01
+        on_update(vao, vbo, shader_program, t)
         glfw.swap_buffers(window)
 
     # Terminate GLFW

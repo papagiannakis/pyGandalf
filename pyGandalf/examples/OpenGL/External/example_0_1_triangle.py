@@ -48,8 +48,8 @@ def on_create():
     gl.glVertexAttribPointer(0, len(vertices[0]), gl.GL_FLOAT, gl.GL_FALSE, len(vertices[0]) * 4, ctypes.c_void_p(0))
 
     # Read shaders
-    vertex_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_textured.vs')
-    fragment_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_textured.fs')
+    vertex_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit.vs')
+    fragment_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit.fs')
 
     # Compile shaders
     vertex_shader = compile_shader(vertex_shader_code, gl.GL_VERTEX_SHADER)
