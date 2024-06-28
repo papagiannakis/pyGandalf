@@ -64,14 +64,14 @@ def load_texture(device, path, flip):
 
     return texture, view, sampler, img, img_bytes
 
-def main(canvas: WgpuCanvas, power_preference="high-performance", limits=None):
+def main(canvas, power_preference="high-performance", limits=None):
     """Regular function to setup a viz on the given canvas."""
     adapter = wgpu.gpu.request_adapter(power_preference=power_preference)
     device = adapter.request_device(required_limits={})
     return _main(canvas, device)
 
 
-def _main(canvas: WgpuCanvas, device: wgpu.GPUDevice):
+def _main(canvas, device: wgpu.GPUDevice):
     shader_source = load_from_file(SHADERS_PATH/'webgpu'/'unlit_textured_no_storage.wgsl')
     shader: wgpu.GPUShaderModule = device.create_shader_module(code=shader_source)
 
