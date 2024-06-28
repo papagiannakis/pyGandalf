@@ -104,8 +104,6 @@ def on_update(vao, vbo, shader_program, t):
     # Unbind shader program
     gl.glUseProgram(0)
 
-
-
 def main():
     # Initialize GLFW
     if not glfw.init():
