@@ -112,12 +112,15 @@ def on_create():
     gl.glEnableVertexAttribArray(1)
     gl.glVertexAttribPointer(1, len(texture_coords[0]), gl.GL_FLOAT, gl.GL_FALSE, len(texture_coords[0]) * 4, ctypes.c_void_p(0))
 
+    # Read shaders
     vertex_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_textured.vs')
     fragment_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_textured.fs')
 
+    # Compile shaders
     vertex_shader = compile_shader(vertex_shader_code, gl.GL_VERTEX_SHADER)
     fragment_shader = compile_shader(fragment_shader_code, gl.GL_FRAGMENT_SHADER)
 
+    # Attach shaders and link program
     shader_program = gl.glCreateProgram()
     gl.glAttachShader(shader_program, vertex_shader)
     gl.glAttachShader(shader_program, fragment_shader)
@@ -126,6 +129,7 @@ def on_create():
     if not gl.glGetProgramiv(shader_program, gl.GL_LINK_STATUS):
         raise RuntimeError(gl.glGetProgramInfoLog(shader_program).decode('utf-8'))
 
+    # Clean up
     gl.glDeleteShader(vertex_shader)
     gl.glDeleteShader(fragment_shader)
 
@@ -165,10 +169,12 @@ def on_update(vao, vbos, shader_program, texture_id):
         mvp = projection * view * model
         gl.glUniformMatrix4fv(mvp_uniform_location, 1, gl.GL_FALSE, glm.value_ptr(mvp))
 
+    # Set sampler uniform
     sampler_uniform_location = gl.glGetUniformLocation(shader_program, 'u_AlbedoMap')
     if sampler_uniform_location != -1:
         gl.glUniform1i(sampler_uniform_location, 0)
 
+    # Bind texture
     gl.glActiveTexture(gl.GL_TEXTURE0)
     gl.glBindTexture(gl.GL_TEXTURE_2D, texture_id)
 

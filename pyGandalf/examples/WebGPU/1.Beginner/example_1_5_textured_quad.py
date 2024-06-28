@@ -30,17 +30,17 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(WebGPUWindow('Trianlge', 1280, 720, True), WebGPURenderer)
+    Application().create(WebGPUWindow('Textured Quad', 1280, 720, True), WebGPURenderer)
 
     # Create a new scene
-    scene = Scene('Trianlge')
+    scene = Scene('Textured Quad')
 
     # Enroll a triangle entity to registry
     quad = scene.enroll_entity()
     camera = scene.enroll_entity()
 
     # Build textures
-    WebGPUTextureLib().build('uoc_logo', TextureData(path=TEXTURES_PATH / 'uoc_logo.png'), descriptor=TextureDescriptor(flip=True))
+    WebGPUTextureLib().build('uoc_logo', TextureData(path=TEXTURES_PATH / 'uoc_logo.png'), TextureDescriptor(flip=True))
 
     # Build shaders 
     WebGPUShaderLib().build('unlit_textured', SHADERS_PATH / 'webgpu' / 'unlit_textured.wgsl')
@@ -50,22 +50,22 @@ def main():
 
     # Vertices of the quad
     vertices = np.array([
-        [-0.5, -0.5, 0.0], # 0 - Bottom left
+        [ 0.5,  0.5, 0.0], # 2 - Top right
         [ 0.5, -0.5, 0.0], # 1 - Bottom right
-        [ 0.5,  0.5, 0.0], # 2 - Top right
-        [ 0.5,  0.5, 0.0], # 2 - Top right
+        [-0.5, -0.5, 0.0], # 0 - Bottom left
+        [-0.5, -0.5, 0.0], # 0 - Bottom left
         [-0.5,  0.5, 0.0], # 3 - Top left
-        [-0.5, -0.5, 0.0]  # 0 - Bottom left
+        [ 0.5,  0.5, 0.0]  # 2 - Top right
     ], dtype=np.float32)
 
     # Texture coordinates of the quad
     texture_coords = np.array([
-        [0.0, 1.0], # 0
+        [1.0, 0.0], # 2
         [1.0, 1.0], # 1
-        [1.0, 0.0], # 2
-        [1.0, 0.0], # 2
+        [0.0, 1.0], # 0
+        [0.0, 1.0], # 0
         [0.0, 0.0], # 3
-        [0.0, 1.0]  # 0
+        [1.0, 0.0]  # 2
     ], dtype=np.float32)
 
     # Register components to quad

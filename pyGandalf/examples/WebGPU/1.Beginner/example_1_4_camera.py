@@ -45,12 +45,12 @@ def main():
 
     # Vertices of the quad
     vertices = np.array([
-        [-0.5, -0.5, 0.0], # 0 - Bottom left
+        [ 0.5,  0.5, 0.0], # 2 - Top right
         [ 0.5, -0.5, 0.0], # 1 - Bottom right
-        [ 0.5,  0.5, 0.0], # 2 - Top right
-        [ 0.5,  0.5, 0.0], # 2 - Top right
+        [-0.5, -0.5, 0.0], # 0 - Bottom left
+        [-0.5, -0.5, 0.0], # 0 - Bottom left
         [-0.5,  0.5, 0.0], # 3 - Top left
-        [-0.5, -0.5, 0.0]  # 0 - Bottom left
+        [ 0.5,  0.5, 0.0]  # 2 - Top right
     ], dtype=np.float32)
 
     # Register components to triangle

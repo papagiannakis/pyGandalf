@@ -43,9 +43,9 @@ def main():
 
     # Vertices of the triangle
     vertices = np.array([
-        [-0.5, -0.5, 0.0], # 0 - Bottom left
-        [ 0.5, -0.5, 0.0], # 1 - Bottom right
         [ 0.0,  0.5, 0.0], # 2 - Top middle
+        [ 0.5, -0.5, 0.0], # 1 - Bottom right
+        [-0.5, -0.5, 0.0], # 0 - Bottom left
     ], dtype=np.float32)
 
     # Register components to triangle

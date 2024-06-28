@@ -43,15 +43,19 @@ def on_create():
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo)
     gl.glBufferData(gl.GL_ARRAY_BUFFER, len(vertices) * len(vertices[0]) * 4, vertices_pointer, gl.GL_STATIC_DRAW)
 
+    # Set vertex buffer layout
     gl.glEnableVertexAttribArray(0)
     gl.glVertexAttribPointer(0, len(vertices[0]), gl.GL_FLOAT, gl.GL_FALSE, len(vertices[0]) * 4, ctypes.c_void_p(0))
 
-    vertex_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit.vs')
-    fragment_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit.fs')
+    # Read shaders
+    vertex_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_textured.vs')
+    fragment_shader_code = load_from_file(SHADERS_PATH / 'opengl' / 'unlit_textured.fs')
 
+    # Compile shaders
     vertex_shader = compile_shader(vertex_shader_code, gl.GL_VERTEX_SHADER)
     fragment_shader = compile_shader(fragment_shader_code, gl.GL_FRAGMENT_SHADER)
 
+    # Attach shaders and link program
     shader_program = gl.glCreateProgram()
     gl.glAttachShader(shader_program, vertex_shader)
     gl.glAttachShader(shader_program, fragment_shader)
