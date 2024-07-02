@@ -54,9 +54,9 @@ class OpenGLStaticMeshRenderingSystem(System):
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
 
-        mesh.vao = 0
-        mesh.ebo = 0
-        mesh.vbo.clear()
+        mesh.render_pipeline = None
+        mesh.index_buffer = None
+        mesh.buffers.clear()
 
         material.instance = OpenGLMaterialLib().get(material.name)
 

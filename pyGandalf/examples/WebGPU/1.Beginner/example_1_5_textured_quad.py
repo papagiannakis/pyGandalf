@@ -71,8 +71,8 @@ def main():
     # Register components to quad
     scene.add_component(quad, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(quad, InfoComponent("quad"))
-    scene.add_component(quad, WebGPUStaticMeshComponent('quad', [vertices, texture_coords]))
-    scene.add_component(quad, WebGPUMaterialComponent('M_UnlitTextured'))
+    scene.add_component(quad, StaticMeshComponent('quad', [vertices, texture_coords]))
+    scene.add_component(quad, MaterialComponent('M_UnlitTextured'))
 
     # Register components to camera. NOTE: the z-axis is flipped compared to OpenGL!
     scene.add_component(camera, InfoComponent("camera"))
@@ -82,7 +82,7 @@ def main():
     # Register systems to the scene
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
 
     # Add scene to the manager
     SceneManager().add_scene(scene)

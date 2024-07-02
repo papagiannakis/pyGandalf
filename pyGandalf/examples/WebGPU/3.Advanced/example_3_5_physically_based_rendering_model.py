@@ -66,8 +66,8 @@ def main():
     scene.add_component(cerberus, InfoComponent("cerberus"))
     scene.add_component(cerberus, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(0.1, 0.1, 0.1)))
     scene.add_component(cerberus, LinkComponent(root))
-    scene.add_component(cerberus, WebGPUStaticMeshComponent('cerberus_mesh'))
-    scene.add_component(cerberus, WebGPUMaterialComponent('M_PBR'))
+    scene.add_component(cerberus, StaticMeshComponent('cerberus_mesh'))
+    scene.add_component(cerberus, MaterialComponent('M_PBR'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
@@ -87,7 +87,7 @@ def main():
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager

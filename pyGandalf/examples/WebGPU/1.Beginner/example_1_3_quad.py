@@ -39,7 +39,7 @@ def main():
     WebGPUShaderLib().build('unlit', SHADERS_PATH / 'webgpu' / 'unlit.wgsl')
     
     # Build Materials
-    WebGPUMaterialLib().build('M_Unlit', MaterialData('unlit', []))
+    WebGPUMaterialLib().build('M_Unlit', MaterialData('unlit', [], glm.vec4(0.8, 0.5, 0.3, 1.0)))
 
     # Vertices of the quad
     vertices = np.array([
@@ -54,12 +54,12 @@ def main():
     # Register components to quad
     scene.add_component(quad, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(quad, InfoComponent("quad"))
-    scene.add_component(quad, WebGPUStaticMeshComponent('quad', [vertices]))
-    scene.add_component(quad, WebGPUMaterialComponent('M_Unlit'))
+    scene.add_component(quad, StaticMeshComponent('quad', [vertices]))
+    scene.add_component(quad, MaterialComponent('M_Unlit'))
 
     # Register systems to the scene
     scene.register_system(TransformSystem([TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
 
     # Add scene to the manager
     SceneManager().add_scene(scene)

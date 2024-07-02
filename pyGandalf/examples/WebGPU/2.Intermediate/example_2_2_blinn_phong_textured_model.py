@@ -63,8 +63,8 @@ def main():
     scene.add_component(pistol, InfoComponent("pistol"))
     scene.add_component(pistol, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(15, 15, 15)))
     scene.add_component(pistol, LinkComponent(root))
-    scene.add_component(pistol, WebGPUStaticMeshComponent('pistol_mesh'))
-    scene.add_component(pistol, WebGPUMaterialComponent('M_Pistol'))
+    scene.add_component(pistol, StaticMeshComponent('pistol_mesh'))
+    scene.add_component(pistol, MaterialComponent('M_Pistol'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
@@ -84,7 +84,7 @@ def main():
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager

@@ -63,8 +63,8 @@ def main():
     scene.add_component(bunny, InfoComponent("bunny"))
     scene.add_component(bunny, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(bunny, LinkComponent(root))
-    scene.add_component(bunny, WebGPUStaticMeshComponent('bunny_mesh'))
-    scene.add_component(bunny, WebGPUMaterialComponent('M_Bunny'))
+    scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
+    scene.add_component(bunny, MaterialComponent('M_Bunny'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
@@ -84,7 +84,7 @@ def main():
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager

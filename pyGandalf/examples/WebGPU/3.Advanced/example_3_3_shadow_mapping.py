@@ -128,29 +128,29 @@ def main():
     scene.add_component(bunny, InfoComponent("bunny"))
     scene.add_component(bunny, TransformComponent(glm.vec3(-1, 0, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(bunny, LinkComponent(root))
-    scene.add_component(bunny, WebGPUStaticMeshComponent('bunny_mesh'))
-    scene.add_component(bunny, WebGPUMaterialComponent('M_LitShadows'))
+    scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
+    scene.add_component(bunny, MaterialComponent('M_LitShadows'))
 
     # Register components to monkey
     scene.add_component(monkey, InfoComponent("monkey"))
     scene.add_component(monkey, TransformComponent(glm.vec3(-1, 0, 1.5), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(monkey, LinkComponent(root))
-    scene.add_component(monkey, WebGPUStaticMeshComponent('monkey_mesh'))
-    scene.add_component(monkey, WebGPUMaterialComponent('M_LitShadows'))
+    scene.add_component(monkey, StaticMeshComponent('monkey_mesh'))
+    scene.add_component(monkey, MaterialComponent('M_LitShadows'))
 
     # Register components to floor
     scene.add_component(floor, InfoComponent("floor"))
     scene.add_component(floor, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(270, 0, 0), glm.vec3(15, 15, 15)))
     scene.add_component(floor, LinkComponent(root))
-    scene.add_component(floor, WebGPUStaticMeshComponent('floor_mesh', [plane_vertices, plane_normals, plane_texture_coords]))
-    scene.add_component(floor, WebGPUMaterialComponent('M_LitShadows'))
+    scene.add_component(floor, StaticMeshComponent('floor_mesh', [plane_vertices, plane_normals, plane_texture_coords]))
+    scene.add_component(floor, MaterialComponent('M_LitShadows'))
 
     # # Register components to debug_depth_quad
     # scene.add_component(debug_depth_quad, InfoComponent("debug_depth_quad"))
     # scene.add_component(debug_depth_quad, TransformComponent(glm.vec3(-4, 4, 0), glm.vec3(0, 180, 0), glm.vec3(2, 2, 2)))
     # scene.add_component(debug_depth_quad, LinkComponent(root))
-    # scene.add_component(debug_depth_quad, WebGPUStaticMeshComponent('debug_depth_quad_mesh', [plane_vertices, plane_texture_coords]))
-    # scene.add_component(debug_depth_quad, WebGPUMaterialComponent('M_DebugQuadDepth'))
+    # scene.add_component(debug_depth_quad, StaticMeshComponent('debug_depth_quad_mesh', [plane_vertices, plane_texture_coords]))
+    # scene.add_component(debug_depth_quad, MaterialComponent('M_DebugQuadDepth'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
@@ -170,7 +170,7 @@ def main():
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
     scene.register_system(RotateAroundSystem([RotateAroundComponent, TransformComponent]))
 

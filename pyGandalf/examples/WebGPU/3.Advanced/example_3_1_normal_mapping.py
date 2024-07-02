@@ -146,15 +146,15 @@ def main():
     scene.add_component(wall_side, InfoComponent("wall_side"))
     scene.add_component(wall_side, TransformComponent(glm.vec3(0, 0, 2), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(wall_side, LinkComponent(root))
-    scene.add_component(wall_side, WebGPUStaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_side, WebGPUMaterialComponent('M_Wall'))
+    scene.add_component(wall_side, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
+    scene.add_component(wall_side, MaterialComponent('M_Wall'))
 
     # Register components to wall
     scene.add_component(wall_bottom, InfoComponent("wall_bottom"))
     scene.add_component(wall_bottom, TransformComponent(glm.vec3(0, -1, 1), glm.vec3(-90, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(wall_bottom, LinkComponent(root))
-    scene.add_component(wall_bottom, WebGPUStaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_bottom, WebGPUMaterialComponent('M_Wall'))
+    scene.add_component(wall_bottom, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
+    scene.add_component(wall_bottom, MaterialComponent('M_Wall'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
@@ -174,7 +174,7 @@ def main():
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager

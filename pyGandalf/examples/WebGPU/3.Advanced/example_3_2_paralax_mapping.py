@@ -154,29 +154,29 @@ def main():
     scene.add_component(wall_normal, InfoComponent("wall_normal"))
     scene.add_component(wall_normal, TransformComponent(glm.vec3(-2.5, 1.25, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(wall_normal, LinkComponent(root))
-    scene.add_component(wall_normal, WebGPUStaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_normal, WebGPUMaterialComponent('M_Wall_Normal'))
+    scene.add_component(wall_normal, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
+    scene.add_component(wall_normal, MaterialComponent('M_Wall_Normal'))
 
     # Register components to wall with parallax mapping
     scene.add_component(wall_parallax, InfoComponent("wall_parallax"))
     scene.add_component(wall_parallax, TransformComponent(glm.vec3(0, 1.25, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(wall_parallax, LinkComponent(root))
-    scene.add_component(wall_parallax, WebGPUStaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_parallax, WebGPUMaterialComponent('M_Wall_Parallax'))
+    scene.add_component(wall_parallax, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
+    scene.add_component(wall_parallax, MaterialComponent('M_Wall_Parallax'))
 
     # Register components to wall with steep parallax mapping
     scene.add_component(wall_steep_parallax, InfoComponent("wall_steep_parallax"))
     scene.add_component(wall_steep_parallax, TransformComponent(glm.vec3(-2.5, -1.25, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(wall_steep_parallax, LinkComponent(root))
-    scene.add_component(wall_steep_parallax, WebGPUStaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_steep_parallax, WebGPUMaterialComponent('M_Wall_Steep_Parallax'))
+    scene.add_component(wall_steep_parallax, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
+    scene.add_component(wall_steep_parallax, MaterialComponent('M_Wall_Steep_Parallax'))
 
     # Register components to wall with parallax occlusion mapping
     scene.add_component(wall_parallax_occlusion, InfoComponent("wall_parallax_occlusion"))
     scene.add_component(wall_parallax_occlusion, TransformComponent(glm.vec3(0, -1.25, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(wall_parallax_occlusion, LinkComponent(root))
-    scene.add_component(wall_parallax_occlusion, WebGPUStaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
-    scene.add_component(wall_parallax_occlusion, WebGPUMaterialComponent('M_Wall_Parallax_Occlusion'))
+    scene.add_component(wall_parallax_occlusion, StaticMeshComponent('wall_mesh', [vertices, normals, texture_coords, tangent, bitangent]))
+    scene.add_component(wall_parallax_occlusion, MaterialComponent('M_Wall_Parallax_Occlusion'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
@@ -196,7 +196,7 @@ def main():
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager

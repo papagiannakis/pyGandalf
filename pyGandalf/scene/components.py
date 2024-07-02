@@ -1,6 +1,4 @@
 from pyGandalf.scene.entity import Entity
-from pyGandalf.utilities.opengl_material_lib import MaterialInstance as OpenGLMaterialInstance
-from pyGandalf.utilities.webgpu_material_lib import CPUBuffer, MaterialInstance as WebGPUMaterialInstance
 
 import glm
 import wgpu
@@ -40,11 +38,6 @@ class LinkComponent(Component):
         self.parent: Entity = parent
         self.prev_parent: Entity = parent
         self.children: list[Entity] = []
-
-class MaterialComponent(Component):            
-    def __init__(self, name: str):
-        self.name = name
-        self.instance: OpenGLMaterialInstance = None
 
 class CameraComponent(Component):
     class Type(Enum):
@@ -88,21 +81,6 @@ class StaticMeshComponent(Component):
         self.attributes = attributes
         self.indices = indices
 
-        self.vao = 0
-        self.vbo = []
-        self.ebo = 0
-
-        self.batch = -1
-        self.load_from_file = True if attributes == None else False
-
-        self.hash = uuid.uuid4()
-
-class WebGPUStaticMeshComponent(Component):
-    def __init__(self, name, attributes = None, indices = None):
-        self.name = name
-        self.attributes = attributes
-        self.indices = indices
-
         self.render_pipeline = None
         self.buffers = []
         self.index_buffer = None
@@ -112,10 +90,10 @@ class WebGPUStaticMeshComponent(Component):
 
         self.hash = uuid.uuid4()
 
-class WebGPUMaterialComponent(Component):
+class MaterialComponent(Component):            
     def __init__(self, name: str):
         self.name = name
-        self.instance: WebGPUMaterialInstance = None
+        self.instance = None
 
 class LightComponent(Component):
     def __init__(self, color, intensity):

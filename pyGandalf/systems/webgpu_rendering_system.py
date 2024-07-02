@@ -3,7 +3,7 @@ from pyGandalf.scene.entity import Entity
 from pyGandalf.scene.scene_manager import SceneManager
 
 from pyGandalf.renderer.webgpu_renderer import WebGPURenderer, RenderPipelineDescription, RenderPassDescription, ColorAttachmentDescription
-from pyGandalf.scene.components import Component, TransformComponent, WebGPUStaticMeshComponent, WebGPUMaterialComponent
+from pyGandalf.scene.components import Component, TransformComponent, StaticMeshComponent, MaterialComponent
 from pyGandalf.systems.light_system import LightSystem
 
 from pyGandalf.utilities.webgpu_material_lib import WebGPUMaterialLib, MaterialInstance, CPUBuffer
@@ -91,7 +91,7 @@ class WebGPUStaticMeshRenderingSystem(System):
     def on_update_system(self, ts):
         if WebGPURenderer().get_shadows_enabled():
             if self.pre_pass_material == None:
-                self.pre_pass_material = WebGPUMaterialComponent('M_DepthPrePass')
+                self.pre_pass_material = MaterialComponent('M_DepthPrePass')
                 self.pre_pass_material.instance = WebGPUMaterialLib().get('M_DepthPrePass')
 
             self.render_pipeline_descriptions.clear()
@@ -124,7 +124,7 @@ class WebGPUStaticMeshRenderingSystem(System):
                     mesh, _, _ = current_mesh_group[0]
 
                     self.render_pipeline_descriptions.append(RenderPipelineDescription())
-                    self.render_pipeline_descriptions[-1].render_data = WebGPUStaticMeshComponent('shadow_render_data', [mesh.attributes[0]], mesh.indices)
+                    self.render_pipeline_descriptions[-1].render_data = StaticMeshComponent('shadow_render_data', [mesh.attributes[0]], mesh.indices)
                     self.render_pipeline_descriptions[-1].material_instance = self.pre_pass_material.instance
                     WebGPURenderer().create_render_pipeline(self.render_pipeline_descriptions[-1])
                     WebGPURenderer().create_buffers(self.render_pipeline_descriptions[-1].render_data)

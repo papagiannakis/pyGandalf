@@ -2,10 +2,10 @@
 
 def "Hierachy"
 {
-    def "Entity1bffb94445cf403293d0fca3e09e3559"
+    def "Entityad567289fe2c4595bfbf12c5dc1ac872"
     {
         custom bool enabled = 1
-        custom string id = "1bffb94445cf403293d0fca3e09e3559"
+        custom string id = "ad567289fe2c4595bfbf12c5dc1ac872"
 
         def "InfoComponent"
         {
@@ -19,14 +19,14 @@ def "Hierachy"
 
         def "LinkComponent"
         {
-            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": 0, "parent": null, "prev_parent": null, "children": [{"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "38c6fe271e544cbd9e12b5417896c1dc"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "34261f38a7b24819843e88ec1b1bae96"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "c1a073427b14456186916f94af06abd9"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "686c7b40deaa485699ea2ea3bfaa4396"}, "enabled": true}]}'
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": 0, "parent": null, "prev_parent": null, "children": [{"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "771ccfdf52fb42d0bdeddb4285e377a3"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "25783733eb2d487cb899ef152fb6ac65"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "3aaa1dd439674f49964153c423936722"}, "enabled": true}, {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/object": "uuid.UUID", "hex": "2acbce21563b477e86de8b81a359d300"}, "enabled": true}]}'
         }
     }
 
-    def "Entity38c6fe271e544cbd9e12b5417896c1dc"
+    def "Entity771ccfdf52fb42d0bdeddb4285e377a3"
     {
         custom bool enabled = 1
-        custom string id = "38c6fe271e544cbd9e12b5417896c1dc"
+        custom string id = "771ccfdf52fb42d0bdeddb4285e377a3"
 
         def "InfoComponent"
         {
@@ -40,7 +40,7 @@ def "Hierachy"
 
         def "LinkComponent"
         {
-            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "1bffb94445cf403293d0fca3e09e3559"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "ad567289fe2c4595bfbf12c5dc1ac872"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
         }
 
         def "CameraComponent"
@@ -54,10 +54,10 @@ def "Hierachy"
         }
     }
 
-    def "Entity34261f38a7b24819843e88ec1b1bae96"
+    def "Entity25783733eb2d487cb899ef152fb6ac65"
     {
         custom bool enabled = 1
-        custom string id = "34261f38a7b24819843e88ec1b1bae96"
+        custom string id = "25783733eb2d487cb899ef152fb6ac65"
 
         def "InfoComponent"
         {
@@ -71,24 +71,24 @@ def "Hierachy"
 
         def "LinkComponent"
         {
-            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "1bffb94445cf403293d0fca3e09e3559"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "ad567289fe2c4595bfbf12c5dc1ac872"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+        }
+
+        def "StaticMeshComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.StaticMeshComponent", "name": "wall_mesh", "attributes": [{"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["f4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, false, {"py/b64": "AACAvwAAgD8AAAAAAACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAvwAAgD8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 2]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAgD8AAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAA"}]}]}], "indices": null, "render_pipeline": {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["u4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, {"py/b64": "AQAAAA=="}]}]}, "buffers": [{"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AQAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AgAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AwAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BAAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BQAAAA=="}]}]}], "index_buffer": null, "batch": 0, "load_from_file": false, "hash": {"py/object": "uuid.UUID", "hex": "7bd4a725d9b24f4ebe1a9a0adc80af3c"}}'
         }
 
         def "MaterialComponent"
         {
             custom string dict = '{"py/object": "pyGandalf.scene.components.MaterialComponent", "name": "M_Wall", "instance": {"py/object": "pyGandalf.utilities.opengl_material_lib.MaterialInstance", "name": "M_Wall", "data": {"py/object": "pyGandalf.utilities.opengl_material_lib.MaterialData", "base_template": "default_mesh_normals", "color": {"py/object": "glm.vec4", "py/state": {"py/tuple": [1.0, 1.0, 1.0, 1.0]}}, "textures": ["brickwall_albedo", "brickwall_normal"], "glossiness": 3.0}, "descriptor": {"py/object": "pyGandalf.utilities.opengl_material_lib.MaterialDescriptor", "primitive": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_TRIANGLES", 4]}, "py/state": "GL_TRIANGLES"}, "cull_enabled": true, "cull_face": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_BACK", 1029]}, "py/state": "GL_BACK"}, "patch_resolution": 20, "vertices_per_patch": 20, "depth_enabled": true, "depth_func": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_LEQUAL", 515]}, "py/state": "GL_LEQUAL"}, "depth_mask": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_TRUE", 1]}, "py/state": "GL_TRUE"}, "blend_enabled": true, "blend_func_source": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_SRC_ALPHA", 770]}, "py/state": "GL_SRC_ALPHA"}, "blend_func_destination": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_ONE_MINUS_SRC_ALPHA", 771]}, "py/state": "GL_ONE_MINUS_SRC_ALPHA"}, "blend_equation": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_FUNC_ADD", 32774]}, "py/state": "GL_FUNC_ADD"}}, "shader_program": 3, "shader_params": {"u_ModelViewProjection": "mat4", "u_Model": "mat4", "u_LightPositions": "vec3[16]", "u_LightCount": "int", "u_ViewPosition": "vec3", "u_AlbedoMap": "sampler2D", "u_NormalMap": "sampler2D", "u_Color": "vec3", "u_LightColors": "vec3[16]", "u_LightIntensities": "float[16]", "u_Glossiness": "float", "u_Metalicness": "float"}}}'
         }
-
-        def "StaticMeshComponent"
-        {
-            custom string dict = '{"py/object": "pyGandalf.scene.components.StaticMeshComponent", "name": "wall_mesh", "attributes": [{"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["f4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, false, {"py/b64": "AACAvwAAgD8AAAAAAACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAvwAAgD8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 2]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAgD8AAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAA"}]}]}], "indices": null, "vao": {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["u4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, {"py/b64": "AQAAAA=="}]}]}, "vbo": [{"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AQAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AgAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "AwAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BAAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BQAAAA=="}]}]}], "ebo": 0, "batch": 0, "load_from_file": false, "hash": {"py/object": "uuid.UUID", "hex": "d64e7e8f607c4177ab02b3625a717a5f"}}'
-        }
     }
 
-    def "Entityc1a073427b14456186916f94af06abd9"
+    def "Entity3aaa1dd439674f49964153c423936722"
     {
         custom bool enabled = 1
-        custom string id = "c1a073427b14456186916f94af06abd9"
+        custom string id = "3aaa1dd439674f49964153c423936722"
 
         def "InfoComponent"
         {
@@ -102,24 +102,24 @@ def "Hierachy"
 
         def "LinkComponent"
         {
-            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "1bffb94445cf403293d0fca3e09e3559"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "ad567289fe2c4595bfbf12c5dc1ac872"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+        }
+
+        def "StaticMeshComponent"
+        {
+            custom string dict = '{"py/object": "pyGandalf.scene.components.StaticMeshComponent", "name": "wall_mesh", "attributes": [{"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["f4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, false, {"py/b64": "AACAvwAAgD8AAAAAAACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAvwAAgD8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 2]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAgD8AAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAA"}]}]}], "indices": null, "render_pipeline": {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["u4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, {"py/b64": "AgAAAA=="}]}]}, "buffers": [{"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BgAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BwAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CAAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CQAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CgAAAA=="}]}]}], "index_buffer": null, "batch": 0, "load_from_file": false, "hash": {"py/object": "uuid.UUID", "hex": "fcfee31515cf4b49837bad3f3e0a2084"}}'
         }
 
         def "MaterialComponent"
         {
             custom string dict = '{"py/object": "pyGandalf.scene.components.MaterialComponent", "name": "M_Wall", "instance": {"py/object": "pyGandalf.utilities.opengl_material_lib.MaterialInstance", "name": "M_Wall", "data": {"py/object": "pyGandalf.utilities.opengl_material_lib.MaterialData", "base_template": "default_mesh_normals", "color": {"py/object": "glm.vec4", "py/state": {"py/tuple": [1.0, 1.0, 1.0, 1.0]}}, "textures": ["brickwall_albedo", "brickwall_normal"], "glossiness": 3.0}, "descriptor": {"py/object": "pyGandalf.utilities.opengl_material_lib.MaterialDescriptor", "primitive": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_TRIANGLES", 4]}, "py/state": "GL_TRIANGLES"}, "cull_enabled": true, "cull_face": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_BACK", 1029]}, "py/state": "GL_BACK"}, "patch_resolution": 20, "vertices_per_patch": 20, "depth_enabled": true, "depth_func": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_LEQUAL", 515]}, "py/state": "GL_LEQUAL"}, "depth_mask": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_TRUE", 1]}, "py/state": "GL_TRUE"}, "blend_enabled": true, "blend_func_source": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_SRC_ALPHA", 770]}, "py/state": "GL_SRC_ALPHA"}, "blend_func_destination": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_ONE_MINUS_SRC_ALPHA", 771]}, "py/state": "GL_ONE_MINUS_SRC_ALPHA"}, "blend_equation": {"py/object": "OpenGL.constant.IntConstant", "py/newargs": {"py/tuple": ["GL_FUNC_ADD", 32774]}, "py/state": "GL_FUNC_ADD"}}, "shader_program": 3, "shader_params": {"u_ModelViewProjection": "mat4", "u_Model": "mat4", "u_LightPositions": "vec3[16]", "u_LightCount": "int", "u_ViewPosition": "vec3", "u_AlbedoMap": "sampler2D", "u_NormalMap": "sampler2D", "u_Color": "vec3", "u_LightColors": "vec3[16]", "u_LightIntensities": "float[16]", "u_Glossiness": "float", "u_Metalicness": "float"}}}'
         }
-
-        def "StaticMeshComponent"
-        {
-            custom string dict = '{"py/object": "pyGandalf.scene.components.StaticMeshComponent", "name": "wall_mesh", "attributes": [{"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["f4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, false, {"py/b64": "AACAvwAAgD8AAAAAAACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAvwAAgD8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 2]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAgD8AAIA/"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAA"}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"}, {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [6, 3]}, {"py/id": 3}, false, {"py/b64": "AAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAA"}]}]}], "indices": null, "vao": {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/reduce": [{"py/type": "numpy.dtype"}, {"py/tuple": ["u4", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, {"py/b64": "AgAAAA=="}]}]}, "vbo": [{"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BgAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "BwAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CAAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CQAAAA=="}]}]}, {"py/reduce": [{"py/function": "numpy.core.multiarray.scalar"}, {"py/tuple": [{"py/id": 9}, {"py/b64": "CgAAAA=="}]}]}], "ebo": 0, "batch": 0, "load_from_file": false, "hash": {"py/object": "uuid.UUID", "hex": "caffb6a470e24a588e826647cb75b791"}}'
-        }
     }
 
-    def "Entity686c7b40deaa485699ea2ea3bfaa4396"
+    def "Entity2acbce21563b477e86de8b81a359d300"
     {
         custom bool enabled = 1
-        custom string id = "686c7b40deaa485699ea2ea3bfaa4396"
+        custom string id = "2acbce21563b477e86de8b81a359d300"
 
         def "InfoComponent"
         {
@@ -133,7 +133,7 @@ def "Hierachy"
 
         def "LinkComponent"
         {
-            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "1bffb94445cf403293d0fca3e09e3559"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
+            custom string dict = '{"py/object": "pyGandalf.scene.components.LinkComponent", "parent_id": {"py/object": "uuid.UUID", "hex": "ad567289fe2c4595bfbf12c5dc1ac872"}, "parent": {"py/object": "pyGandalf.scene.entity.Entity", "id": {"py/id": 1}, "enabled": true}, "prev_parent": {"py/id": 2}, "children": []}'
         }
 
         def "LightComponent"

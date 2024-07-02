@@ -51,8 +51,8 @@ class OpenGLRenderer(BaseRenderer):
             gl.glPatchParameteri(gl.GL_PATCH_VERTICES, material.instance.descriptor.vertices_per_patch)
 
         # Vertex Array Object (VAO)
-        render_data.vao = gl.glGenVertexArrays(1)
-        gl.glBindVertexArray(render_data.vao)
+        render_data.render_pipeline = gl.glGenVertexArrays(1)
+        gl.glBindVertexArray(render_data.render_pipeline)
 
         # Filter out None from attributes
         render_data.attributes = list(filter(lambda x: x is not None, render_data.attributes))
@@ -62,8 +62,8 @@ class OpenGLRenderer(BaseRenderer):
             attribute_pointer = attribute.ctypes.data_as(ctypes.POINTER(gl.GLfloat))
 
             # Vertex Buffer Object (VBO)
-            render_data.vbo.append(gl.glGenBuffers(1))
-            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.vbo[-1])
+            render_data.buffers.append(gl.glGenBuffers(1))
+            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.buffers[-1])
             gl.glBufferData(gl.GL_ARRAY_BUFFER, len(attribute) * len(attribute[0]) * 4, attribute_pointer, gl.GL_STATIC_DRAW)
 
             gl.glEnableVertexAttribArray(index)
@@ -74,8 +74,8 @@ class OpenGLRenderer(BaseRenderer):
             indices_pointer = render_data.indices.ctypes.data_as(ctypes.POINTER(gl.GLuint))
             
             # Element Buffer Object (EBO)
-            render_data.ebo = gl.glGenBuffers(1)
-            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
+            render_data.index_buffer = gl.glGenBuffers(1)
+            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.index_buffer)
             
             if material.instance.descriptor.primitive == gl.GL_TRIANGLE_STRIP:
                 gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, len(render_data.indices) * 4, indices_pointer, gl.GL_STATIC_DRAW)
@@ -107,17 +107,17 @@ class OpenGLRenderer(BaseRenderer):
 
     def set_pipeline(cls, render_data):
         # Bind vao
-        gl.glBindVertexArray(render_data.vao)
+        gl.glBindVertexArray(render_data.render_pipeline)
 
     def set_buffers(cls, render_data):
         # Bind ebo
         if render_data.indices is not None:
-            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.ebo)
+            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, render_data.index_buffer)
 
         # Bind vertex buffer and their layout
         for index, attribute in enumerate(render_data.attributes):
             # Vertex Buffer Object (VBO)
-            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.vbo[index])
+            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, render_data.buffers[index])
 
             # Set vertex buffer layout
             gl.glEnableVertexAttribArray(index)

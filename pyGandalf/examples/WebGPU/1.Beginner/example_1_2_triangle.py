@@ -51,12 +51,12 @@ def main():
     # Register components to triangle
     scene.add_component(triangle, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(triangle, InfoComponent("triangle"))
-    scene.add_component(triangle, WebGPUStaticMeshComponent('triangle', [vertices]))
-    scene.add_component(triangle, WebGPUMaterialComponent('M_Unlit'))
+    scene.add_component(triangle, StaticMeshComponent('triangle', [vertices]))
+    scene.add_component(triangle, MaterialComponent('M_Unlit'))
 
     # Register systems to the scene
     scene.register_system(TransformSystem([TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
 
     # Add scene to the manager
     SceneManager().add_scene(scene)

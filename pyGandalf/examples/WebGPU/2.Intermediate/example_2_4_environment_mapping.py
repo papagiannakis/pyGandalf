@@ -98,22 +98,22 @@ def main():
     scene.add_component(skybox, InfoComponent("skybox"))
     scene.add_component(skybox, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(skybox, LinkComponent(None))
-    scene.add_component(skybox, WebGPUStaticMeshComponent('skybox', [vertices]))
-    scene.add_component(skybox, WebGPUMaterialComponent('M_Skybox'))
+    scene.add_component(skybox, StaticMeshComponent('skybox', [vertices]))
+    scene.add_component(skybox, MaterialComponent('M_Skybox'))
 
     # Register components to reflection bunny - acts like its a bunny made from a mirror
     scene.add_component(reflection_bunny, InfoComponent("reflection_bunny"))
     scene.add_component(reflection_bunny, TransformComponent(glm.vec3(1.5, 0, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(reflection_bunny, LinkComponent(root))
-    scene.add_component(reflection_bunny, WebGPUStaticMeshComponent('bunny_mesh'))
-    scene.add_component(reflection_bunny, WebGPUMaterialComponent('M_EnvironmentReflection'))
+    scene.add_component(reflection_bunny, StaticMeshComponent('bunny_mesh'))
+    scene.add_component(reflection_bunny, MaterialComponent('M_EnvironmentReflection'))
 
     # Register components to refraction bunny - acts like its a bunny made from glass
     scene.add_component(refraction_bunny, InfoComponent("refraction_bunny"))
     scene.add_component(refraction_bunny, TransformComponent(glm.vec3(-1.5, 0, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(refraction_bunny, LinkComponent(root))
-    scene.add_component(refraction_bunny, WebGPUStaticMeshComponent('bunny_mesh'))
-    scene.add_component(refraction_bunny, WebGPUMaterialComponent('M_EnvironmentRefraction'))
+    scene.add_component(refraction_bunny, StaticMeshComponent('bunny_mesh'))
+    scene.add_component(refraction_bunny, MaterialComponent('M_EnvironmentRefraction'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
@@ -133,7 +133,7 @@ def main():
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager

@@ -107,8 +107,8 @@ def main():
     scene.add_component(rusted_sphere, InfoComponent("rusted_sphere"))
     scene.add_component(rusted_sphere, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(rusted_sphere, LinkComponent(root))
-    scene.add_component(rusted_sphere, WebGPUStaticMeshComponent('sphere_mesh', [vertices, normals, uvs], indices))
-    scene.add_component(rusted_sphere, WebGPUMaterialComponent('M_PBR'))
+    scene.add_component(rusted_sphere, StaticMeshComponent('sphere_mesh', [vertices, normals, uvs], indices))
+    scene.add_component(rusted_sphere, MaterialComponent('M_PBR'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))
@@ -128,7 +128,7 @@ def main():
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(LightSystem([LightComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
 
     # Add scene to manager

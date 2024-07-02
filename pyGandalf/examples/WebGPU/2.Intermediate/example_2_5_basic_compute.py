@@ -102,7 +102,7 @@ def main():
     # Register the systems
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(WebGPUComputePipelineSystem([WebGPUComputeComponent]))
     scene.register_system(ComputeShowcaseSystem([ComputeShowcaseComponent, WebGPUComputeComponent]))
 

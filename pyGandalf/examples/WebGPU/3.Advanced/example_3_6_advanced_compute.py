@@ -128,15 +128,15 @@ def main():
     scene.add_component(input, InfoComponent("input"))
     scene.add_component(input, TransformComponent(glm.vec3(-2, 0, 0), glm.vec3(0, 180, 0), glm.vec3(2, 2, 2)))
     scene.add_component(input, LinkComponent(root))
-    scene.add_component(input, WebGPUStaticMeshComponent('input_texture', [vertices, texture_coords]))
-    scene.add_component(input, WebGPUMaterialComponent('M_InputTexture'))
+    scene.add_component(input, StaticMeshComponent('input_texture', [vertices, texture_coords]))
+    scene.add_component(input, MaterialComponent('M_InputTexture'))
 
     # Register components to compute
     scene.add_component(compute, InfoComponent("compute"))
     scene.add_component(compute, TransformComponent(glm.vec3(2, 0, 0), glm.vec3(0, 180, 0), glm.vec3(2, 2, 2)))
     scene.add_component(compute, LinkComponent(root))
-    scene.add_component(compute, WebGPUStaticMeshComponent('output_texture', [vertices, texture_coords]))
-    scene.add_component(compute, WebGPUMaterialComponent('M_OutputTexture'))
+    scene.add_component(compute, StaticMeshComponent('output_texture', [vertices, texture_coords]))
+    scene.add_component(compute, MaterialComponent('M_OutputTexture'))
     scene.add_component(compute, WebGPUComputeComponent('convolution_filter_compute', ['butterfly', 'output_texture'], 'computeSobelX'))
     scene.add_component(compute, ComputeShowcaseComponent())
 
@@ -150,7 +150,7 @@ def main():
     scene.register_system(TransformSystem([TransformComponent]))
     scene.register_system(LinkSystem([LinkComponent, TransformComponent]))
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
-    scene.register_system(WebGPUStaticMeshRenderingSystem([WebGPUStaticMeshComponent, WebGPUMaterialComponent, TransformComponent]))
+    scene.register_system(WebGPUStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
     scene.register_system(WebGPUComputePipelineSystem([WebGPUComputeComponent]))
     scene.register_system(ComputeShowcaseSystem([ComputeShowcaseComponent, WebGPUComputeComponent]))
