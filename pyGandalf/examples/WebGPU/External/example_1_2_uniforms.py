@@ -14,7 +14,6 @@ def load_from_file(path_to_source):
         return file.read()
 
 def main(canvas, power_preference="high-performance", limits=None):
-    """Regular function to setup a viz on the given canvas."""
     adapter = wgpu.gpu.request_adapter(power_preference=power_preference)
     device = adapter.request_device(required_limits={})
     return _main(canvas, device)
@@ -87,7 +86,7 @@ def _main(canvas, device: wgpu.GPUDevice):
         }
     )
 
-    # Create the wgou binding objects
+    # Create the wgpu binding objects
     bind_group_layouts = []
     bind_groups = []
 
@@ -98,7 +97,6 @@ def _main(canvas, device: wgpu.GPUDevice):
             device.create_bind_group(layout=bind_group_layout, entries=entries)
         )
 
-    # No bind group and layout, we should not create empty ones.
     pipeline_layout : wgpu.GPUPipelineLayout = device.create_pipeline_layout(bind_group_layouts=bind_group_layouts)
 
     render_pipeline : wgpu.GPURenderPipeline = device.create_render_pipeline(
@@ -245,6 +243,6 @@ def _main(canvas, device: wgpu.GPUDevice):
     return device
 
 if __name__ == "__main__":
-    canvas = WgpuCanvas(size=(1280, 720), title="wgpu triangle")
+    canvas = WgpuCanvas(size=(1280, 720), title="wgpu triangle with uniforms")
     main(canvas)
     run()

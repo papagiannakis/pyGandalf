@@ -182,7 +182,7 @@ def main():
     scene.add_component(light, InfoComponent("light"))
     scene.add_component(light, TransformComponent(glm.vec3(-1.45, 0.8, 4), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(light, LinkComponent(root))
-    scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 1.75)).intensity = 1.0
+    scene.add_component(light, LightComponent(glm.vec3(1.0, 1.0, 1.0), 1.0))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))

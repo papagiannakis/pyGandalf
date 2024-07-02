@@ -10,7 +10,6 @@ def load_from_file(path_to_source):
         return file.read()
 
 def main(canvas, power_preference="high-performance", limits=None):
-    """Regular function to setup a viz on the given canvas."""
     adapter = wgpu.gpu.request_adapter(power_preference=power_preference)
     device = adapter.request_device(required_limits={})
     return _main(canvas, device)
@@ -21,7 +20,6 @@ def _main(canvas, device: wgpu.GPUDevice):
 
     shader: wgpu.GPUShaderModule = device.create_shader_module(code=shader_source)
 
-    # No bind group and layout, we should not create empty ones.
     pipeline_layout : wgpu.GPUPipelineLayout = device.create_pipeline_layout(bind_group_layouts=[])
 
     present_context : wgpu.GPUCanvasContext = canvas.get_context()

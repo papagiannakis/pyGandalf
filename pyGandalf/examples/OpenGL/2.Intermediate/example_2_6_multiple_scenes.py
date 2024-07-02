@@ -149,11 +149,6 @@ def main():
     sea_scene.add_component(sea_bunny, StaticMeshComponent('bunny_mesh'))
     sea_scene.add_component(sea_bunny, MaterialComponent('M_Bunny'))
 
-    # Change the material properties of the bunny
-    material: MaterialComponent = sea_scene.get_component(sea_bunny, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
-    material.glossiness = 1.0
-
     # Register components to light
     sea_scene.add_component(sea_light, InfoComponent("sea_light"))
     sea_scene.add_component(sea_light, TransformComponent(glm.vec3(0, 5, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))

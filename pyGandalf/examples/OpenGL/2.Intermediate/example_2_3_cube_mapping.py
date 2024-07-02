@@ -80,7 +80,7 @@ def main():
     OpenGLShaderLib().build('skybox', SHADERS_PATH / 'opengl' / 'skybox.vs', SHADERS_PATH / 'opengl' / 'skybox.fs')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture']))
+    OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['white_texture'], glm.vec4(0.8, 0.5, 0.3, 1.0), 1.0))
     OpenGLMaterialLib().build('M_Skybox', MaterialData('skybox', ['cube_map']), MaterialDescriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE))
 
     # Load models
@@ -104,11 +104,6 @@ def main():
     scene.add_component(bunny, LinkComponent(root))
     scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
     scene.add_component(bunny, MaterialComponent('M_Bunny'))
-
-    # Change the material properties of the bunny
-    material: MaterialComponent = scene.get_component(bunny, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
-    material.glossiness = 1.0
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))

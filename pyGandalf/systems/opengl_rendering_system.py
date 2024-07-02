@@ -14,6 +14,7 @@ from pyGandalf.scene.entity import Entity
 from pyGandalf.utilities.logger import logger
 
 import glm
+import glfw
 import numpy as np
 import OpenGL.GL as gl
 
@@ -233,3 +234,6 @@ class OpenGLStaticMeshRenderingSystem(System):
 
         if material.instance.has_uniform('u_Color'):
             material.instance.set_uniform('u_Color', material.instance.data.color.rgb)
+
+        if material.instance.has_uniform('u_Time'):
+            material.instance.set_uniform('u_Time', float(glfw.get_time()))

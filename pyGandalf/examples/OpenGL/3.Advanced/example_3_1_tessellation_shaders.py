@@ -54,7 +54,7 @@ def main():
     OpenGLTextureLib().build('height_map', TextureData(TEXTURES_PATH / 'iceland_heightmap.png'))
 
     # Build shaders
-    OpenGLShaderLib().build('default_tessellation', SHADERS_PATH / 'opengl' / 'tessellation.vs', SHADERS_PATH / 'opengl' / 'tessellation.fs', SHADERS_PATH / 'opengl' / 'tessellation.tcs', SHADERS_PATH / 'opengl' / 'tessellation.tes')
+    OpenGLShaderLib().build('default_tessellation', SHADERS_PATH / 'opengl' / 'tessellation.vs', SHADERS_PATH / 'opengl' / 'tessellation.fs', None, SHADERS_PATH / 'opengl' / 'tessellation.tcs', SHADERS_PATH / 'opengl' / 'tessellation.tes')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Terrain', MaterialData('default_tessellation', ['height_map']), MaterialDescriptor(primitive=gl.GL_PATCHES, cull_face=gl.GL_FRONT, patch_resolution=patch_resolution, vertices_per_patch=vertices_per_patch))
