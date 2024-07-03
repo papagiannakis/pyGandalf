@@ -16,7 +16,7 @@ pyGandalf is a Python-based framework for computer graphics, visual computing in
 
 ## Features
 
-- **Geometric algebra**: pyGandalf incorporates the use of geometric algebra for advanced computer graphics. This allows for the use of geometric algebra in the development of computer graphics applications, and provides a powerful and flexible framework for developing advanced computer graphics applications.
+- **Geometric**: pyGandalf is able to utilize geometric data of any kind and size and renders them effectively and with great quality.
 - **Animation**: pyGandalf provides a powerful and flexible framework for developing advanced computer graphics applications. It is designed to be easy to use and easy to extend. It is designed to be a flexible, modular, and extensible framework for developing advanced computer graphics applications. It is built on top of modern graphics APIs such as OpenGL, and WebGPU and is designed to be easy to use and easy to extend.
 - **Directed acyclic graphs**:  An Entity-Component-System (ECS) architecture is used to organize the data and functionality of the application into a directed acyclic graph. This allows for efficient structure and organization of the application, and provides a powerful and flexible framework for developing advanced computer graphics applications.
 - **Algorithmic solutions**: Several algorithms are provided for advanced computer graphics applications. These algorithms are designed to be easy to use and easy to extend, and are built on top of modern graphics APIs such as OpenGL, and WebGPU.
