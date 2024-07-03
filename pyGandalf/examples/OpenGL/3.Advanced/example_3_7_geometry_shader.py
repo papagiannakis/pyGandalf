@@ -46,14 +46,13 @@ def main():
     OpenGLTextureLib().build('backback_albedo', TextureData(path=TEXTURES_PATH/'diffuse.jpg'), descriptor=TextureDescriptor(flip=True))
 
     # Build shaders
-    # OpenGLShaderLib().build('default_mesh', SHADERS_PATH / 'opengl' / 'lit_blinn_phong.vs', SHADERS_PATH / 'opengl' / 'lit_blinn_phong.fs')
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH / 'opengl' / 'geometry_shader.vs', SHADERS_PATH / 'opengl' / 'geometry_shader.fs', SHADERS_PATH / 'opengl' / 'geometry_shader.gs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Bunny', MaterialData('default_mesh', ['backback_albedo'], glm.vec4(1.0, 1.0, 1.0, 1.0), 1.0))
 
     # Load models
-    MeshLib().build('bunny_mesh', MODELS_PATH/'backpack.obj')
+    MeshLib().build('bunny_mesh', MODELS_PATH/'backpack'/'backpack.obj')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))

@@ -107,6 +107,7 @@ def main():
     # Build shaders
     WebGPUShaderLib().build('shadow_mesh', SHADERS_PATH / 'webgpu' / 'shadow_mapping.wgsl')
     WebGPUShaderLib().build('depth_pre_pass', SHADERS_PATH / 'webgpu' / 'shadow_mapping_depth.wgsl')
+    
     # WebGPUShaderLib().build('debug_quad_depth', SHADERS_PATH / 'webgpu' / 'debug_quad_depth.wgsl')
     
     # Build Materials

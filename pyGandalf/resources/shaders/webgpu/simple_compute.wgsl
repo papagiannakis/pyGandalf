@@ -1,5 +1,5 @@
 struct Data {
-    data: array<f32, 64>,
+    data: array<f32, 1269>,
 };
 
 @group(0) @binding(0) var<storage, read> inputBuffer: Data;

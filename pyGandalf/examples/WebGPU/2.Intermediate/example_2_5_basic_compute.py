@@ -39,7 +39,7 @@ class ComputeShowcaseSystem(System):
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         showcase, compute = components
         compute.work_group = 32
-        compute.invocation_count_x = 64
+        compute.invocation_count_x = 1269
 
     def on_update_entity(self, ts: float, entity: Entity, components: Component | tuple[Component]):
         showcase, compute = components
@@ -66,7 +66,7 @@ class ComputeShowcaseSystem(System):
         if compute.output_ready and showcase.output_requested:
             print('Output data:')
             for output in compute.output:
-                cpu_buffer = ComputeUtilities().bytearray_to_cpu_buffer(output, [('number', np.float32, (64, 1, 1))])
+                cpu_buffer = ComputeUtilities().bytearray_to_cpu_buffer(output, [('number', np.float32, (compute.invocation_count_x, 1, 1))])
                 print(cpu_buffer.data)
             showcase.output_requested = False
 
