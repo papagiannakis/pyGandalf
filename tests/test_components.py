@@ -58,9 +58,9 @@ def test_StaticMeshComponent():
     assert mesh.name == mesh_name
     assert mesh.attributes == None
     assert mesh.indices == None
-    assert mesh.vao == 0
-    assert mesh.vbo == []
-    assert mesh.ebo == 0
+    assert mesh.render_pipeline == None
+    assert mesh.buffers == []
+    assert mesh.index_buffer == None
     assert mesh.batch == -1
 
 def test_LightComponent():

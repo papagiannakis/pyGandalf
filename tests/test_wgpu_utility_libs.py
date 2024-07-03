@@ -11,28 +11,28 @@ from pyGandalf.renderer.webgpu_renderer import WebGPURenderer
 
 Application().create(WebGPUWindow(), WebGPURenderer)
 
-def test_texture_lib():
+def test_wgpu_texture_lib():
     slot1 = WebGPUTextureLib().build('uoc_logo', TextureData(TEXTURES_PATH / 'uoc_logo.png'))
     slot2 = WebGPUTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
 
     assert slot1 != slot2
     assert slot2 != 0 and slot2 != 0
 
-def test_shader_lib():
-    program1 = WebGPUShaderLib().build('default_colored_yellow', SHADERS_PATH / 'web_gpu' / 'unlit.wgsl')
+def test_wgpu_shader_lib():
+    program1 = WebGPUShaderLib().build('default_colored_yellow', SHADERS_PATH / 'webgpu' / 'unlit.wgsl')
 
     assert program1 != None
 
-    program2 = WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong.wgsl')
+    program2 = WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong.wgsl')
 
     assert program2 != None and program1 != program2
 
-    program3 = WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong.wgsl')
+    program3 = WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong.wgsl')
 
     assert program3 != None and program3 == program2
 
-def test_material_lib():
-    program1 = WebGPUShaderLib().build('default_colored_yellow', SHADERS_PATH / 'web_gpu' / 'unlit.wgsl')
+def test_wgpu_material_lib():
+    program1 = WebGPUShaderLib().build('default_colored_yellow', SHADERS_PATH / 'webgpu' / 'unlit.wgsl')
 
     material1 = WebGPUMaterialLib().build('M_Yellow_Simple', MaterialData('default_colored_yellow', []))
 
@@ -49,7 +49,7 @@ def test_material_lib():
 
     assert WebGPUMaterialLib().get('M_Yellow_Simple') != WebGPUMaterialLib().get('M_Yellow_Simple_Var')
 
-    program2 = WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'web_gpu' / 'lit_blinn_phong.wgsl')
+    program2 = WebGPUShaderLib().build('default_mesh', SHADERS_PATH / 'webgpu' / 'lit_blinn_phong.wgsl')
 
     WebGPUTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
     WebGPUTextureLib().build('uoc_logo', TextureData(TEXTURES_PATH / 'uoc_logo.png'))
