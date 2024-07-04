@@ -53,7 +53,7 @@ def main():
         [-0.5, -0.5, 0.0]  # 0 - Bottom left
     ], dtype=np.float32)
 
-    # Register components to triangle
+    # Register components to quad
     scene.add_component(quad, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(quad, InfoComponent("quad"))
     scene.add_component(quad, StaticMeshComponent('quad', [vertices]))
