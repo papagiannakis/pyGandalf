@@ -29,7 +29,7 @@ class TextureDescriptor:
 @dataclass
 class TextureData:
     path: Path | list[Path] = None
-    image_bytes: bytes = None
+    image_bytes: bytes | list[bytes] = None
     width: int = 0
     height: int = 0
 
@@ -69,7 +69,7 @@ class OpenGLTextureLib(object):
         img_bytes = data.image_bytes
         img = None
 
-        if data.path is None or type(data.path) is not list:
+        if (data.path is None or type(data.path) is not list) and type(data.image_bytes) is not list:
             assert descriptor.dimention == TextureDimension.D2 or descriptor.dimention == TextureDimension.D3, "Single texture path only supported for 2d or 3d textures dimensions"
 
             if data.path is not None:
@@ -117,25 +117,35 @@ class OpenGLTextureLib(object):
             cls.instance.current_slot += 1
 
             return texture_instance.slot
-        elif type(data.path) is list:
-            assert descriptor.dimention == TextureDimension.CUBE, "Multiple texture paths are only supported for cube dimetion type"
+        elif type(data.path) is list or type(data.image_bytes) is list:
+            assert descriptor.dimention == TextureDimension.CUBE, "Multiple texture paths and multiple byte arrays are only supported for cube dimetion type"
 
-            texture_id = gl.glGenTextures(1)        
-            gl.glBindTexture(gl.GL_TEXTURE_CUBE_MAP, texture_id)
+            if data.path != None and type(data.path) is list:
+                texture_id = gl.glGenTextures(1)        
+                gl.glBindTexture(gl.GL_TEXTURE_CUBE_MAP, texture_id)
 
-            for i, p in enumerate(data.path):
-                img = Image.open(p)
-                if descriptor.flip:
-                    img = img.transpose(Image.FLIP_TOP_BOTTOM)
-                img_bytes = img.convert("RGBA").tobytes("raw", "RGB", 0, -1)
+                for i, p in enumerate(data.path):
+                    img = Image.open(p)
+                    if descriptor.flip:
+                        img = img.transpose(Image.FLIP_TOP_BOTTOM)
+                    img_bytes = img.convert("RGBA").tobytes("raw", "RGB", 0, -1)
 
-                gl.glTexImage2D(
-                    gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                    0, descriptor.internal_format, img.width, img.height, 0, descriptor.format, descriptor.type, img_bytes
-                )
+                    gl.glTexImage2D(
+                        gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                        0, descriptor.internal_format, img.width, img.height, 0, descriptor.format, descriptor.type, img_bytes
+                    )
 
-                if data.path is not None:
-                    data.path[i] = Path(os.path.relpath(p, TEXTURES_PATH))
+                    if data.path is not None:
+                        data.path[i] = Path(os.path.relpath(p, TEXTURES_PATH))
+            elif data.path == None and type(data.image_bytes) is list:
+                texture_id = gl.glGenTextures(1)
+                gl.glBindTexture(gl.GL_TEXTURE_CUBE_MAP, texture_id)
+
+                for i, b in enumerate(data.image_bytes):
+                    gl.glTexImage2D(
+                        gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                        0, descriptor.internal_format, data.width, data.height, 0, descriptor.format, descriptor.type, b
+                    )
 
             gl.glTexParameteri(gl.GL_TEXTURE_CUBE_MAP, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
             gl.glTexParameteri(gl.GL_TEXTURE_CUBE_MAP, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
