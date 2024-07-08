@@ -5,10 +5,11 @@ from pyGandalf.scene.scene_manager import SceneManager
 
 from pyGandalf.utilities.definitions import SHADERS_PATH
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialDescriptor
 
 import numpy as np
+import OpenGL.GL as gl
 
 def create_empty() -> Entity:
     scene: Scene = SceneManager().get_active_scene()
@@ -46,7 +47,7 @@ def create_plane() -> Entity:
         [0.0, 0.0, 1.0] 
     ], dtype=np.float32)
 
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
+    OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
     OpenGLShaderLib().build('default_mesh_plane', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Plane', MaterialData('default_mesh_plane', ['white_texture']))
 
@@ -173,7 +174,7 @@ def create_cube() -> Entity:
         [1.0, 0.0], #
     ], dtype=np.float32)
 
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
+    OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
     OpenGLShaderLib().build('default_mesh_cube', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Cube', MaterialData('default_mesh_cube', ['white_texture']))
 
@@ -244,9 +245,9 @@ def create_sphere() -> Entity:
     normals = np.asarray(normals, dtype=np.float32)
     indices = np.asarray(indices, dtype=np.uint32)
 
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), descriptor=TextureDescriptor(width=1, height=1))
+    OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
     OpenGLShaderLib().build('default_mesh_sphere', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
-    OpenGLMaterialLib().build('M_Sphere', MaterialData('default_mesh_sphere', ['white_texture']))
+    OpenGLMaterialLib().build('M_Sphere', MaterialData('default_mesh_sphere', ['white_texture']), MaterialDescriptor(primitive=gl.GL_TRIANGLE_STRIP))
 
     scene: Scene = SceneManager().get_active_scene()
 
@@ -255,7 +256,7 @@ def create_sphere() -> Entity:
     scene.add_component(entity_sphere, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(entity_sphere, LinkComponent(None))
     scene.add_component(entity_sphere, StaticMeshComponent('sphere_mesh', [vertices, normals, uvs], indices))
-    scene.add_component(entity_sphere, MaterialComponent('M_Sphere', descriptor=MaterialComponent.Descriptor(primitive=gl.GL_TRIANGLE_STRIP)))
+    scene.add_component(entity_sphere, MaterialComponent('M_Sphere'))
 
     return entity_sphere
 
@@ -284,7 +285,7 @@ def create_cylinder() -> Entity:
             indices.append((i + 1) * 20 + (j + 1) % 20)
             indices.append(i * 20 + (j + 1) % 20)
 
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
+    OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Cylinder', MaterialData('default_mesh', ['white_texture']))
 
@@ -324,7 +325,7 @@ def create_cone() -> Entity:
             indices.append((i + 1) * 20 + (j + 1) % 20)
             indices.append(i * 20 + (j + 1) % 20)
 
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
+    OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Cone', MaterialData('default_mesh', ['white_texture']))
 
@@ -364,7 +365,7 @@ def create_torus() -> Entity:
             indices.append((i + 1) * 20 + (j + 1) % 20)
             indices.append(i * 20 + (j + 1) % 20)
 
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
+    OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
     OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
     OpenGLMaterialLib().build('M_Torus', MaterialData('default_mesh', ['white_texture']))
 

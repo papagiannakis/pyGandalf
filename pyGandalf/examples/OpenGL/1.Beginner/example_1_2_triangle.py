@@ -13,7 +13,7 @@ from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialD
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.logger import logger
-from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
+from pyGandalf.utilities.definitions import SHADERS_PATH
 
 import numpy as np
 import glm
@@ -27,16 +27,16 @@ def main():
     logger.setLevel(logger.DEBUG)
 
     # Create a new application
-    Application().create(OpenGLWindow('Trianlge', 1280, 720, True), OpenGLRenderer)
+    Application().create(OpenGLWindow('Triangle', 1280, 720, True), OpenGLRenderer)
 
     # Create a new scene
-    scene = Scene('Trianlge')
+    scene = Scene('Triangle')
 
     # Enroll a triangle entity to registry
     triangle = scene.enroll_entity()
 
     # Build shaders 
-    OpenGLShaderLib().build('unlit', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
+    OpenGLShaderLib().build('unlit', SHADERS_PATH / 'opengl' / 'unlit_simple.vs', SHADERS_PATH / 'opengl' / 'unlit_simple.fs')
     
     # Build Materials
     OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', []))
@@ -53,10 +53,6 @@ def main():
     scene.add_component(triangle, InfoComponent("triangle"))
     scene.add_component(triangle, StaticMeshComponent('triangle', [vertices]))
     scene.add_component(triangle, MaterialComponent('M_Unlit'))
-
-    # Change the color of the triangle from the material
-    material: MaterialComponent = scene.get_component(triangle, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
 
     # Register systems to the scene
     scene.register_system(TransformSystem([TransformComponent]))

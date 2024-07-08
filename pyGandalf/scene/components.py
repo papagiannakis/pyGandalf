@@ -1,9 +1,7 @@
 from pyGandalf.scene.entity import Entity
-from pyGandalf.utilities.opengl_material_lib import MaterialInstance as OpenGLMaterialInstance
-from pyGandalf.utilities.webgpu_material_lib import MaterialInstance as WebGPUMaterialInstance
 
 import glm
-import OpenGL.GL as gl
+import wgpu
 
 import uuid
 from enum import Enum
@@ -40,31 +38,6 @@ class LinkComponent(Component):
         self.parent: Entity = parent
         self.prev_parent: Entity = parent
         self.children: list[Entity] = []
-
-class MaterialComponent(Component):
-    class Descriptor:
-        def __init__(self, primitive=gl.GL_TRIANGLES, cull_face=gl.GL_BACK, cast_shadows=True, depth_mask=gl.GL_TRUE, patch_resolution=20, vertices_per_patch=4):
-            self.primitive: gl.Constant = primitive
-            self.cast_shadows = cast_shadows
-            self.cull_enabled: bool = True
-            self.cull_face: gl.Constant = cull_face
-            self.patch_resolution: int = patch_resolution
-            self.vertices_per_patch: int = vertices_per_patch
-            self.depth_enabled: bool = True
-            self.depth_func: gl.Constant = gl.GL_LEQUAL
-            self.depth_mask: gl.Constant = depth_mask
-            self.blend_enabled: bool = True
-            self.blend_func_source: gl.Constant = gl.GL_SRC_ALPHA
-            self.blend_func_destination: gl.Constant = gl.GL_ONE_MINUS_SRC_ALPHA
-            self.blend_equation: gl.Constant = gl.GL_FUNC_ADD
-            
-    def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0), descriptor: Descriptor = Descriptor()):
-        self.name = name
-        self.instance: OpenGLMaterialInstance = None
-        self.descriptor = descriptor
-        self.color = color
-        self.glossiness = 5.0
-        self.metallicness = 0.0
 
 class CameraComponent(Component):
     class Type(Enum):
@@ -108,22 +81,6 @@ class StaticMeshComponent(Component):
         self.attributes = attributes
         self.indices = indices
 
-        self.vao = 0
-        self.vbo = []
-        self.ebo = 0
-
-        self.batch = -1
-        self.load_from_file = True if attributes == None else False
-
-        self.hash = uuid.uuid4()
-
-class WebGPUStaticMeshComponent(Component):
-    def __init__(self, name, attributes = None, indices = None, primitive = None):
-        self.name = name
-        self.attributes = attributes
-        self.indices = indices
-        self.primitive = primitive
-
         self.render_pipeline = None
         self.buffers = []
         self.index_buffer = None
@@ -133,15 +90,37 @@ class WebGPUStaticMeshComponent(Component):
 
         self.hash = uuid.uuid4()
 
-class WebGPUMaterialComponent(Component):
-    def __init__(self, name: str, color = glm.vec3(1.0, 1.0, 1.0)):
+class MaterialComponent(Component):            
+    def __init__(self, name: str):
         self.name = name
-        self.instance: WebGPUMaterialInstance = None
-        self.color = color
-        self.glossiness = 3.0
-        self.metallicness = 0.0
+        self.instance = None
 
 class LightComponent(Component):
     def __init__(self, color, intensity):
         self.color = color
         self.intensity = intensity
+
+class WebGPUComputeComponent(Component):
+    def __init__(self, compute_shader: str, textures: list[str], entry_point: str) -> None:
+        self.shader: str = compute_shader
+        self.pipeline: wgpu.GPUComputePipeline = None
+        self.encoder: wgpu.GPUCommandEncoder = None
+        self.map_buffers: list[wgpu.GPUBuffer] = []
+        self.bind_groups: list[wgpu.GPUBindGroup] = []
+
+        self.uniform_buffers: dict[str, wgpu.GPUBuffer] = {}
+        self.input_storage_buffers: dict[str, wgpu.GPUBuffer] = {}
+        self.output_storage_buffers: dict[str, wgpu.GPUBuffer] = {}
+        self.other_uniforms: dict = {}
+        self.buffer_types: dict[str, CPUBuffer] = {}
+
+        self.textures: list[str] = textures
+
+        self.work_group = -1
+        self.invocation_count_x = 1
+        self.invocation_count_y = 1
+        self.invocation_count_z = 1
+        self.entry_point = entry_point
+        self.output: list[bytearray] = []
+        self.output_ready = False
+        self.dispatch = False

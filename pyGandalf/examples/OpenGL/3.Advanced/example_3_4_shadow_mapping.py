@@ -16,9 +16,9 @@ from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
 from pyGandalf.utilities.logger import logger
@@ -94,23 +94,23 @@ def main():
     ], dtype=np.float32)
 
     # Build textures
-    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), descriptor=TextureDescriptor(width=1, height=1))
-    OpenGLTextureLib().build('brickwall_texture', TEXTURES_PATH/'brickwall.jpg')
+    OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
+    OpenGLTextureLib().build('brickwall_texture', TextureData(TEXTURES_PATH / 'brickwall.jpg'))
 
     # Build shaders
-    OpenGLShaderLib().build('shadow_mesh', SHADERS_PATH/'shadow_mapping_vertex.glsl', SHADERS_PATH/'shadow_mapping_fragment.glsl')
-    OpenGLShaderLib().build('depth_pre_pass', SHADERS_PATH/'shadow_mapping_depth_vertex.glsl', SHADERS_PATH/'shadow_mapping_depth_fragment.glsl')
-    OpenGLShaderLib().build('debug_quad_depth', SHADERS_PATH/'debug_quad_depth_vertex.glsl', SHADERS_PATH/'debug_quad_depth_fragment.glsl')
+    OpenGLShaderLib().build('shadow_mesh', SHADERS_PATH / 'opengl' / 'shadow_mapping.vs', SHADERS_PATH / 'opengl' / 'shadow_mapping.fs')
+    OpenGLShaderLib().build('depth_pre_pass', SHADERS_PATH / 'opengl' / 'shadow_mapping_depth.vs', SHADERS_PATH / 'opengl' / 'shadow_mapping_depth.fs')
+    OpenGLShaderLib().build('debug_quad_depth', SHADERS_PATH / 'opengl' / 'debug_quad_depth.vs', SHADERS_PATH / 'opengl' / 'debug_quad_depth.fs')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_LitShadows', MaterialData('shadow_mesh', ['white_texture', 'depth_texture']))
-    OpenGLMaterialLib().build('M_BrickFloor', MaterialData('shadow_mesh', ['brickwall_texture', 'depth_texture']))
+    OpenGLMaterialLib().build('M_LitShadows', MaterialData('shadow_mesh', ['white_texture', 'depth_texture'], glossiness=1.5))
+    OpenGLMaterialLib().build('M_BrickFloor', MaterialData('shadow_mesh', ['brickwall_texture', 'depth_texture'], glossiness=0.75))
     OpenGLMaterialLib().build('M_DepthPrePass', MaterialData('depth_pre_pass', []))
-    OpenGLMaterialLib().build('M_DebugQuadDepth', MaterialData('debug_quad_depth', ['depth_texture']))
+    OpenGLMaterialLib().build('M_DebugQuadDepth', MaterialData('debug_quad_depth', ['depth_texture'], glossiness=1.0))
 
     # Load models
-    OpenGLMeshLib().build('bunny_mesh', MODELS_PATH/'bunny.obj')
-    OpenGLMeshLib().build('monkey_mesh', MODELS_PATH/'monkey_flat.obj')
+    MeshLib().build('bunny_mesh', MODELS_PATH / 'bunny.obj')
+    MeshLib().build('monkey_mesh', MODELS_PATH / 'monkey_flat.obj')
 
     # Register components to root
     scene.add_component(root, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
@@ -122,7 +122,7 @@ def main():
     scene.add_component(bunny, TransformComponent(glm.vec3(-1, 0, 0), glm.vec3(0, 10, 0), glm.vec3(1, 1, 1)))
     scene.add_component(bunny, LinkComponent(root))
     scene.add_component(bunny, StaticMeshComponent('bunny_mesh'))
-    scene.add_component(bunny, MaterialComponent('M_LitShadows')).glossiness = 1.5
+    scene.add_component(bunny, MaterialComponent('M_LitShadows'))
     scene.add_component(bunny, RotateAroundComponent([0, 1, 0], 30))
 
     # Register components to monkey
@@ -130,21 +130,21 @@ def main():
     scene.add_component(monkey, TransformComponent(glm.vec3(2, 1.2, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(monkey, LinkComponent(root))
     scene.add_component(monkey, StaticMeshComponent('monkey_mesh'))
-    scene.add_component(monkey, MaterialComponent('M_LitShadows')).glossiness = 1.5
+    scene.add_component(monkey, MaterialComponent('M_LitShadows'))
 
     # Register components to floor
     scene.add_component(floor, InfoComponent("floor"))
     scene.add_component(floor, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(270, 0, 0), glm.vec3(15, 15, 15)))
     scene.add_component(floor, LinkComponent(root))
     scene.add_component(floor, StaticMeshComponent('floor_mesh', [plane_vertices, plane_normals, plane_texture_coords]))
-    scene.add_component(floor, MaterialComponent('M_BrickFloor')).glossiness = 0.75
+    scene.add_component(floor, MaterialComponent('M_BrickFloor'))
 
     # Register components to debug_depth_quad
     scene.add_component(debug_depth_quad, InfoComponent("debug_depth_quad"))
     scene.add_component(debug_depth_quad, TransformComponent(glm.vec3(-4, 4, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(debug_depth_quad, LinkComponent(root))
     scene.add_component(debug_depth_quad, StaticMeshComponent('debug_depth_quad_mesh', [plane_vertices, plane_texture_coords]))
-    scene.add_component(debug_depth_quad, MaterialComponent('M_DebugQuadDepth')).glossiness = 1.0
+    scene.add_component(debug_depth_quad, MaterialComponent('M_DebugQuadDepth'))
 
     # Register components to light
     scene.add_component(light, InfoComponent("light"))

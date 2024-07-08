@@ -3,10 +3,12 @@ from pyGandalf.utilities.webgpu_shader_lib import WebGPUShaderLib
 from pyGandalf.utilities.webgpu_texture_lib import WebGPUTextureLib, TextureInstance
 from pyGandalf.utilities.logger import logger
 
+import glm
 import wgpu
 import numpy as np
 
 import re
+from dataclasses import dataclass
 
 class CPUBuffer:
     def __init__(self, *args):
@@ -61,10 +63,48 @@ class CPUBuffer:
     def __setitem__(self, key, val):
         self.data[key] = val
 
-class MaterialInstance:
-    def __init__(self, name, base_template, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, textures, shader_params = []):
-        self.name = name
+@dataclass
+class MaterialDescriptor:
+    primitive: wgpu.PrimitiveTopology = wgpu.PrimitiveTopology.triangle_list
+    front_face: wgpu.FrontFace = wgpu.FrontFace.ccw
+    cull_mode: wgpu.CullMode = wgpu.CullMode.front
+
+    depth_enabled: bool = True
+    depth_write_enabled: bool = True
+    depth_format: wgpu.TextureFormat = wgpu.TextureFormat.depth24plus
+    depth_compare: wgpu.CompareFunction = wgpu.CompareFunction.less_equal
+
+    cast_shadows: bool = True
+
+class MaterialData:
+    def __init__(self, base_template: str, textures: list[str], color: glm.vec4 = glm.vec4(1.0, 1.0, 1.0, 1.0), glossiness = 3.0):
         self.base_template = base_template
+        self.color = color
+        self.textures = textures
+        self.glossiness = glossiness
+
+    def __eq__(self, other):
+        if self.base_template != other.base_template:
+            return False
+        if self.color != other.color:
+            return False
+        if self.glossiness != other.glossiness:
+            return False
+        if len(self.textures) != len(other.textures):
+            return False
+        for i in range(len(self.textures)):
+            if (self.textures[i] != other.textures[i]):
+                return False
+        return True
+    
+    def __hash__(self):
+        return hash((self.base_template, self.color.r, self.color.g, self.color.b, self.color.a, len(self.textures), self.glossiness, tuple(texture for texture in self.textures)))
+
+class MaterialInstance:
+    def __init__(self, name, data: MaterialData, descriptor: MaterialDescriptor, shader_module, pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, shader_params = []):
+        self.name = name
+        self.data: MaterialData = data
+        self.descriptor: MaterialDescriptor = descriptor
         self.shader_module = shader_module
         self.pipeline_layout = pipeline_layout
         self.bind_groups = bind_groups
@@ -73,7 +113,6 @@ class MaterialInstance:
         self.storage_buffers = storage_buffers
         self.storage_buffer_types = storage_buffer_types
         self.other_uniforms = other_uniforms
-        self.textures = textures
         self.shader_params = shader_params
 
     def has_uniform(self, uniform_name: str) -> bool:
@@ -147,24 +186,6 @@ class MaterialInstance:
         """
         logger.log(f'Available uniforms for material: {self.name} and shader id {self.shader_program}:\n {self.shader_params}')
 
-class MaterialData:
-    def __init__(self, base_template, textures):
-        self.base_template = base_template
-        self.textures = textures
-
-    def __eq__(self, other):
-        if self.base_template != other.base_template:
-            return False
-        if len(self.textures) != len(other.textures):
-            return False
-        for i in range(len(self.textures)):
-            if (self.textures[i] != other.textures[i]):
-                return False
-        return True
-    
-    def __hash__(self):
-        return hash((self.base_template, len(self.textures), tuple(texture for texture in self.textures)))
-
 class WebGPUMaterialLib(object):
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -173,12 +194,13 @@ class WebGPUMaterialLib(object):
             cls.instance.materials: dict[str, MaterialInstance] = {} # type: ignore
         return cls.instance
     
-    def build(cls, name: str, data: MaterialData) -> MaterialInstance:
+    def build(cls, name: str, data: MaterialData, descriptor: MaterialDescriptor=MaterialDescriptor()) -> MaterialInstance:
         """Builds a new material (if one does not already exists with that data) and returns its instance.
 
         Args:
             name (str): The name of the material.
-            data (MaterialData): The data of the material.
+            data (MaterialData): The data of the material, which consists of shader, color, textures and glossiness.
+            descriptor (MaterialDescriptor, optional): The description of the material, which consists of various options and flags.
 
         Returns:
             MaterialInstance: The material instance.
@@ -189,6 +211,10 @@ class WebGPUMaterialLib(object):
             return material
 
         shader_data = WebGPUShaderLib().get(data.base_template)
+
+        if shader_data == None:
+            logger.error(f"No such material exists: '{data.base_template}'")
+            return None
 
         # Parse shader params
         uniform_buffers_data, storage_buffers_data, read_only_storage_buffers_data, other = WebGPUShaderLib().parse(shader_data.shader_code)
@@ -210,33 +236,7 @@ class WebGPUMaterialLib(object):
             fields = []
             for member_name in uniform_buffer_data['type']['members']:
                 member_type = uniform_buffer_data['type']['members'][member_name]
-                match member_type:
-                    case 'f32':
-                        fields.append((member_name, np.float32, (1,)))
-                    case 'vec2f':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec2<f32>':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec3f':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec3<f32>':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec4f':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'vec4<f32>':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'mat4x4f':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<mat4x4f, 512>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<vec4f, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<vec4<f32>, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<f32, 16>':
-                        fields.append((member_name, np.float32, (16, 1)))
+                fields.append(cls.instance.compute_field_layout(member_type, member_name))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             uniform_data = CPUBuffer(*fields)
@@ -263,40 +263,14 @@ class WebGPUMaterialLib(object):
         for buffer_name in storage_buffers_data.keys():
             storage_buffer_data = storage_buffers_data[buffer_name]
 
-            if len(bind_groups_entries) <= storage_buffers_data['group']:
+            if len(bind_groups_entries) <= storage_buffer_data['group']:
                 bind_groups_entries.append([])
 
             # Find storage buffer layout and fields from shader reflection.
             fields = []
             for member_name in storage_buffer_data['type']['members']:
                 member_type = storage_buffer_data['type']['members'][member_name]
-                match member_type:
-                    case 'f32':
-                        fields.append((member_name, np.float32, (1,)))
-                    case 'vec2f':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec2<f32>':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec3f':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec3<f32>':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec4f':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'vec4<f32>':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'mat4x4f':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<mat4x4f, 512>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<vec4f, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<vec4<f32>, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<f32, 16>':
-                        fields.append((member_name, np.float32, (16, 1)))
+                fields.append(cls.instance.compute_field_layout(member_type, member_name))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
@@ -305,7 +279,7 @@ class WebGPUMaterialLib(object):
 
             # Create storage buffer - data is uploaded each frame
             storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
-                size=storage_data.nbytes * 512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
+                size=storage_data.nbytes, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
             )
 
             # Append storage buffer to dictionary holding all storage buffers
@@ -330,33 +304,7 @@ class WebGPUMaterialLib(object):
             fields = []
             for member_name in read_only_storage_buffer_data['type']['members']:
                 member_type = read_only_storage_buffer_data['type']['members'][member_name]
-                match member_type:
-                    case 'f32':
-                        fields.append((member_name, np.float32, (1,)))
-                    case 'vec2f':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec2<f32>':
-                        fields.append((member_name, np.float32, (2,)))
-                    case 'vec3f':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec3<f32>':
-                        fields.append((member_name, np.float32, (3,)))
-                    case 'vec4f':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'vec4<f32>':
-                        fields.append((member_name, np.float32, (4,)))
-                    case 'mat4x4f':
-                        fields.append((member_name, np.float32, (4, 4)))
-                    case 'array<mat4x4f>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<mat4x4f, 512>':
-                        fields.append((member_name, np.float32, (512, 4, 4)))
-                    case 'array<vec4f, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<vec4<f32>, 16>':
-                        fields.append((member_name, np.float32, (16, 4)))
-                    case 'array<f32, 16>':
-                        fields.append((member_name, np.float32, (16, 1)))
+                fields.append(cls.instance.compute_field_layout(member_type, member_name))
 
             # Instantiate a struct for the uniform buffer data with the given fields
             storage_data = CPUBuffer(*fields)
@@ -365,7 +313,7 @@ class WebGPUMaterialLib(object):
 
             # Create storage buffer - data is uploaded each frame
             storage_buffer: wgpu.GPUBuffer = WebGPURenderer().get_device().create_buffer(
-                size=storage_data.nbytes * 512, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
+                size=storage_data.nbytes, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_DST
             )
 
             # Append storage buffer to dictionary holding all storage buffers
@@ -388,11 +336,35 @@ class WebGPUMaterialLib(object):
             if len(bind_groups_entries) <= other_data['group']:
                 bind_groups_entries.append([])
 
+            # Retrieve texture.
+            texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
+
+            if texture_inst == None:
+                logger.error(f"No such texture exists: '{data.textures[texture_index]}'")
+                continue
+
             match other_data['type']['name']:
                 case 'texture_2d<f32>':
-                    # Retrieve texture.
-                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
+                    # Append uniform buffer to dictionary holding all uniform buffers
+                    other_uniforms[uniform_name] = texture_inst
 
+                    # Create a bind group entry for the uniform buffer
+                    bind_groups_entries[other_data['group']].append({
+                        "binding": other_data['binding'],
+                        "resource": texture_inst.view
+                    })
+                    texture_index_use_count += 1
+                case 'texture_depth_2d':
+                    # Append uniform buffer to dictionary holding all uniform buffers
+                    other_uniforms[uniform_name] = texture_inst
+
+                    # Create a bind group entry for the uniform buffer
+                    bind_groups_entries[other_data['group']].append({
+                        "binding": other_data['binding'],
+                        "resource": texture_inst.view
+                    })
+                    texture_index_use_count += 1
+                case 'texture_cube<f32>':
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_inst
 
@@ -404,16 +376,23 @@ class WebGPUMaterialLib(object):
                     texture_index_use_count += 1
 
                 case 'sampler':
-                    # Retrieve texture.
-                    texture_inst: TextureInstance = WebGPUTextureLib().get_instance(data.textures[texture_index])
-
                     # Append uniform buffer to dictionary holding all uniform buffers
                     other_uniforms[uniform_name] = texture_inst
 
                     # Create a bind group entry for the uniform buffer
                     bind_groups_entries[other_data['group']].append({
                         "binding": other_data['binding'],
-                        "resource": texture_inst.sampler
+                        "resource": texture_inst.sampler,
+                    })
+                    texture_index_use_count += 1                
+                case 'sampler_comparison':
+                    # Append uniform buffer to dictionary holding all uniform buffers
+                    other_uniforms[uniform_name] = texture_inst
+
+                    # Create a bind group entry for the uniform buffer
+                    bind_groups_entries[other_data['group']].append({
+                        "binding": other_data['binding'],
+                        "resource": texture_inst.sampler,
                     })
                     texture_index_use_count += 1
             
@@ -428,8 +407,8 @@ class WebGPUMaterialLib(object):
                 entries=bind_group_entry
             ))
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
-        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, data.textures, [])
+        cls.instance.cached_materials[data] = MaterialInstance(name, data, descriptor, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, [])
+        cls.instance.materials[name] = MaterialInstance(name, data, descriptor, shader_data.shader_module, shader_data.pipeline_layout, bind_groups, uniform_buffers, uniform_buffer_types, storage_buffers, storage_buffer_types, other_uniforms, [])
 
         return cls.instance.materials[name]
 
@@ -452,15 +431,65 @@ class WebGPUMaterialLib(object):
         """
         return cls.instance.materials
     
-    def extract_array_size(declaration: str) -> int:
+    def extract_array_size(cls, declaration: str) -> tuple[str, int]:
         # Define the regular expression pattern to match the array declaration
-        pattern = r'array<[^,]+, (\d+)>'
+        pattern = r'array<([^,]+), (\d+)>'
         
         # Use re.search to find the match
         match = re.search(pattern, declaration)
         
         if match:
             # Extract the number from the match group and convert it to an integer
-            return int(match.group(1))
+            array_type = match.group(1).strip()
+            array_size = int(match.group(2))
+            return (array_type, array_size)
         else:
             raise ValueError(f"Invalid declaration format: {declaration}")
+        
+    def compute_field_layout(cls, member_type, member_name):
+        match member_type:
+            case 'f32':
+                return (member_name, np.float32, (1,))
+            case 'vec2f':
+                return (member_name, np.float32, (2,))
+            case 'vec2<f32>':
+                return (member_name, np.float32, (2,))
+            case 'vec3f':
+                return (member_name, np.float32, (3,))
+            case 'vec3<f32>':
+                return (member_name, np.float32, (3,))
+            case 'vec4f':
+                return (member_name, np.float32, (4,))
+            case 'vec4<f32>':
+                return (member_name, np.float32, (4,))
+            case 'mat4x4f':
+                return (member_name, np.float32, (4, 4))
+            case 'mat4x4<f32>':
+                return (member_name, np.float32, (4, 4))
+            
+        if 'array' in member_type:
+            if ',' not in member_type:
+                logger.error(f'Array type with unspecified array size is not supported right now, please specify the array size of array: {member_name}')
+                exit(-1)
+
+            array_type, array_size = cls.instance.extract_array_size(member_type)
+
+            match array_type:
+                case 'mat4x4f':
+                    return (member_name, np.float32, (array_size, 4, 4))
+                case 'mat4x4<f32>':
+                    return (member_name, np.float32, (array_size, 4, 4))
+                case 'vec4f':
+                    return (member_name, np.float32, (array_size, 1, 4))
+                case 'vec4<f32>':
+                    return (member_name, np.float32, (array_size, 1, 4))
+                case 'vec3f':
+                    return (member_name, np.float32, (array_size, 1, 3))
+                case 'vec3<f32>':
+                    return (member_name, np.float32, (array_size, 1, 3))
+                case 'vec2f':
+                    return (member_name, np.float32, (array_size, 1, 2))
+                case 'vec2<f32>':
+                    return (member_name, np.float32, (array_size, 1, 2))
+                case 'f32':
+                    return (member_name, np.float32, (array_size, 1, 1))

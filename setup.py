@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='pyGandalf',
-    version="0.2.0",
+    version="0.8.0",
     license='Apache-2.0', 
     description = "The pyGandalf project",
     long_description=long_description,
@@ -18,7 +18,7 @@ setup(
     maintainer='John Petropoulos',
     maintainer_email='johnaipeia@gmail.com',
     url='https://github.com/papagiannakis/pyGandalf',
-    keywords = ['ECS','Scenegraph','Python design patterns','Computer Graphics'],
+    keywords = ['ECS','Scenegraph','Computer Graphics','OpenGL','WebGPU'],
     package_dir={'pyGandalf':'pyGandalf'},
     packages=find_packages(exclude=["tests"]),
     install_requires=[
@@ -34,6 +34,8 @@ setup(
         "usd-core>=24.3",
         "jsonpickle>=3.0.4",
         "wgpu==0.14",
+        'ipykernel',
+        'jupyter',
     ],    
 
     classifiers=[

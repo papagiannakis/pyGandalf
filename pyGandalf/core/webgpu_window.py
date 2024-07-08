@@ -19,6 +19,8 @@ if sys.platform.startswith("linux"):
 
 class WebGPUWindow(WgpuAutoGui, WgpuCanvasBase, BaseWindow):
     def create(self):
+        self._vsync = self.vertical_sync
+
         # Initialize GLFW
         if not glfw.init():
             logger.critical("GLFW could not be initialized!")

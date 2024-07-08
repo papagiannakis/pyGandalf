@@ -17,8 +17,8 @@ from pyGandalf.scene.scene import Scene
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.components import *
 
-from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib
+from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData, MaterialDescriptor
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH
@@ -36,6 +36,9 @@ def main():
     # Set the logger DEBUG to report all the logs
     logger.setLevel(logger.DEBUG)
 
+    patch_resolution = 20
+    vertices_per_patch = 4
+
     # Create a new application
     Application().create(OpenGLWindow('Tessellation Shaders', 1280, 720, True), OpenGLRenderer)
 
@@ -48,21 +51,19 @@ def main():
     terrain = scene.enroll_entity()
 
     # Build textures
-    OpenGLTextureLib().build('height_map', TEXTURES_PATH/'iceland_heightmap.png')
+    OpenGLTextureLib().build('height_map', TextureData(TEXTURES_PATH / 'iceland_heightmap.png'))
 
     # Build shaders
-    OpenGLShaderLib().build('default_tessellation', SHADERS_PATH/'tessellation_vertex.glsl', SHADERS_PATH/'tessellation_fragment.glsl', SHADERS_PATH/'tessellation_control.glsl', SHADERS_PATH/'tessellation_evaluation.glsl')
+    OpenGLShaderLib().build('default_tessellation', SHADERS_PATH / 'opengl' / 'tessellation.vs', SHADERS_PATH / 'opengl' / 'tessellation.fs', None, SHADERS_PATH / 'opengl' / 'tessellation.tcs', SHADERS_PATH / 'opengl' / 'tessellation.tes')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Terrain', MaterialData('default_tessellation', ['height_map']))
+    OpenGLMaterialLib().build('M_Terrain', MaterialData('default_tessellation', ['height_map']), MaterialDescriptor(primitive=gl.GL_PATCHES, cull_face=gl.GL_FRONT, patch_resolution=patch_resolution, vertices_per_patch=vertices_per_patch))
 
     vertices = []
     tex_coords = []
 
-    width = OpenGLTextureLib().get_textures()['height_map'].descriptor.width
-    height = OpenGLTextureLib().get_textures()['height_map'].descriptor.height
-    patch_resolution = 20
-    vertices_per_patch = 4
+    width = OpenGLTextureLib().get_textures()['height_map'].data.width
+    height = OpenGLTextureLib().get_textures()['height_map'].data.height
 
     for i in range(patch_resolution):
         for j in range(patch_resolution):
@@ -123,7 +124,7 @@ def main():
     scene.add_component(terrain, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(terrain, LinkComponent(root))
     scene.add_component(terrain, StaticMeshComponent('terrain_mesh', [vertices, tex_coords]))
-    scene.add_component(terrain, MaterialComponent('M_Terrain', descriptor=MaterialComponent.Descriptor(primitive=gl.GL_PATCHES, cull_face=gl.GL_FRONT, patch_resolution=patch_resolution, vertices_per_patch=vertices_per_patch)))
+    scene.add_component(terrain, MaterialComponent('M_Terrain'))
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))

@@ -4,35 +4,33 @@ from pyGandalf.systems.system import System, SystemState
 from pyGandalf.systems.light_system import LightSystem
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureDescriptor
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData, TextureDescriptor
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
 
 from pyGandalf.scene.scene_manager import SceneManager
 from pyGandalf.scene.entity import Entity
 
+from pyGandalf.utilities.logger import logger
+
 import glm
+import glfw
 import numpy as np
 import OpenGL.GL as gl
 
 class OpenGLStaticMeshRenderingSystem(System):
     """
-    The system responsible for rendering.
+    The system responsible for rendering static meshes.
     """
 
-    def __init__(self, filters: list[type]):
-        super().__init__(filters)
-        self.pre_pass_material = None
-
     def on_create_system(self):
+        self.pre_pass_material = None
         self.SHADOW_WIDTH = 1024
         self.SHADOW_HEIGHT = 1024
 
         self.framebuffer_id = gl.glGenFramebuffers(1)
 
         depth_texture_descriptor = TextureDescriptor()
-        depth_texture_descriptor.width=self.SHADOW_WIDTH
-        depth_texture_descriptor.height=self.SHADOW_HEIGHT
         depth_texture_descriptor.internal_format=gl.GL_DEPTH_COMPONENT
         depth_texture_descriptor.format=gl.GL_DEPTH_COMPONENT
         depth_texture_descriptor.type=gl.GL_FLOAT
@@ -42,7 +40,7 @@ class OpenGLStaticMeshRenderingSystem(System):
         depth_texture_descriptor.max_filter=gl.GL_NEAREST
 
         # Create depth texture
-        OpenGLTextureLib().build('depth_texture', img_data=None, descriptor=depth_texture_descriptor)
+        OpenGLTextureLib().build('depth_texture', TextureData(image_bytes=None, width=self.SHADOW_WIDTH, height=self.SHADOW_WIDTH), descriptor=depth_texture_descriptor)
         depth_texture_id = OpenGLTextureLib().get_id('depth_texture')
 
         gl.glBindTexture(gl.GL_TEXTURE_2D, depth_texture_id)
@@ -56,14 +54,18 @@ class OpenGLStaticMeshRenderingSystem(System):
     def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
         mesh, material, transform = components
 
-        mesh.vao = 0
-        mesh.ebo = 0
-        mesh.vbo.clear()
+        mesh.render_pipeline = None
+        mesh.index_buffer = None
+        mesh.buffers.clear()
 
         material.instance = OpenGLMaterialLib().get(material.name)
 
+        if material.instance == None:
+            logger.error(f"No such material exists: '{material.name}'")
+            return
+
         if mesh.load_from_file == True:
-            mesh_instance = OpenGLMeshLib().get(mesh.name)
+            mesh_instance = MeshLib().get(mesh.name)
             mesh.attributes = [mesh_instance.vertices, mesh_instance.normals, mesh_instance.texcoords]
             mesh.indices = mesh_instance.indices
 
@@ -76,12 +78,7 @@ class OpenGLStaticMeshRenderingSystem(System):
         if OpenGLRenderer().get_shadows_enabled():
             # Create the depth only pre-pass material is not already created
             if self.pre_pass_material == None:
-                pre_pass_material_descriptor = MaterialComponent.Descriptor()
-                pre_pass_material_descriptor.blend_enabled = False
-                pre_pass_material_descriptor.cull_enabled = True
-                pre_pass_material_descriptor.cull_face = gl.GL_BACK
-
-                self.pre_pass_material = MaterialComponent('M_DepthPrePass', descriptor=pre_pass_material_descriptor)
+                self.pre_pass_material = MaterialComponent('M_DepthPrePass')
                 self.pre_pass_material.instance = OpenGLMaterialLib().get('M_DepthPrePass')
 
             OpenGLRenderer().resize(self.SHADOW_WIDTH, self.SHADOW_HEIGHT)
@@ -92,7 +89,10 @@ class OpenGLStaticMeshRenderingSystem(System):
             for components in self.get_filtered_components():
                 mesh, entity_material, transform = components
 
-                if entity_material.descriptor.cast_shadows == False:
+                if entity_material.instance.descriptor.cast_shadows == False:
+                    continue
+
+                if len(mesh.attributes) == 0:
                     continue
 
                 # Bind vao
@@ -122,6 +122,12 @@ class OpenGLStaticMeshRenderingSystem(System):
         # Color pass
         for components in self.get_filtered_components():
             mesh, material, transform = components
+
+            if len(mesh.attributes) == 0:
+                continue
+
+            if material.instance == None:
+                continue
 
             # Bind vao
             OpenGLRenderer().set_pipeline(mesh)
@@ -178,6 +184,8 @@ class OpenGLStaticMeshRenderingSystem(System):
 
         count = len(light_positions)
 
+        assert count <= 16, f"Maximum supported lights for WebGPU backend are 16, but {count} are defined"
+
         if count != 0:
             if material.instance.has_uniform('u_LightPositions'):
                 material.instance.set_uniform('u_LightPositions', glm.array(light_positions))
@@ -188,7 +196,7 @@ class OpenGLStaticMeshRenderingSystem(System):
             if material.instance.has_uniform('u_LightCount'):
                 material.instance.set_uniform('u_LightCount', count)
             if material.instance.has_uniform('u_Glossiness'):
-                material.instance.set_uniform('u_Glossiness', material.glossiness)
+                material.instance.set_uniform('u_Glossiness', material.instance.data.glossiness)
         elif light_system is not None:
             if material.instance.has_uniform('u_LightCount'):
                 material.instance.set_uniform('u_LightCount', 0)
@@ -225,4 +233,7 @@ class OpenGLStaticMeshRenderingSystem(System):
                     material.instance.set_uniform('u_ViewPosition', camera_transform.get_world_position())
 
         if material.instance.has_uniform('u_Color'):
-            material.instance.set_uniform('u_Color', material.color)
+            material.instance.set_uniform('u_Color', material.instance.data.color.rgb)
+
+        if material.instance.has_uniform('u_Time'):
+            material.instance.set_uniform('u_Time', float(glfw.get_time()))

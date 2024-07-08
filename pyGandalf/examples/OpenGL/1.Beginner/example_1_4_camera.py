@@ -20,7 +20,7 @@ import numpy as np
 import glm
 
 """
-Showcase of basic square drawing using the pyGandalf API using a perspective camera.
+Showcase of basic quad drawing using the pyGandalf API using a perspective camera.
 """
 
 def main():
@@ -34,16 +34,16 @@ def main():
     scene = Scene('Camera')
 
     # Enroll entities to registry
-    square = scene.enroll_entity()
+    quad = scene.enroll_entity()
     camera = scene.enroll_entity()
 
     # Build shaders 
-    OpenGLShaderLib().build('unlit', SHADERS_PATH/'unlit_simple_vertex.glsl', SHADERS_PATH/'unlit_simple_fragment.glsl')
+    OpenGLShaderLib().build('unlit', SHADERS_PATH / 'opengl' / 'unlit_simple.vs', SHADERS_PATH / 'opengl' / 'unlit_simple.fs')
     
     # Build Materials
-    OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', []))
+    OpenGLMaterialLib().build('M_Unlit', MaterialData('unlit', [], glm.vec4(0.8, 0.5, 0.3, 1.0)))
 
-    # Vertices of the square
+    # Vertices of the quad
     vertices = np.array([
         [-0.5, -0.5, 0.0], # 0 - Bottom left
         [ 0.5, -0.5, 0.0], # 1 - Bottom right
@@ -53,21 +53,16 @@ def main():
         [-0.5, -0.5, 0.0]  # 0 - Bottom left
     ], dtype=np.float32)
 
-    # Register components to triangle
-    scene.add_component(square, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
-    scene.add_component(square, InfoComponent("triangle"))
-    scene.add_component(square, StaticMeshComponent('triangle', [vertices]))
-    scene.add_component(square, MaterialComponent('M_Unlit'))
-
+    # Register components to quad
+    scene.add_component(quad, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(quad, InfoComponent("quad"))
+    scene.add_component(quad, StaticMeshComponent('quad', [vertices]))
+    scene.add_component(quad, MaterialComponent('M_Unlit'))
+    
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
     scene.add_component(camera, TransformComponent(glm.vec3(0, 0, 5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, CameraComponent(45, 1.778, 0.1, 1000, 1.2, CameraComponent.Type.PERSPECTIVE))
-    scene.add_component(camera, CameraControllerComponent())
-
-    # Change the color of the triangle from the material
-    material: MaterialComponent = scene.get_component(square, MaterialComponent)
-    material.color = glm.vec3(0.8, 0.5, 0.3)
 
     # Register systems to the scene
     scene.register_system(TransformSystem([TransformComponent]))

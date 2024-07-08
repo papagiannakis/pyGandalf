@@ -10,7 +10,8 @@ from pyGandalf.scene.editor_components import EditorPanelComponent, EditorVisibl
 from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
 from pyGandalf.utilities.definitions import ROOT_DIR, SCENES_PATH, MODELS_PATH, TEXTURES_PATH
 from pyGandalf.utilities.entity_presets import *
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
+from pyGandalf.utilities.component_lib import ComponentLib
 
 from pyGandalf.utilities.logger import logger
 
@@ -145,12 +146,6 @@ class EditorPanelSystem(System):
                 scene_serializer.deserialize(path)
                 SceneManager().open_external_scene(scene)
 
-                # TODO: Fix this properly!
-                if 'Shadow' in scene.name:
-                    OpenGLRenderer().set_shadows_enabled(True)
-                else:
-                    OpenGLRenderer().set_shadows_enabled(False)
-
         # Gizmos
         if camera != None and camera_entity != None:
             context = SceneManager().get_active_scene()
@@ -183,7 +178,7 @@ class EditorPanelSystem(System):
                 snap_value = 45.0 if self.gizmo_operation == imguizmo.im_guizmo.OPERATION.rotate else 0.5
                 snap_values: imguizmo.Matrix3 = np.array([snap_value, snap_value, snap_value], dtype=np.float32)
 
-                transform: TransformComponent = context.get_component(selected_entity, TransformComponent)
+                transform = context.get_component(selected_entity, ComponentLib().Transform)
                 new_matrix: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.manipulate(
                     np.asmatrix(camera.view, dtype=np.float32),
                     np.asmatrix(camera.projection, dtype=np.float32),
@@ -204,7 +199,7 @@ class EditorPanelSystem(System):
             view_manipulate_right = imgui.get_window_pos().x + imgui.get_window_width()
             view_manipulate_top = imgui.get_window_pos().y
 
-            camera_transform: TransformComponent = context.get_component(camera_entity, TransformComponent)
+            camera_transform: ComponentLib().Transform = context.get_component(camera_entity, ComponentLib().Transform)
             new_view: imguizmo.Editable_Matrix16 = imguizmo.im_guizmo.view_manipulate(
                 np.asmatrix(camera.view, dtype=np.float32),
                 self.camera_pivot_distance,
@@ -282,10 +277,10 @@ class EditorPanelSystem(System):
                 if modified:
                     info.tag = text                            
                 imgui.separator()
-                
-            if SceneManager().get_active_scene().has_component(EditorVisibleComponent.SELECTED_ENTITY, TransformComponent):
+            print(ComponentLib().Transform.__name__)
+            if SceneManager().get_active_scene().has_component(EditorVisibleComponent.SELECTED_ENTITY, ComponentLib().Transform):
                 if imgui.tree_node_ex('Transform', flags):
-                    transform: TransformComponent = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, TransformComponent)
+                    transform: ComponentLib().Transform = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, ComponentLib().Transform)
                     moved, move_amount = imgui.drag_float3('Translation', transform.translation.to_list(), 0.25)
                     rotated, rotate_amount = imgui.drag_float3('Rotation', transform.rotation.to_list(), 0.25)
                     scaled, scale_amount = imgui.drag_float3('Scale', transform.scale.to_list(), 0.25)
@@ -385,9 +380,9 @@ class EditorPanelSystem(System):
                         payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('models')
                         if payload != None:
                             mesh_already_built = False
-                            for mesh_instance in OpenGLMeshLib().get_meshes().values():
+                            for mesh_instance in MeshLib().get_meshes().values():
                                 if self.drag_and_drop_mesh == str(MODELS_PATH / mesh_instance.path):
-                                    instance = OpenGLMeshLib().get(mesh_instance.name)
+                                    instance = MeshLib().get(mesh_instance.name)
                                     init_drag_and_drop_mesh(instance)
                                     mesh_already_built = True
                                     break
@@ -395,7 +390,7 @@ class EditorPanelSystem(System):
                             if not mesh_already_built:
                                 path: Path = Path(self.drag_and_drop_mesh)
                                 try:
-                                    instance = OpenGLMeshLib().build(path.stem, path)
+                                    instance = MeshLib().build(path.stem, path)
                                     init_drag_and_drop_mesh(instance)
                                 except ValueError:
                                     logger.error('Error loading mesh, file type not supported')
@@ -425,17 +420,17 @@ class EditorPanelSystem(System):
                     material: MaterialComponent = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent)
 
                     if material.instance.has_uniform('u_Color'):
-                        color_changed, new_color = imgui.color_edit3('color', material.color)
-                        if color_changed: material.color = glm.vec3(new_color[0], new_color[1], new_color[2])
+                        color_changed, new_color = imgui.color_edit4('color', material.instance.data.color)
+                        if color_changed: material.instance.data.color = glm.vec4(new_color[0], new_color[1], new_color[2], new_color[3])
 
                     # Get uniform textures
                     textures = OpenGLMaterialLib().get_textures(material.instance.name)
 
                     for index, texture in enumerate(textures):
                         imgui.begin_disabled()
-                        texture_changed, new_texture = imgui.input_text(texture, material.instance.textures[index])
+                        texture_changed, new_texture = imgui.input_text(texture, material.instance.data.textures[index])
                         imgui.end_disabled()
-                        if texture_changed: material.instance.textures[index] = new_texture
+                        if texture_changed: material.instance.data.textures[index] = new_texture
 
                         if imgui.begin_drag_drop_target():
                             payload: imgui.Payload_PyId = imgui.accept_drag_drop_payload_py_id('textures')
@@ -447,19 +442,19 @@ class EditorPanelSystem(System):
                                     
                                     # TODO: Handle textures that are in subfolders.
                                     if self.drag_and_drop_texture == str(TEXTURES_PATH / texture.path):
-                                        material.instance.textures[0] = texture.name
+                                        material.instance.data.textures[0] = texture.name
                                         texture_already_built = True
                                         break
 
                                 if not texture_already_built:
                                     path: Path = Path(self.drag_and_drop_texture)
-                                    instance = OpenGLTextureLib().build(path.stem, path)
-                                    material.instance.textures[0] = path.stem
+                                    instance = OpenGLTextureLib().build(path.stem, TextureData(path))
+                                    material.instance.data.textures[0] = path.stem
                             imgui.end_drag_drop_target()
                     
                     if material.instance.has_uniform('u_Glossiness'):
-                        glossiness_changed, new_glossiness = imgui.drag_float('glossiness', material.glossiness, 0.1)
-                        if glossiness_changed: material.glossiness = new_glossiness
+                        glossiness_changed, new_glossiness = imgui.drag_float('glossiness', material.instance.data.glossiness, 0.1)
+                        if glossiness_changed: material.instance.data.glossiness = new_glossiness
                     
                     imgui.tree_pop()
                 imgui.separator()
@@ -483,7 +478,7 @@ class EditorPanelSystem(System):
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, InfoComponent())
                 modified_transform, _ = imgui.menu_item('Transform Component', '', False)
                 if modified_transform:
-                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, ComponentLib().Transform(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
                 modified_link, _ = imgui.menu_item('Link Component', '', False)
                 if modified_link:
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, LinkComponent(None))
@@ -501,11 +496,11 @@ class EditorPanelSystem(System):
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, StaticMeshComponent('empty', [], None))
                     
                     # TODO: Extend editor to be able to choose shader
-                    OpenGLTextureLib().build('white_texture', None, 0xffffffff.to_bytes(4, byteorder='big'), TextureDescriptor(width=1, height=1))
+                    OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
                     OpenGLShaderLib().build('default_lit', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
                     OpenGLMaterialLib().build('M_Lit', MaterialData('default_lit', ['white_texture']))
 
-                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent('M_Lit', glm.vec3(1, 1, 1)))
+                    SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent('M_Lit'))
                 imgui.end_menu()
 
     def draw_menu_bar(self):
@@ -537,12 +532,6 @@ class EditorPanelSystem(System):
                             scene_serializer: SceneSerializer = SceneSerializer(scene)
                             scene_serializer.deserialize(SCENES_PATH / path.name)
                             SceneManager().open_external_scene(scene)
-
-                            # TODO: Fix this properly!
-                            if 'Shadow' in scene.name:
-                                OpenGLRenderer().set_shadows_enabled(True)
-                            else:
-                                OpenGLRenderer().set_shadows_enabled(False)
 
                     imgui.end_menu()
                 close_pressed, _ = imgui.menu_item('Close', 'Alt + F4', False)
@@ -587,7 +576,6 @@ class EditorPanelSystem(System):
                     self.vsync_value = enable
 
                 imgui.end_menu()
-
             if imgui.begin_menu('Help'):
                 gizmos_pressed, _ = imgui.menu_item('Gizmos', '', False)
                 if gizmos_pressed:

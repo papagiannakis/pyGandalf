@@ -1,18 +1,19 @@
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.logger import logger
 
-import OpenGL.GL as gl
+import glm
 import numpy as np
+import OpenGL.GL as gl
 
 import re
-import glm
+from dataclasses import dataclass
 
 class MaterialInstance:
-    def __init__(self, name, base_template, shader_program, textures, shader_params = []):
+    def __init__(self, name, data, descriptor, shader_program, shader_params = []):
         self.name = name
-        self.base_template = base_template
+        self.data = data
+        self.descriptor = descriptor
         self.shader_program = shader_program
-        self.textures = textures
         self.shader_params = shader_params
 
     def has_uniform(self, uniform_name: str) -> bool:
@@ -196,13 +197,35 @@ class MaterialInstance:
         """
         logger.log(f'Available uniforms for material: {self.name} and shader id {self.shader_program}:\n {self.shader_params}')
 
+@dataclass
+class MaterialDescriptor:
+    primitive: gl.Constant = gl.GL_TRIANGLES
+    cast_shadows = True
+    cull_enabled: bool = True
+    cull_face: gl.Constant = gl.GL_BACK
+    patch_resolution: int = 20
+    vertices_per_patch: int = 20
+    depth_enabled: bool = True
+    depth_func: gl.Constant = gl.GL_LEQUAL
+    depth_mask: gl.Constant = gl.GL_TRUE
+    blend_enabled: bool = True
+    blend_func_source: gl.Constant = gl.GL_SRC_ALPHA
+    blend_func_destination: gl.Constant = gl.GL_ONE_MINUS_SRC_ALPHA
+    blend_equation: gl.Constant = gl.GL_FUNC_ADD
+
 class MaterialData:
-    def __init__(self, base_template, textures):
+    def __init__(self, base_template: str, textures: list[str], color: glm.vec4 = glm.vec4(1.0, 1.0, 1.0, 1.0), glossiness = 3.0):
         self.base_template = base_template
+        self.color = color
         self.textures = textures
+        self.glossiness = glossiness
 
     def __eq__(self, other):
         if self.base_template != other.base_template:
+            return False
+        if self.color != other.color:
+            return False
+        if self.glossiness != other.glossiness:
             return False
         if len(self.textures) != len(other.textures):
             return False
@@ -212,7 +235,7 @@ class MaterialData:
         return True
     
     def __hash__(self):
-        return hash((self.base_template, len(self.textures), tuple(texture for texture in self.textures)))
+        return hash((self.base_template, self.color.r, self.color.g, self.color.b, self.color.a, len(self.textures), self.glossiness, tuple(texture for texture in self.textures)))
 
 class OpenGLMaterialLib(object):
     def __new__(cls):
@@ -222,12 +245,13 @@ class OpenGLMaterialLib(object):
             cls.instance.materials: dict[str, MaterialInstance] = {} # type: ignore
         return cls.instance
     
-    def build(cls, name: str, data: MaterialData) -> MaterialInstance:
+    def build(cls, name: str, data: MaterialData, descriptor: MaterialDescriptor=MaterialDescriptor()) -> MaterialInstance:
         """Builds a new material (if one does not already exists with that data) and returns its instance.
 
         Args:
             name (str): The name of the material.
-            data (MaterialData): The data of the material.
+            data (MaterialData): The data of the material, which consists of shader, color, textures and glossiness.
+            descriptor (MaterialDescriptor, optional): The description of the material, which consists of various options and flags.
 
         Returns:
             MaterialInstance: The material instance.
@@ -239,19 +263,26 @@ class OpenGLMaterialLib(object):
 
         shader_data = OpenGLShaderLib().get(data.base_template)
 
+        if shader_data == None:
+            logger.error(f"No such material exists: '{data.base_template}'")
+            return None
+
         shader_program = shader_data.shader_program
         shader_params_vertex = OpenGLShaderLib().parse(shader_data.vs_code)
         shader_params_fragment = OpenGLShaderLib().parse(shader_data.fs_code)
+        shader_params_geometry = {}
         shader_params_tess_control = {}
         shader_params_tess_eval = {}
         
+        if shader_data.gs_code != None:
+            shader_params_geometry = OpenGLShaderLib().parse(shader_data.gs_code)
         if shader_data.tcs_code != None:
             shader_params_tess_control = OpenGLShaderLib().parse(shader_data.tcs_code)
         if shader_data.tes_code != None:
             shader_params_tess_eval = OpenGLShaderLib().parse(shader_data.tes_code)
 
-        cls.instance.cached_materials[data] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment | shader_params_tess_control | shader_params_tess_eval)
-        cls.instance.materials[name] = MaterialInstance(name, data.base_template, shader_program, data.textures, shader_params_vertex | shader_params_fragment | shader_params_tess_control | shader_params_tess_eval)
+        cls.instance.cached_materials[data] = MaterialInstance(name, data, descriptor, shader_program, shader_params_vertex | shader_params_fragment | shader_params_geometry | shader_params_tess_control | shader_params_tess_eval)
+        cls.instance.materials[name] = MaterialInstance(name, data, descriptor, shader_program, shader_params_vertex | shader_params_fragment | shader_params_geometry | shader_params_tess_control | shader_params_tess_eval)
 
         return cls.instance.materials[name]
 
@@ -276,7 +307,6 @@ class OpenGLMaterialLib(object):
                 textures.append(uniform_name)
         
         return textures
-
     
     def get_materials(cls) -> dict[str, MaterialInstance]:
         """Returns a dictionary the holds all the material instances. As the key is the name of the material, as the value is the material instance.

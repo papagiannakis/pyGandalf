@@ -36,7 +36,7 @@ class WebGPUShaderLib(object):
 
             bind_groups_layout_entries[uniform_buffers[buffer_name]['group']].append({
                 "binding": uniform_buffers[buffer_name]['binding'],
-                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.FRAGMENT,
+                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.FRAGMENT | wgpu.ShaderStage.COMPUTE, # TODO: Fix this visibility properly
                 "buffer": {
                     "type": wgpu.BufferBindingType.uniform
                 },
@@ -48,7 +48,7 @@ class WebGPUShaderLib(object):
 
             bind_groups_layout_entries[storage_buffers[buffer_name]['group']].append({
                 "binding": storage_buffers[buffer_name]['binding'],
-                "visibility": wgpu.ShaderStage.VERTEX,
+                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.COMPUTE, # TODO: Fix this visibility properly
                 "buffer": {
                     "type": wgpu.BufferBindingType.storage
                 },
@@ -60,7 +60,7 @@ class WebGPUShaderLib(object):
 
             bind_groups_layout_entries[read_only_storage_buffers[buffer_name]['group']].append({
                 "binding": read_only_storage_buffers[buffer_name]['binding'],
-                "visibility": wgpu.ShaderStage.VERTEX,
+                "visibility": wgpu.ShaderStage.VERTEX | wgpu.ShaderStage.COMPUTE, # TODO: Fix this visibility properly
                 "buffer": {
                     "type": wgpu.BufferBindingType.read_only_storage
                 },
@@ -74,9 +74,37 @@ class WebGPUShaderLib(object):
                 case 'texture_2d<f32>':
                     bind_groups_layout_entries[other[uniform_name]['group']].append({
                         "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.FRAGMENT | wgpu.ShaderStage.COMPUTE,
+                        "texture": {  
+                            "sample_type": wgpu.TextureSampleType.float,
+                            "view_dimension": wgpu.TextureViewDimension.d2,
+                        }
+                    })
+                case 'texture_depth_2d':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.FRAGMENT,
+                        "texture": {
+                            "sample_type": wgpu.TextureSampleType.depth,
+                            "view_dimension": wgpu.TextureViewDimension.d2,
+                        }
+                    })
+                case 'texture_cube<f32>':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
                         "visibility": wgpu.ShaderStage.FRAGMENT,
                         "texture": {  
                             "sample_type": wgpu.TextureSampleType.float,
+                            "view_dimension": wgpu.TextureViewDimension.cube,
+                        }
+                    })
+                case 'texture_storage_2d<rgba8unorm, write>':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.COMPUTE,
+                        "storage_texture": {  
+                            "format": wgpu.TextureFormat.rgba8unorm,
+                            "access": wgpu.StorageTextureAccess.write_only,
                             "view_dimension": wgpu.TextureViewDimension.d2,
                         }
                     })
@@ -88,7 +116,14 @@ class WebGPUShaderLib(object):
                             "type": wgpu.SamplerBindingType.filtering
                         },
                     })
-            
+                case 'sampler_comparison':
+                    bind_groups_layout_entries[other[uniform_name]['group']].append({
+                        "binding": other[uniform_name]['binding'],
+                        "visibility": wgpu.ShaderStage.FRAGMENT,
+                        "sampler": {
+                            "type": wgpu.SamplerBindingType.comparison
+                        },
+                    })            
 
         # Create the wgou binding objects
         bind_group_layouts = []
@@ -110,10 +145,10 @@ class WebGPUShaderLib(object):
             fs_path (Path): The path to the fragment shader code
 
         Returns:
-            int: The shader program
+            int: The shader module
         """
         if cls.instance.shaders.get(name) != None:
-            return
+            return cls.instance.shaders[name].shader_module
         
         shader_source = cls.instance.load_from_file(shader_path)
 
@@ -121,6 +156,8 @@ class WebGPUShaderLib(object):
 
         shader_module, pipeline_layout, bind_group_layouts = cls.instance.create_shader_module(shader_source)
         cls.instance.shaders[name] = ShaderData(name, shader_module, pipeline_layout, bind_group_layouts, shader_rel_path, shader_source)
+
+        return shader_module
     
     def parse(cls, shader_code: str) -> dict:
         """Parses the provided shader code and identifies all the uniforms along with their types.
@@ -143,13 +180,12 @@ class WebGPUShaderLib(object):
                 print(f" Group: {group}")
                 print(f" Binding: {binding}")
                 print(f" Type: {type}")
-                struct_pattern = r"struct " + re.escape(type) + r" \{([^}]*)\}"
+                struct_pattern = r"struct " + re.escape(type) + r"\s*\{([^}]*)\}"
                 struct_match = re.search(struct_pattern, shader_code)
                 if struct_match:
                     buffer_members.clear()
                     struct_body = struct_match.group(1)
-                    # TODO: Fix pattern to support nested templates, ie: lightColors: array<vec4<32f>, 16>,
-                    member_pattern = r"(\w+)\s*:\s*(\w+(?:\<.*?\>)?)"
+                    member_pattern = r"(\w+)\s*:\s*(<?[\w\s,<>]+>?),"
                     members = re.findall(member_pattern, struct_body)
                     print(f" Members:")
                     for member in members:
@@ -169,10 +205,11 @@ class WebGPUShaderLib(object):
         
         uniform_buffers = parse_buffer('<uniform>')
         storage_buffers = parse_buffer('<storage>')
+        read_write_storage_buffers = parse_buffer('<storage, read_write>')
         read_only_storage_buffers = parse_buffer('<storage, read>')
         other = parse_buffer('')
 
-        return uniform_buffers, storage_buffers, read_only_storage_buffers, other  
+        return uniform_buffers, storage_buffers | read_write_storage_buffers, read_only_storage_buffers, other  
 
     def get(cls, name: str) -> ShaderData:
         """Gets the shader data of the given shader name.

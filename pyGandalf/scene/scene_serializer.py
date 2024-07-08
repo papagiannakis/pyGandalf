@@ -2,19 +2,25 @@ from pyGandalf.core.application import Application
 from pyGandalf.scene.scene import Scene
 from pyGandalf.systems.system import System
 from pyGandalf.scene.components import Component
-from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureData, TextureDescriptor
+
+from pyGandalf.renderer.opengl_renderer import OpenGLRenderer
+
+from pyGandalf.utilities.opengl_texture_lib import OpenGLTextureLib, TextureInstance, TextureData
 from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 from pyGandalf.utilities.opengl_material_lib import OpenGLMaterialLib, MaterialData
-from pyGandalf.utilities.opengl_mesh_lib import OpenGLMeshLib
+from pyGandalf.utilities.mesh_lib import MeshLib
+from pyGandalf.utilities.component_lib import ComponentLib
 
 from pyGandalf.utilities.logger import logger
 from pyGandalf.utilities.definitions import TEXTURES_PATH, SHADERS_PATH, MODELS_PATH
 from pyGandalf.utilities.usd_serializer import USDSerializer
 
-import inspect
+import glm
 from pxr import Usd, UsdGeom, Sdf, Gf
-from pathlib import Path
+
 import uuid
+import inspect
+from pathlib import Path
 
 class SceneSerializer:
     def __init__(self, scene: Scene) -> None:
@@ -73,27 +79,11 @@ class SceneSerializer:
             texture_prim_name = texture_prim.CreateAttribute("name", Sdf.ValueTypeNames.String)
             texture_prim_name.Set(texture.name)
 
-            texture_paths = []
-            if texture.path is None:
-                texture_paths.append('')
-            elif type(texture.path) is list:
-                for path in texture.path:
-                    texture_paths.append(str(path))
-            else:
-                texture_paths.append(str(texture.path))
-
-            texture_prim_path = texture_prim.CreateAttribute("path", Sdf.ValueTypeNames.StringArray)
-            texture_prim_path.Set(texture_paths)
+            texture_prim_data = texture_prim.CreateAttribute("data", Sdf.ValueTypeNames.String)
+            texture_prim_data.Set(str(USDSerializer().to_json(texture.data)))
 
             texture_prim_descriptor = texture_prim.CreateAttribute("descriptor", Sdf.ValueTypeNames.String)
             texture_prim_descriptor.Set(str(USDSerializer().to_json(texture.descriptor)))
-
-            data = []
-            if texture.data is not None:
-                data = [byte for byte in texture.data]
-
-            texture_prim_dimensions = texture_prim.CreateAttribute("data", Sdf.ValueTypeNames.IntArray)
-            texture_prim_dimensions.Set(data)
 
         self.stage.DefinePrim("/Shaders")
 
@@ -112,6 +102,9 @@ class SceneSerializer:
             shader_prim_fs_path = shader_prim.CreateAttribute("fs_path", Sdf.ValueTypeNames.String)
             shader_prim_fs_path.Set(str(shader.fs_path))
 
+            shader_prim_gs_path = shader_prim.CreateAttribute("gs_path", Sdf.ValueTypeNames.String)
+            shader_prim_gs_path.Set('' if shader.gs_path == None else str(shader.gs_path))
+
             shader_prim_tcs_path = shader_prim.CreateAttribute("tcs_path", Sdf.ValueTypeNames.String)
             shader_prim_tcs_path.Set('' if shader.tcs_path == None else str(shader.tcs_path))
 
@@ -127,14 +120,23 @@ class SceneSerializer:
             material_prim_name.Set(material.name)
 
             material_prim_base_template = material_prim.CreateAttribute("base_template", Sdf.ValueTypeNames.String)
-            material_prim_base_template.Set(material.base_template)
+            material_prim_base_template.Set(material.data.base_template)
 
             material_prim_textures = material_prim.CreateAttribute("textures", Sdf.ValueTypeNames.StringArray)
-            material_prim_textures.Set(material.textures)
+            material_prim_textures.Set(material.data.textures)
+
+            material_prim_textures = material_prim.CreateAttribute("color", Sdf.ValueTypeNames.Color4f)
+            material_prim_textures.Set(Gf.Vec4f(material.data.color.r, material.data.color.g, material.data.color.b, material.data.color.a))
+
+            material_prim_textures = material_prim.CreateAttribute("glossiness", Sdf.ValueTypeNames.Float)
+            material_prim_textures.Set(float(material.data.glossiness))
+
+            material_prim_descriptor = material_prim.CreateAttribute("descriptor", Sdf.ValueTypeNames.String)
+            material_prim_descriptor.Set(str(USDSerializer().to_json(material.descriptor)))
 
         self.stage.DefinePrim("/Meshes")
 
-        for mesh in OpenGLMeshLib().get_meshes().values():
+        for mesh in MeshLib().get_meshes().values():
             mesh_prim = self.stage.DefinePrim("/Meshes/" + mesh.name)
 
             mesh_prim_name = mesh_prim.CreateAttribute("name", Sdf.ValueTypeNames.String)
@@ -142,6 +144,16 @@ class SceneSerializer:
 
             mesh_prim_path = mesh_prim.CreateAttribute("path", Sdf.ValueTypeNames.String)
             mesh_prim_path.Set(str(mesh.path))
+
+        self.stage.DefinePrim("/Renderer")
+        shadows_prim = self.stage.DefinePrim("/Renderer/" + "Shadows")
+        shadows_prim_enabled = shadows_prim.CreateAttribute("enabled", Sdf.ValueTypeNames.Bool)
+        shadows_prim_enabled.Set(OpenGLRenderer().get_shadows_enabled())
+
+        self.stage.DefinePrim("/Decorators")
+        components_prim = self.stage.DefinePrim("/Decorators/" + "Components")
+        decorated_component_prim = components_prim.CreateAttribute('dict', Sdf.ValueTypeNames.String)
+        decorated_component_prim.Set(str(USDSerializer().to_json(ComponentLib().Decorators)))
 
         self.stage.GetRootLayer().Save()
 
@@ -182,6 +194,7 @@ class SceneSerializer:
                             component = USDSerializer().deserialize(component_prim, cls)
                         else:
                             component = USDSerializer().from_json(str(component_prim.GetAttribute("dict").Get()))
+
                         self.scene.add_component(entity, component)
                         break
         
@@ -222,28 +235,27 @@ class SceneSerializer:
 
                 name_attr = str(prim.GetAttribute("name").Get())
                 path_attr = prim.GetAttribute("path").Get()
-                data_attr = prim.GetAttribute("data").Get()
 
                 descriptor = USDSerializer().from_json(str(prim.GetAttribute("descriptor").Get()))
+                data = USDSerializer().from_json(str(prim.GetAttribute("data").Get()))
 
-                texture_path = None if path_attr == None else path_attr
-                texture_data = None if data_attr == None else bytes([x for x in data_attr])
+                if data.path == None:
+                    OpenGLTextureLib().build(name_attr, data, descriptor)
+                elif type(data.path) is not list:
+                    path: str = str(data.path)
+                    paths = path.split('\\')
+                    if '\\' not in path:
+                        paths = path.split('/')
+                    final_path: Path = Path()
+                    for path_element in paths:
+                        final_path = final_path / path_element
 
-                if texture_path != None and len(texture_path) == 1:
-                    if str(texture_path[0]) == '':
-                        OpenGLTextureLib().build(name_attr, None, texture_data, descriptor)
-                    else:
-                        path: str = str(texture_path[0])
-                        paths = path.split('\\')
-                        if '\\' not in path:
-                            paths = path.split('/')
-                        final_path: Path = Path()
-                        for path_element in paths:
-                            final_path = final_path / path_element
-                        OpenGLTextureLib().build(name_attr, TEXTURES_PATH / final_path, texture_data, descriptor)
-                else:
+                    data.path = TEXTURES_PATH / final_path
+                    OpenGLTextureLib().build(name_attr, data, descriptor)
+                elif type(data.path) is list:
                     texture_paths: list[Path] = []
-                    for path in texture_path:
+                    for p in data.path:
+                        path: str = str(p)
                         paths = path.split('\\')
                         if '\\' not in path:
                             paths = path.split('/')
@@ -251,7 +263,9 @@ class SceneSerializer:
                         for path_element in paths:
                             final_path = final_path / path_element
                         texture_paths.append(TEXTURES_PATH / final_path)
-                    OpenGLTextureLib().build(name_attr, texture_paths, texture_data, descriptor)
+
+                    data.path = texture_paths
+                    OpenGLTextureLib().build(name_attr, data, descriptor)
         
         # Traverse all Shaders prims in the stage
         skip_first_shader_prim = True
@@ -264,15 +278,67 @@ class SceneSerializer:
                     continue
 
                 name_attr = str(prim.GetAttribute("name").Get())
+                
                 vs_attr = str(prim.GetAttribute("vs_path").Get())
+                path: str = vs_attr
+                paths = path.split('\\')
+                if '\\' not in path:
+                    paths = path.split('/')
+                final_path: Path = Path()
+                for path_element in paths:
+                    final_path = final_path / path_element
+                vs_attr = SHADERS_PATH / final_path
+
                 fs_attr = str(prim.GetAttribute("fs_path").Get())
+                path: str = fs_attr
+                paths = path.split('\\')
+                if '\\' not in path:
+                    paths = path.split('/')
+                final_path: Path = Path()
+                for path_element in paths:
+                    final_path = final_path / path_element
+                fs_attr = SHADERS_PATH / final_path
+
+                gs_attr = str(prim.GetAttribute("gs_path").Get())
+                if (gs_attr == '' or gs_attr == 'None'):
+                    gs_attr = None
+                else:
+                    path: str = gs_attr
+                    paths = path.split('\\')
+                    if '\\' not in path:
+                        paths = path.split('/')
+                    final_path: Path = Path()
+                    for path_element in paths:
+                        final_path = final_path / path_element
+                    gs_attr = SHADERS_PATH / final_path
+
                 tcs_attr = str(prim.GetAttribute("tcs_path").Get())
+                if (tcs_attr == '' or tcs_attr == 'None'):
+                    tcs_attr = None
+                else:
+                    path: str = tcs_attr
+                    paths = path.split('\\')
+                    if '\\' not in path:
+                        paths = path.split('/')
+                    final_path: Path = Path()
+                    for path_element in paths:
+                        final_path = final_path / path_element
+                    tcs_attr = SHADERS_PATH / final_path
+
                 tes_attr = str(prim.GetAttribute("tes_path").Get())
+                if (tes_attr == '' or tes_attr == 'None'):
+                    tes_attr = None
+                else:
+                    path: str = tes_attr
+                    paths = path.split('\\')
+                    if '\\' not in path:
+                        paths = path.split('/')
+                    final_path: Path = Path()
+                    for path_element in paths:
+                        final_path = final_path / path_element
+                    tes_attr = SHADERS_PATH / final_path
 
-                tcs_path = None if (tcs_attr == '' or tcs_attr == 'None') else SHADERS_PATH / tcs_attr
-                tes_path = None if (tes_attr == '' or tes_attr == 'None') else SHADERS_PATH / tes_attr
-
-                OpenGLShaderLib().build(name_attr, SHADERS_PATH / vs_attr, SHADERS_PATH / fs_attr, tcs_path, tes_path)
+                OpenGLShaderLib().build(name_attr, vs_attr, fs_attr, gs_attr, tcs_attr, tes_attr)
 
         # Traverse all Materials prims in the stage
         skip_first_material_prim = True
@@ -286,9 +352,17 @@ class SceneSerializer:
 
                 name_attr = str(prim.GetAttribute("name").Get())
                 base_template_attr = str(prim.GetAttribute("base_template").Get())
+
                 textures_attr = [str(texture) for texture in prim.GetAttribute("textures").Get()]
 
-                OpenGLMaterialLib().build(name_attr, MaterialData(base_template_attr, textures_attr))
+                color_attr: Gf.Vec4f = prim.GetAttribute("color").Get()
+                color = glm.vec4(float(color_attr[0]), float(color_attr[1]), float(color_attr[2]), float(color_attr[3]))
+
+                glossiness_attr = float(prim.GetAttribute("glossiness").Get())
+
+                descriptor = USDSerializer().from_json(str(prim.GetAttribute("descriptor").Get()))
+
+                OpenGLMaterialLib().build(name_attr, MaterialData(base_template_attr, textures_attr, color, glossiness_attr), descriptor)
         
         # Traverse all Meshes prims in the stage
         skip_first_mesh_prim = True
@@ -303,8 +377,36 @@ class SceneSerializer:
                 name_attr = str(prim.GetAttribute("name").Get())
                 path_attr = str(prim.GetAttribute("path").Get())
 
-                OpenGLMeshLib().build(name_attr, MODELS_PATH / path_attr)
-    
+                MeshLib().build(name_attr, MODELS_PATH / path_attr)
+
+        # Traverse all Renderer prims in the stage
+        skip_first_renderer_prim = True
+        for prim in Usd.PrimRange(root_prim):
+            prim_path: Path = prim.GetPath()
+            if 'Renderer' in str(prim_path):
+                # Skip the mesh prim
+                if skip_first_renderer_prim:
+                    skip_first_renderer_prim = False
+                    continue
+            
+                enabled_attr = bool(prim.GetAttribute("enabled").Get())
+
+                OpenGLRenderer().set_shadows_enabled(enabled_attr)
+        
+        # Traverse all Decorator prims in the stage
+        skip_first_decorator_prim = True
+        for prim in Usd.PrimRange(root_prim):
+            prim_path: Path = prim.GetPath()
+            if 'Decorators' in str(prim_path):
+                # Skip the mesh prim
+                if skip_first_decorator_prim:
+                    skip_first_decorator_prim = False
+                    continue
+                
+                decorators = USDSerializer().from_json(str(prim.GetAttribute('dict').Get()))
+                for component_type in decorators.values():
+                    ComponentLib().register(component_type)
+
     def has_custom_serialization(self, cls):
         try:
             # Get constructor signature
