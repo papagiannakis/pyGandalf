@@ -85,7 +85,7 @@ def main():
     # Load model
     PRT_Model = OBJLoader()
 
-    PRT_Model.load_model(MODELS_PATH / 'monkey_flat.obj')
+    PRT_Model.load_model(MODELS_PATH / 'monkey_flat.obj', True)
     PRT_Vertices = PRT_Model.get_vertices()
     PRT_Indices = PRT_Model.get_faces().flatten()
     PRT_Normals = PRT_Model.get_normals()
