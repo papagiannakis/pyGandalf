@@ -149,7 +149,7 @@ class HDRI_frame:
         self.cubemap[0][:,:,:] = hdrResult.cols[h:2*h, 2*w:3*w,  :]
         self.cubemap[1][:,:,:] = hdrResult.cols[h:2*h, 0:w,  :]
         self.cubemap[4][:,:,:] = hdrResult.cols[h:2*h, w:2*w,  :]
-        self.cubemap[5][:,:,:] = hdrResult.cols[3*h:4*h, w:2*w,  :][::-1, :, :]
+        self.cubemap[5][:,:,:] = hdrResult.cols[3*h:4*h, w:2*w,  :][::-1, ::-1, :]
 
 class HDRLoader:
     """
