@@ -36,6 +36,8 @@ setup(
         "wgpu==0.14",
         'ipykernel',
         'jupyter',
+        'imageio',
+        'opencv-python',
     ],    
 
     classifiers=[
