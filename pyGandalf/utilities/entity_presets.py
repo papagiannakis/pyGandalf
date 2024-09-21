@@ -48,7 +48,7 @@ def create_plane() -> Entity:
     ], dtype=np.float32)
 
     OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
-    OpenGLShaderLib().build('default_mesh_plane', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLShaderLib().build('default_mesh_plane', SHADERS_PATH/'opengl'/'lit_blinn_phong.vs', SHADERS_PATH/'opengl'/'lit_blinn_phong.fs')
     OpenGLMaterialLib().build('M_Plane', MaterialData('default_mesh_plane', ['white_texture']))
 
     scene: Scene = SceneManager().get_active_scene()
@@ -175,7 +175,7 @@ def create_cube() -> Entity:
     ], dtype=np.float32)
 
     OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
-    OpenGLShaderLib().build('default_mesh_cube', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLShaderLib().build('default_mesh_cube', SHADERS_PATH/'opengl'/'lit_blinn_phong.vs', SHADERS_PATH/'opengl'/'lit_blinn_phong.fs')
     OpenGLMaterialLib().build('M_Cube', MaterialData('default_mesh_cube', ['white_texture']))
 
     scene: Scene = SceneManager().get_active_scene()
@@ -246,7 +246,7 @@ def create_sphere() -> Entity:
     indices = np.asarray(indices, dtype=np.uint32)
 
     OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
-    OpenGLShaderLib().build('default_mesh_sphere', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLShaderLib().build('default_mesh_sphere', SHADERS_PATH/'opengl'/'lit_blinn_phong.vs', SHADERS_PATH/'opengl'/'lit_blinn_phong.fs')
     OpenGLMaterialLib().build('M_Sphere', MaterialData('default_mesh_sphere', ['white_texture']), MaterialDescriptor(primitive=gl.GL_TRIANGLE_STRIP))
 
     scene: Scene = SceneManager().get_active_scene()
@@ -286,7 +286,7 @@ def create_cylinder() -> Entity:
             indices.append(i * 20 + (j + 1) % 20)
 
     OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
-    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'opengl'/'lit_blinn_phong.vs', SHADERS_PATH/'opengl'/'lit_blinn_phong.fs')
     OpenGLMaterialLib().build('M_Cylinder', MaterialData('default_mesh', ['white_texture']))
 
     scene: Scene = SceneManager().get_active_scene()
@@ -326,7 +326,7 @@ def create_cone() -> Entity:
             indices.append(i * 20 + (j + 1) % 20)
 
     OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
-    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'opengl'/'lit_blinn_phong.vs', SHADERS_PATH/'opengl'/'lit_blinn_phong.fs')
     OpenGLMaterialLib().build('M_Cone', MaterialData('default_mesh', ['white_texture']))
 
     scene: Scene = SceneManager().get_active_scene()
@@ -366,7 +366,7 @@ def create_torus() -> Entity:
             indices.append(i * 20 + (j + 1) % 20)
 
     OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
-    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+    OpenGLShaderLib().build('default_mesh', SHADERS_PATH/'opengl'/'lit_blinn_phong.vs', SHADERS_PATH/'opengl'/'lit_blinn_phong.fs')
     OpenGLMaterialLib().build('M_Torus', MaterialData('default_mesh', ['white_texture']))
 
     scene: Scene = SceneManager().get_active_scene()

@@ -277,7 +277,6 @@ class EditorPanelSystem(System):
                 if modified:
                     info.tag = text                            
                 imgui.separator()
-            print(ComponentLib().Transform.__name__)
             if SceneManager().get_active_scene().has_component(EditorVisibleComponent.SELECTED_ENTITY, ComponentLib().Transform):
                 if imgui.tree_node_ex('Transform', flags):
                     transform: ComponentLib().Transform = SceneManager().get_active_scene().get_component(EditorVisibleComponent.SELECTED_ENTITY, ComponentLib().Transform)
@@ -360,9 +359,9 @@ class EditorPanelSystem(System):
 
                     def init_drag_and_drop_mesh(instance):
                         static_mesh.name = instance.name
-                        static_mesh.vbo.clear()
-                        static_mesh.ebo = 0
-                        static_mesh.vao = 0
+                        static_mesh.buffers.clear()
+                        static_mesh.index_buffer = 0
+                        static_mesh.render_pipeline = 0
                         static_mesh.load_from_file = True
                         static_mesh.attributes = [instance.vertices, instance.normals, instance.texcoords]
                         static_mesh.indices = instance.indices
@@ -497,7 +496,7 @@ class EditorPanelSystem(System):
                     
                     # TODO: Extend editor to be able to choose shader
                     OpenGLTextureLib().build('white_texture', TextureData(image_bytes=0xffffffff.to_bytes(4, byteorder='big'), width=1, height=1))
-                    OpenGLShaderLib().build('default_lit', SHADERS_PATH/'lit_blinn_phong_vertex.glsl', SHADERS_PATH/'lit_blinn_phong_fragment.glsl')
+                    OpenGLShaderLib().build('default_lit', SHADERS_PATH/'opengl'/'lit_blinn_phong.vs', SHADERS_PATH/'opengl'/'lit_blinn_phong.fs')
                     OpenGLMaterialLib().build('M_Lit', MaterialData('default_lit', ['white_texture']))
 
                     SceneManager().get_active_scene().add_component(EditorVisibleComponent.SELECTED_ENTITY, MaterialComponent('M_Lit'))
