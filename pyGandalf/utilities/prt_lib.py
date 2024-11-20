@@ -1,106 +1,166 @@
+import os
 import random
 import math
 import imageio
 import numpy as np
+import re
+import torch
+import torch.nn as nn
 from OpenGL.GL import *
 
 from pyGandalf.utilities.definitions import TEXTURES_PATH
+from datetime import datetime  # Import the datetime class
+from numba import njit
 
+
+Data_Collection = False
+
+@njit
+def compute_colors_numba(predicted_coeffs, light_coeffs):
+    num_vertices = predicted_coeffs.shape[0]
+    num_bands = light_coeffs.shape[0]
+    colors = np.zeros((num_vertices, 3), dtype=np.float32)
+
+    for i in range(num_vertices):
+        for j in range(num_bands):
+            for k in range(3):
+                colors[i, k] += predicted_coeffs[i, j] * light_coeffs[j, k]
+
+    return colors / 255
 
 class OBJLoader:
     """
     Class responsible for loading an .obj file for processing by the PRT algorithm.
     """
     def __init__(self):
-        """
-        Initializes the OBJLoader with empty lists for vertices, faces, and normals.
-        """
         self.vertices = []
         self.faces = []
         self.normals = []
+        self.texcoords = []
 
     def get_vertices(self):
-        """
-        Returns the vertices of the loaded .obj file.
-
-        Returns:
-            np.ndarray: A numpy array of the vertices with dtype 'float32'.
-        """
         return np.array(self.vertices, dtype='float32')
 
     def get_faces(self):
-        """
-        Returns the faces of the loaded .obj file.
-
-        Returns:
-            np.ndarray: A numpy array of the faces with dtype 'int32'.
-        """
         return np.array(self.faces, dtype='int32')
 
     def get_normals(self):
-        """
-        Returns the normals of the loaded .obj file.
-
-        Returns:
-            np.ndarray: A numpy array of the normals with dtype 'float32'.
-        """
         return np.array(self.normals, dtype='float32')
 
-    def load_model(self, filename, auto_calculate_normals=False):
-        """
-        Main function for loading the model from a .obj file.
+    def get_texcoords(self):
+        return np.array(self.texcoords, dtype='float32')
 
-        Args:
-            filename (str): The path to the .obj file to be loaded.
-            auto_calculate_normals (bool): If True, normals will be automatically calculated if they are not present in the file.
-        """
-        with open(filename) as file:
+    def load_model(self, filename, auto_calculate_normals=False):
+        # Precompile regex patterns for better performance
+        vertex_re = re.compile(r'^v\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)')
+        texcoord_re = re.compile(r'^vt\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)')
+        normal_re = re.compile(r'^vn\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)')
+        face_re = re.compile(r'^f\s+(.+)')
+
+        vertices = []
+        texcoords = []
+        normals = []
+        faces = []
+
+        with open(filename, 'r') as file:
             for line in file:
-                if line.startswith('v '):
-                    # Vertex data
-                    parts = line.split()
-                    vertex = [float(parts[1]), float(parts[2]), float(parts[3])]
-                    self.vertices.append(vertex)
-                elif line.startswith('f '):
-                    # Face data
-                    parts = line.split()
-                    face = [int(part.split('/')[0]) - 1 for part in parts[1:]]
-                    self.faces.append(face)
-                elif line.startswith('vn ') and not auto_calculate_normals:
-                    # Normal data
-                    parts = line.split()
-                    normal = [float(parts[1]), float(parts[2]), float(parts[3])]
-                    self.normals.append(normal)
-            
-            if auto_calculate_normals:
-                self.calculate_normals()
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue  # Skip empty lines and comments
+
+                # Match vertex positions
+                vertex_match = vertex_re.match(line)
+                if vertex_match:
+                    vertices.append([float(vertex_match.group(1)),
+                                     float(vertex_match.group(2)),
+                                     float(vertex_match.group(3))])
+                    continue
+
+                # Match texture coordinates
+                texcoord_match = texcoord_re.match(line)
+                if texcoord_match:
+                    texcoords.append([float(texcoord_match.group(1)),
+                                      float(texcoord_match.group(2))])
+                    continue
+
+                # Match vertex normals (if not auto-calculating)
+                if not auto_calculate_normals:
+                    normal_match = normal_re.match(line)
+                    if normal_match:
+                        normals.append([float(normal_match.group(1)),
+                                        float(normal_match.group(2)),
+                                        float(normal_match.group(3))])
+                        continue
+
+                # Match faces
+                face_match = face_re.match(line)
+                if face_match:
+                    face_vertices = face_match.group(1).split()
+                    face = []
+                    for part in face_vertices:
+                        indices = part.split('/')
+                        v_idx = int(indices[0]) - 1  # Convert to 0-based indexing
+                        face.append(v_idx)
+                    # Triangulate if needed
+                    if len(face) > 3:
+                        for i in range(1, len(face) - 1):
+                            faces.append([face[0], face[i], face[i + 1]])
+                    else:
+                        faces.append(face)
+
+        # Convert lists to NumPy arrays for better performance
+        self.vertices = np.array(vertices, dtype=np.float32)
+        self.texcoords = np.array(texcoords, dtype=np.float32) if texcoords else None
+        self.normals = np.array(normals, dtype=np.float32) if normals else None
+        self.faces = np.array(faces, dtype=np.int32)
+
+        # Auto-calculate normals if required
+        if auto_calculate_normals:
+            self.calculate_normals()
 
     def calculate_normals(self):
+        # Ensure normals array exists
+        self.normals = np.zeros_like(self.vertices, dtype=np.float32)
+
+        # Vectorized normal calculation
+        v0 = self.vertices[self.faces[:, 0]]
+        v1 = self.vertices[self.faces[:, 1]]
+        v2 = self.vertices[self.faces[:, 2]]
+
+        # Compute face normals
+        face_normals = np.cross(v1 - v0, v2 - v0)
+        face_normals /= np.linalg.norm(face_normals, axis=1)[:, None]  # Normalize
+
+        # Accumulate vertex normals
+        for i, face in enumerate(self.faces):
+            self.normals[face] += face_normals[i]
+
+        # Normalize vertex normals
+        self.normals /= np.linalg.norm(self.normals, axis=1)[:, None]
+
+
+    def save_vertices_and_normals(self, filename):
         """
-        Calculates normals for the loaded model if they are not provided in the .obj file.
-        This function computes vertex normals as the average of the normals of the faces that meet at each vertex.
+        Save vertices and normals to separate text files.
         """
-        # Initialize normals
-        self.normals = np.zeros((len(self.vertices), 3), dtype='float32')
+        # Create a folder to save the data if it doesn't exist
+        output_folder = "/Users/stratosg/Desktop/PRT_Data/MeshData/"
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
-        # Calculate face normals
-        face_normals = []
-        for face in self.faces:
-            v0 = np.array(self.vertices[face[0]])
-            v1 = np.array(self.vertices[face[1]])
-            v2 = np.array(self.vertices[face[2]])
-            normal = np.cross(v1 - v0, v2 - v0)
-            if np.linalg.norm(normal) != 0:
-                normal = normal / np.linalg.norm(normal)  # Normalize the vector
-            face_normals.append(normal)
+        # Save vertices to file
+        if(not os.path.exists(os.path.join(output_folder, str(filename).split('/')[-1].replace('.obj', '') + "_vertices.txt"))):
+            vertex_file = os.path.join(output_folder, str(filename).split('/')[-1].replace('.obj', '') + "_vertices.txt")
+            np.savetxt(vertex_file, self.get_vertices(), delimiter=' ')
+            print(f"Saved vertices to {vertex_file}")
 
-            # Accumulate face normals to the vertices
-            self.normals[face[0]] += normal
-            self.normals[face[1]] += normal
-            self.normals[face[2]] += normal
-
-        # Normalize the accumulated vertex normals
-        self.normals = np.array([n / np.linalg.norm(n) for n in self.normals], dtype='float32')
+            # Save normals to file
+            if len(self.normals) > 0:
+                normal_file = os.path.join(output_folder, str(filename).split('/')[-1].replace('.obj', '')  + "_normals.txt")
+                np.savetxt(normal_file, self.get_normals(), delimiter=' ')
+                print(f"Saved normals to {normal_file}")
+            else:
+                print("No normals to save.")
 
 
 class HDRI_frame:
@@ -138,18 +198,52 @@ class HDRI_frame:
         Args:
             hdrResult: The HDR image data from which to create the cubemap faces.
         """
-        h = self.dimx // 4
-        w = self.dimy // 3
+        if(self.dimx < self.dimy):
+            h = self.dimx // 3
+            w = self.dimy // 4
 
-        for i in range(6):
-            self.cubemap[i] = np.zeros((h, w, 3), dtype=np.uint8)
+            for i in range(6):
+                self.cubemap[i] = np.zeros((h, w, 3), dtype=np.uint8)
 
-        self.cubemap[2][:,:,:] = hdrResult.cols[0:h, w:2*w,  :]
-        self.cubemap[3][:,:,:] = hdrResult.cols[2*h:3*h, w:2*w,  :]
-        self.cubemap[0][:,:,:] = hdrResult.cols[h:2*h, 2*w:3*w,  :]
-        self.cubemap[1][:,:,:] = hdrResult.cols[h:2*h, 0:w,  :]
-        self.cubemap[4][:,:,:] = hdrResult.cols[h:2*h, w:2*w,  :]
-        self.cubemap[5][:,:,:] = hdrResult.cols[3*h:4*h, w:2*w,  :][::-1, ::-1, :]
+            self.cubemap[2][:,:,:] = hdrResult.cols[0:h, w:2*w,  :]
+            self.cubemap[3][:,:,:] = hdrResult.cols[2*h:3*h, w:2*w,  :]
+            self.cubemap[0][:,:,:] = hdrResult.cols[h:2*h, 2*w:3*w,  :]
+            self.cubemap[1][:,:,:] = hdrResult.cols[h:2*h, 0:w,  :]
+            self.cubemap[4][:,:,:] = hdrResult.cols[h:2*h, w:2*w,  :]
+            self.cubemap[5][:,:,:] = hdrResult.cols[3*h:4*h, w:2*w,  :][::-1, ::-1, :]
+
+        else:
+            isRightFaced = False
+            w = self.dimx // 4
+            h = self.dimy // 3
+
+            for i in range(6):
+                self.cubemap[i] = np.zeros((h, w, 3), dtype=np.uint8)
+
+            self.cubemap[2][:,:,:] = hdrResult.cols[0:h, 2*w:3*w,  :]
+
+            for i in range(h):
+                for j in range(w):
+                    for k in range(3):
+                        if(self.cubemap[2][i,j,k] != 0):
+                            isRightFaced = True
+                            break
+            
+            if(isRightFaced):
+                self.cubemap[3][:,:,:] = hdrResult.cols[2*h:3*h, 2*w:3*w,  :]
+                self.cubemap[0][:,:,:] = hdrResult.cols[h:2*h, 3*w:4*w,  :]
+                self.cubemap[1][:,:,:] = hdrResult.cols[h:2*h, w:2*w,  :]
+                self.cubemap[4][:,:,:] = hdrResult.cols[h:2*h, 2*w:3*w,  :]
+                self.cubemap[5][:,:,:] = hdrResult.cols[h:2*h, 0:w,  :][::-1, ::-1, :]
+            else:
+                self.cubemap[2][:,:,:] = hdrResult.cols[0:h, w:2*w,  :]
+                self.cubemap[3][:,:,:] = hdrResult.cols[2*h:3*h, w:2*w,  :]
+                self.cubemap[0][:,:,:] = hdrResult.cols[h:2*h, 2*w:3*w,  :]
+                self.cubemap[1][:,:,:] = hdrResult.cols[h:2*h, 0:w,  :]
+                self.cubemap[4][:,:,:] = hdrResult.cols[h:2*h, w:2*w,  :]
+                self.cubemap[5][:,:,:] = hdrResult.cols[h:2*h, 3*w:4*w,  :]#[::-1, ::-1, :]
+
+
 
 class HDRLoader:
     """
@@ -180,9 +274,9 @@ class HDRLoader:
         if x == y:
             print("Image must be cross HDRI format.")
             exit(0)
-        
-        width = x
-        height = y
+
+        width = y
+        height = x
         
         res = HDRLoaderResult(width, height, result)
         
@@ -416,21 +510,57 @@ class SphericalHarmonics:
             bands (int): The number of bands.
         """
         self.lightCoeffs = np.zeros((bands * bands, 3), dtype=np.float32)
+
+        folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
+        folder_name = str(light).split('/')[-1].replace('.hdr', '')
+        filename = folder_structure + folder_name + "/LightCoefficients.txt"
+
+        if(os.path.exists(filename)):
+            self.lightCoeffs = np.loadtxt(filename, delimiter=' ', dtype=np.float32)
         
-        self.precompute_sh_functions(sampler, bands)
+            filename = folder_structure + folder_name + "/SHFunctions.txt"
 
-        for i in range(sampler.number_of_samples):
-            direction = sampler.samples[i].cartesian_coord
-            color = self.light_probe_access(light, direction)
-            for j in range(bands * bands):
-                sh_function = sampler.samples[i].sh_functions[j]
-                self.lightCoeffs[j] += color * sh_function
+            with open(filename, 'r') as sh_file:
+                for i in range(sampler.number_of_samples):
+                    # Read one row per sample (each row contains the SH functions for one sample)
+                    sh_values = np.loadtxt(sh_file, max_rows=1)
+                    sampler.samples[i].sh_functions = sh_values
 
-        weight = 4.0 * math.pi
-        scale = weight / sampler.number_of_samples
-        self.lightCoeffs *= scale
+        else:
+            self.precompute_sh_functions(sampler, bands)
 
-    def ProjectUnshadowed(self, sampler, vertices, normals, bands):
+            for i in range(sampler.number_of_samples):
+                direction = sampler.samples[i].cartesian_coord
+                color = self.light_probe_access(light, direction)
+                for j in range(bands * bands):
+                    sh_function = sampler.samples[i].sh_functions[j]
+                    self.lightCoeffs[j] += color * sh_function
+
+            weight = 4.0 * math.pi
+            scale = weight / sampler.number_of_samples
+            self.lightCoeffs *= scale
+            
+        if(Data_Collection == True):
+            folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
+            folder_name = str(light).split('/')[-1].replace('.hdr', '')
+            if not os.path.exists(folder_structure + folder_name):
+                os.makedirs(folder_structure + folder_name)
+            
+            filename = folder_structure + folder_name + "/LightCoefficients.txt"
+
+            if(not(os.path.exists(filename))):
+                np.savetxt(filename, self.lightCoeffs, delimiter=' ')
+            
+            filename = folder_structure + folder_name + "/SHFunctions.txt"
+
+            if(not(os.path.exists(filename))):
+                with open(filename, 'w') as sh_file:
+                    for i in range(sampler.number_of_samples):
+                        sh_values = sampler.samples[i].sh_functions  # SH functions for the current sample
+                        np.savetxt(sh_file, [sh_values], delimiter=' ')
+
+
+    def ProjectUnshadowed(self, sampler, vertices, normals, bands, lightprobeName, meshName):
         """
         Projects the unshadowed irradiance for the given vertices and normals.
 
@@ -443,32 +573,80 @@ class SphericalHarmonics:
         Returns:
             np.ndarray: The resulting colors for each vertex.
         """
-        self.coeffs = np.zeros((len(vertices), bands * bands, 3), dtype=np.float32)
-        self.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'campus_probe.hdr', bands)
-        progress = 0.00
-        for i in range(len(vertices)):
-            for j in range(sampler.number_of_samples):
-                sample = sampler.samples[j]
-                cosine_term = max(np.dot(normals[i], sample.cartesian_coord), 0.0)
-                for k in range(bands * bands):
-                    sh_function = sample.sh_functions[k]
-                    progress = (i/len(vertices)) * 100
-                    print(f"Computing coefficients....  {progress:.2f}%", end="\r")
-                    self.coeffs[i][k] += 0.2 * sh_function * cosine_term
 
-        print(f"Computing coefficients....  100.00%", end="\r")
-        weight = 4.0 * math.pi
-        scale = weight / sampler.number_of_samples
-        self.coeffs *= scale
+        self.coeffs = np.zeros((len(vertices), bands * bands, 3), dtype=np.float32)
+        
+        folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
+        folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
+        
+        folder_structure = folder_structure + "/" + folder_name
+        filename = folder_structure + "/VertexCoefficients/" + str(meshName)
+        self.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'probes' / lightprobeName, bands)
+
+        if(os.path.exists(filename + ".txt")):
+            with open(filename + ".txt", 'r') as f:
+                for i in range(len(self.coeffs)):
+                    # Read exactly 27 values for each vertex (9 coefficients * 3 RGB)
+                    line = np.loadtxt(f, max_rows=1, delimiter=' ')
+                    
+                    # Check if line has the expected number of elements
+                    if len(line) != 27:
+                        raise ValueError(f"Unexpected data length for vertex {i}: {len(line)}")
+                    
+                    # Reshape it back into (9, 3) and assign to self.coeffs[i]
+                    self.coeffs[i] = line.reshape(9, 3)
+        else:
+            progress = 0.00
+            for i in range(len(vertices)):
+                for j in range(sampler.number_of_samples):
+                    sample = sampler.samples[j]
+                    cosine_term = max(np.dot(normals[i], sample.cartesian_coord), 0.0)
+                    for k in range(bands * bands):
+                        sh_function = sample.sh_functions[k]
+                        progress = (i/len(vertices)) * 100
+                        print(f"Computing coefficients....  {progress:.2f}%", end="\r")
+                        self.coeffs[i][k] += 0.2 * sh_function * cosine_term
+
+            print(f"Computing coefficients....  100.00%", end="\r")
+
+            weight = 4.0 * math.pi
+            scale = weight / sampler.number_of_samples
+            self.coeffs *= scale
+
 
         colors = np.zeros((len(vertices), 3), dtype=np.float32)
         for i in range(len(vertices)):
             for j in range(9):
                 colors[i] += self.lightCoeffs[j] * self.coeffs[i][j]
 
+        if(Data_Collection == True):
+            if(meshName != None):
+                if(lightprobeName != None):
+                    folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
+                    folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
+                    
+                    if not os.path.exists(folder_structure + folder_name):
+                        os.makedirs(folder_structure + folder_name)
+
+                    folder_structure = folder_structure + "/" + folder_name
+                    folder_name = "/VertexCoefficients"
+                    
+                    if not os.path.exists(folder_structure + folder_name):
+                        os.makedirs(folder_structure + folder_name)
+                    
+                    filename = folder_structure + "/VertexCoefficients/" + str(meshName)
+
+                    if(not(os.path.exists(filename + ".txt"))):
+                        with open(filename + ".txt", 'w') as f:
+                            for i in range(len(self.coeffs)):
+                                # Flatten the coefficients of each vertex into a single row
+                                coeffs_flat = self.coeffs[i].flatten()
+                                # Save them as a single line of space-separated values
+                                np.savetxt(f, [coeffs_flat], delimiter=' ')
+        
         return colors / 255
 
-    def ProjectShadowed(self, sampler, vertices, normals, bands, indices):
+    def ProjectShadowed(self, sampler, vertices, normals, bands, indices, lightprobeName):
         """
         Projects the shadowed irradiance for the given vertices and normals.
 
@@ -483,7 +661,7 @@ class SphericalHarmonics:
             np.ndarray: The resulting colors for each vertex.
         """
         self.coeffs = np.zeros((len(vertices), bands * bands, 3), dtype=np.float32)
-        self.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'campus_probe.hdr', bands)
+        self.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'probes'/lightprobeName, bands)
 
         for i in range(len(vertices)):
             for j in range(sampler.number_of_samples):
@@ -601,7 +779,7 @@ class SphericalHarmonics:
         u = 1.0 - v - w
         return u, v, w
     
-    def interreflections(self, bvh, band2, sampler, vertices, normals, indices, bounces):
+    def interreflections(self, bvh, band2, sampler, vertices, normals, indices, bounces, lightprobeName, meshName):
         """
         Computes the interreflected irradiance for the given vertices and normals.
 
@@ -617,54 +795,111 @@ class SphericalHarmonics:
         Returns:
             np.ndarray: The resulting colors for each vertex.
         """
-        self.ProjectShadowed(sampler, vertices, normals, int(math.sqrt(band2)), indices)
-        zeroVector = [np.zeros((band2, 3), dtype=np.float32) for _ in range(len(vertices))]
+        
+        
+        self.coeffs = np.zeros((len(vertices), band2, 3), dtype=np.float32)
+        
+        folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
+        folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
+        folder_structure = folder_structure + "/" + folder_name
+        filename = folder_structure + "/VertexCoefficients/" + str(meshName)
 
-        sample_number = len(sampler.samples)
-        interReflect = [self.coeffs] + [[] for _ in range(bounces)]
-        weight = 4.0 * math.pi / sample_number
+        if(os.path.exists(filename + ".txt")):
+            with open(filename + ".txt", 'r') as f:
+                for i in range(len(self.coeffs)):
+                    # Read exactly 27 values for each vertex (9 coefficients * 3 RGB)
+                    line = np.loadtxt(f, max_rows=1, delimiter=' ')
+                    
+                    # Check if line has the expected number of elements
+                    if len(line) != 27:
+                        raise ValueError(f"Unexpected data length for vertex {i}: {len(line)}")
+                    
+                    # Reshape it back into (9, 3) and assign to self.coeffs[i]
+                    self.coeffs[i] = line.reshape(9, 3)
 
-        for k in range(bounces):
-            interReflect[k + 1] = [[] for _ in range(len(vertices))]
+            self.lightCoeffs = np.zeros((band2, 3), dtype=np.float32)
 
-            for i in range(len(vertices)):
-                normal = normals[i]
-                for j in range(sample_number):
-                    stemp = sampler.samples[j]
-                    rtemp = Ray(vertices[i], stemp.cartesian_coord)
+            folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
+            folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
+            filename = folder_structure + folder_name + "/LightCoefficients.txt"
 
-                    if not bvh.intersect(rtemp):
-                        continue
+            if(os.path.exists(filename)):
+                self.lightCoeffs = np.loadtxt(filename, delimiter=' ', dtype=np.float32)
+        else:
 
-                    H = np.maximum(np.dot(rtemp._dir, normal), 0.0)
+            self.ProjectShadowed(sampler, vertices, normals, int(math.sqrt(band2)), indices, lightprobeName)
+            zeroVector = [np.zeros((band2, 3), dtype=np.float32) for _ in range(len(vertices))]
 
-                    triIndex = 3 * rtemp._index
-                    voffset = np.zeros(3, dtype=np.int32)
-                    p = np.zeros((3, 3), dtype=np.float32)
-                    SHTrans = [None for _ in range(3)]
+            sample_number = len(sampler.samples)
+            interReflect = [self.coeffs] + [[] for _ in range(bounces)]
+            weight = 4.0 * math.pi / sample_number
 
-                    for m in range(3):
-                        voffset[m] = int(indices[triIndex + m])
-                        SHTrans[m] = interReflect[k][voffset[m]]
-                        voffset[m] *= 3
-                        p[m] = vertices[voffset[m]]
+            for k in range(bounces):
+                interReflect[k + 1] = [[] for _ in range(len(vertices))]
 
-                    pc = rtemp._o + rtemp._t * rtemp._dir
-                    u, v, w = SphericalHarmonics.barycentric(pc, p)
+                for i in range(len(vertices)):
+                    normal = normals[i]
+                    for j in range(sample_number):
+                        stemp = sampler.samples[j]
+                        rtemp = Ray(vertices[i], stemp.cartesian_coord)
 
-                    SHtemp = [np.zeros(3, dtype=np.float32) for _ in range(band2)]
-                    for m in range(band2):
-                        SHtemp[m] = u * SHTrans[0][m] + v * SHTrans[1][m] + w * SHTrans[2][m]
-                        zeroVector[i][m] += H * np.array([0.2, 0.2, 0.2]) * SHtemp[m]
+                        if not bvh.intersect(rtemp):
+                            continue
 
-            for i in range(len(vertices)):
-                interReflect[k + 1][i] = [np.zeros(3, dtype=np.float32) for _ in range(band2)]
-                for j in range(band2):
-                    zeroVector[i][j] *= weight
-                    interReflect[k + 1][i][j] = interReflect[k][i][j] + zeroVector[i][j]
+                        H = np.maximum(np.dot(rtemp._dir, normal), 0.0)
 
-        self.coeffs = interReflect[bounces]
-        print("Interreflected transfer vector generated.")
+                        triIndex = 3 * rtemp._index
+                        voffset = np.zeros(3, dtype=np.int32)
+                        p = np.zeros((3, 3), dtype=np.float32)
+                        SHTrans = [None for _ in range(3)]
+
+                        for m in range(3):
+                            voffset[m] = int(indices[triIndex + m])
+                            SHTrans[m] = interReflect[k][voffset[m]]
+                            voffset[m] *= 3
+                            p[m] = vertices[voffset[m]]
+
+                        pc = rtemp._o + rtemp._t * rtemp._dir
+                        u, v, w = SphericalHarmonics.barycentric(pc, p)
+
+                        SHtemp = [np.zeros(3, dtype=np.float32) for _ in range(band2)]
+                        for m in range(band2):
+                            SHtemp[m] = u * SHTrans[0][m] + v * SHTrans[1][m] + w * SHTrans[2][m]
+                            zeroVector[i][m] += H * np.array([0.2, 0.2, 0.2]) * SHtemp[m]
+
+                for i in range(len(vertices)):
+                    interReflect[k + 1][i] = [np.zeros(3, dtype=np.float32) for _ in range(band2)]
+                    for j in range(band2):
+                        zeroVector[i][j] *= weight
+                        interReflect[k + 1][i][j] = interReflect[k][i][j] + zeroVector[i][j]
+
+            self.coeffs = interReflect[bounces]
+            print("Interreflected transfer vector generated.")
+
+        if(Data_Collection == True):
+            if(meshName != None):
+                if(lightprobeName != None):
+                    folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
+                    folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
+                    
+                    if not os.path.exists(folder_structure + folder_name):
+                        os.makedirs(folder_structure + folder_name)
+
+                    folder_structure = folder_structure + "/" + folder_name
+                    folder_name = "/VertexCoefficients"
+                    
+                    if not os.path.exists(folder_structure + folder_name):
+                        os.makedirs(folder_structure + folder_name)
+                    
+                    filename = folder_structure + "/VertexCoefficients/" + str(meshName)
+
+                    if(not(os.path.exists(filename + ".txt"))):
+                        with open(filename + ".txt", 'w') as f:
+                            for i in range(len(self.coeffs)):
+                                # Flatten the coefficients of each vertex into a single row
+                                coeffs_flat = np.array(self.coeffs[i]).flatten()
+                                # Save them as a single line of space-separated values
+                                np.savetxt(f, [coeffs_flat], delimiter=' ')
 
         colors = np.zeros((len(vertices), 3), dtype=np.float32)
         for i in range(len(vertices)):
@@ -1122,6 +1357,107 @@ class BVHTree:
         bvhVertices = np.array(bvhVertices, dtype=np.float32)  # Convert list of vertices to numpy array
 
         return bvh
+
+class SHModel(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(SHModel, self).__init__()
+
+        # BatchNorm for the input size, which is 258 (or whatever the final number of input features is)
+        self.bn_input = nn.BatchNorm1d(input_size)  # input_size is now 258, not 72027
+
+        # Fully connected layers
+        self.fc1 = nn.Linear(input_size, 512)
+        self.bn1 = nn.BatchNorm1d(512)
+        self.dropout = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, output_size)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+    # Reshape input for BatchNorm: (batch_size * num_vertices, 258)
+        batch_size, num_vertices, num_features = x.shape
+        x = x.view(batch_size * num_vertices, num_features)
+        
+        # Apply batch normalization
+        x = self.bn_input(x)
+
+        # Pass through fully connected layers
+        x = self.relu(self.bn1(self.fc1(x)))
+        x = self.dropout(x)
+        x = self.relu(self.fc2(x))
+
+        # Reshape back to (batch_size, num_vertices, output_size)
+        x = x.view(batch_size, num_vertices, -1)
+        
+        return self.fc3(x)
+
+
+class NeuralPRT:
+    def __init__(self, model_name, vertices, normals, sh, sampler, lightprobeName, bands):
+        self.vertices = vertices
+        self.normals = normals
+        self.sh = sh
+        self.sampler = sampler
+        sh.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'probes' / lightprobeName, bands)
+        self.bands = bands
+        # Initialize a list to store the SH values
+        sh_functions = []
+
+        # Loop through the samples and store the SH functions in the list
+        for i in range(sampler.number_of_samples):
+            sh_values = sampler.samples[i].sh_functions  # SH functions for the current sample
+            sh_functions.append(sh_values)
+
+        self.sh_functions = np.array(sh_functions)
+
+        # Load the trained model (no need to redefine SHModel if the model is saved)
+        self.model = torch.load(model_name)  # Load the entire model
+        self.model.eval()  # Set the model to evaluation mode
+    
+    # Function to prepare input as done during training
+    def prepare_input(self):
+        """
+        Prepare input features efficiently on the CPU.
+        """
+        num_vertices = self.vertices.shape[0]
+
+        # Flatten and broadcast static data
+        light_coeffs = self.sh.lightCoeffs.flatten()  # Shape: (bands * bands,)
+        sh_functions = self.sh_functions.flatten()   # Shape: (bands * bands,)
+
+        # Use broadcasting instead of np.tile
+        light_coeffs_broadcasted = np.broadcast_to(light_coeffs, (num_vertices, len(light_coeffs)))  # Shape: (num_vertices, bands * bands)
+        sh_functions_broadcasted = np.broadcast_to(sh_functions, (num_vertices, len(sh_functions)))  # Shape: (num_vertices, bands * bands)
+
+        # Concatenate features efficiently
+        input_features = np.hstack([self.vertices, self.normals, light_coeffs_broadcasted, sh_functions_broadcasted])  # Shape: (num_vertices, total_features)
+
+        # Add batch dimension for PyTorch compatibility
+        input_features = np.expand_dims(input_features, axis=0)  # Shape: (1, num_vertices, total_features)
+
+        # Convert to PyTorch tensor
+        return torch.tensor(input_features, dtype=torch.float32)
+
+    def run_model(self):
+        # Prepare the input tensor
+        input_data = self.prepare_input()
+
+        # Make predictions with the model
+        with torch.no_grad():  # No need to track gradients during inference
+            predictions = self.model(input_data)
+
+        # Convert predictions to NumPy
+        predicted_coeffs = predictions.numpy()
+
+        colors = compute_colors_numba(predicted_coeffs[0], self.sh.lightCoeffs)
+        return colors
+    
+    def set_vertices(self, vertices):
+        self.vertices = vertices
+
+    def set_normals(self, normals):
+        self.normals = normals
+
     
 def merge(b1, b2):
     """
