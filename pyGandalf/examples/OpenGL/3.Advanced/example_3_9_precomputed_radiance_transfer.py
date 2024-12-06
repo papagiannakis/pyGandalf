@@ -21,7 +21,7 @@ from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH
 from pyGandalf.utilities.logger import logger
-from pyGandalf.utilities.prt_lib import BVHTree, HDRI_frame, OBJLoader, Sampler, SphericalHarmonics
+from pyGandalf.utilities.prt_lib import BVHTree, HDRI_frame, PRTLoader, Sampler, SphericalHarmonics
 
 
 """
@@ -59,6 +59,7 @@ def main():
 
     hdrImg = HDRI_frame()
     hdrImg.create_cube_map_faces(hdrImg.read_hdr(TEXTURES_PATH / 'skybox' / 'cubemaps' / lightprobeName))
+
 
     # Array that holds all the skybox textures
     skybox_bytes = [
@@ -101,7 +102,7 @@ def main():
     OpenGLMaterialLib().build('M_UnlitPRT', MaterialData('unlitPRT', []))
 
     # Load model
-    PRT_Model = OBJLoader()
+    PRT_Model = PRTLoader()
     PRT_Model.load_model(MODELS_PATH / meshName, True)
     PRT_Vertices = PRT_Model.get_vertices()
     PRT_Indices = PRT_Model.get_faces().flatten()

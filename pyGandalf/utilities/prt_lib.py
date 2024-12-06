@@ -6,6 +6,7 @@ import numpy as np
 import re
 import torch
 import torch.nn as nn
+import xml.etree.ElementTree as ET
 from OpenGL.GL import *
 
 from pyGandalf.utilities.definitions import TEXTURES_PATH
@@ -28,29 +29,40 @@ def compute_colors_numba(predicted_coeffs, light_coeffs):
 
     return colors / 255
 
-class OBJLoader:
+class PRTLoader:
     """
-    Class responsible for loading an .obj file for processing by the PRT algorithm.
+    Class responsible for loading 3D models in .obj or .dae format for processing by the PRT algorithm.
     """
+
     def __init__(self):
         self.vertices = []
         self.faces = []
         self.normals = []
         self.texcoords = []
-
-    def get_vertices(self):
-        return np.array(self.vertices, dtype='float32')
-
-    def get_faces(self):
-        return np.array(self.faces, dtype='int32')
-
-    def get_normals(self):
-        return np.array(self.normals, dtype='float32')
-
-    def get_texcoords(self):
-        return np.array(self.texcoords, dtype='float32')
+        self.joints = {}
+        self.weights = []
+        self.animations = {}
 
     def load_model(self, filename, auto_calculate_normals=False):
+        """
+        Load a 3D model from a file (.obj or .dae).
+        """
+        # Ensure filename is a string
+        if not isinstance(filename, str):
+            filename = str(filename)
+
+        file_extension = filename.split('.')[-1].lower()
+        if file_extension == 'obj':
+            self._load_obj(filename, auto_calculate_normals)
+        elif file_extension == 'dae':
+            self._load_dae(filename, auto_calculate_normals)
+        else:
+            raise ValueError(f"Unsupported file format: {file_extension}")
+
+    def _load_obj(self, filename, auto_calculate_normals):
+        """
+        Load an OBJ file, ensuring it works exactly as in the original OBJLoader.
+        """
         # Precompile regex patterns for better performance
         vertex_re = re.compile(r'^v\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)')
         texcoord_re = re.compile(r'^vt\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)')
@@ -72,15 +84,15 @@ class OBJLoader:
                 vertex_match = vertex_re.match(line)
                 if vertex_match:
                     vertices.append([float(vertex_match.group(1)),
-                                     float(vertex_match.group(2)),
-                                     float(vertex_match.group(3))])
+                                    float(vertex_match.group(2)),
+                                    float(vertex_match.group(3))])
                     continue
 
                 # Match texture coordinates
                 texcoord_match = texcoord_re.match(line)
                 if texcoord_match:
                     texcoords.append([float(texcoord_match.group(1)),
-                                      float(texcoord_match.group(2))])
+                                    float(texcoord_match.group(2))])
                     continue
 
                 # Match vertex normals (if not auto-calculating)
@@ -116,13 +128,140 @@ class OBJLoader:
 
         # Auto-calculate normals if required
         if auto_calculate_normals:
-            self.calculate_normals()
+            self._calculate_normals()
 
-    def calculate_normals(self):
-        # Ensure normals array exists
+    def _load_dae(self, filename, auto_calculate_normals=False):
+        """
+        Load a DAE file, extracting geometry, animations, and other relevant data.
+        """
+        import numpy as np
+        from xml.etree import ElementTree as ET
+
+        # Parse the DAE file
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        namespace = {'collada': root.tag.split('}')[0].strip('{')}  # Extract namespace if present
+
+        # Initialize data holders
+        vertices = []
+        indices = []
+        vertex_offset = 0
+        self.animations = {}
+
+        # Extract geometry data
+        geometries = root.find('.//collada:library_geometries', namespace)
+        if geometries is not None:
+            for geometry in geometries.findall('collada:geometry', namespace):
+                mesh = geometry.find('collada:mesh', namespace)
+                if mesh is not None:
+                    # Extract vertices
+                    positions_source = mesh.find(".//collada:source[collada:float_array]", namespace)
+                    positions_array = positions_source.find('collada:float_array', namespace) if positions_source else None
+                    if positions_array is not None:
+                        vertices = list(map(float, positions_array.text.split()))
+
+                    # Determine vertex offset from <triangles> or <polylist>
+                    triangles = mesh.find(".//collada:triangles", namespace)
+                    polylist = mesh.find(".//collada:polylist", namespace)
+                    index_data = None
+                    if triangles is not None:
+                        inputs = triangles.findall("collada:input", namespace)
+                        index_data = triangles.find("collada:p", namespace)
+                    elif polylist is not None:
+                        inputs = polylist.findall("collada:input", namespace)
+                        index_data = polylist.find("collada:p", namespace)
+
+                    if inputs and index_data is not None:
+                        # Find vertex offset (offset = 0 for positions)
+                        for input_tag in inputs:
+                            if input_tag.get("semantic") == "VERTEX":
+                                vertex_offset = int(input_tag.get("offset", 0))
+
+                        # Read and process indices
+                        raw_indices = list(map(int, index_data.text.split()))
+                        stride = len(inputs)  # Number of inputs per vertex
+                        indices = raw_indices[vertex_offset::stride]
+
+        # Ensure vertices are reshaped correctly
+        if vertices:
+            self.vertices = np.array(vertices, dtype=np.float32).reshape(-1, 3)
+        else:
+            self.vertices = np.empty((0, 3), dtype=np.float32)
+
+        # Ensure indices are reshaped correctly
+        if indices:
+            indices_array = np.array(indices, dtype=np.int32)
+            self.faces = indices_array.reshape(-1, 3)
+        else:
+            self.faces = np.empty((0, 3), dtype=np.int32)
+
+        # Auto-calculate normals if required
+        if auto_calculate_normals and self.vertices.size > 0 and self.faces.size > 0:
+            self._calculate_normals()
+
+        # Extract animations
+        library_animations = root.find('.//collada:library_animations', namespace)
+        if library_animations is not None:
+            for animation in library_animations.findall('collada:animation', namespace):
+                animation_id = animation.get('id', 'unknown')
+                times, transforms, interpolation = None, None, None
+
+                # Extract keyframe times
+                for source in animation.findall(".//collada:source", namespace):
+                    source_id = source.get('id', '')
+                    float_array = source.find('collada:float_array', namespace)
+                    if float_array is not None:
+                        if 'input' in source_id:  # Keyframe times
+                            times = list(map(float, float_array.text.split()))
+                        elif 'output' in source_id:  # Transformation values
+                            transforms = list(map(float, float_array.text.split()))
+
+                # Extract interpolation methods
+                interpolation_source = None
+                for source in animation.findall(".//collada:source", namespace):
+                    if 'interpolation' in source.get('id', ''):
+                        interpolation_source = source.find('collada:Name_array', namespace)
+                        break
+
+                if interpolation_source is not None:
+                    interpolation = interpolation_source.text.split()
+
+                # Store animation data
+                if times and transforms:
+                    transform_count = len(transforms) // len(times)
+                    self.animations[animation_id] = {
+                        'keyframes': np.array(times, dtype=np.float32),
+                        'transforms': np.array(transforms, dtype=np.float32).reshape(-1, transform_count),
+                        'interpolation': interpolation or ['LINEAR'] * len(times),
+                    }
+
+        # Extract visual scene hierarchy
+        visual_scene = root.find('.//collada:library_visual_scenes/visual_scene', namespace)
+        self.joint_hierarchy = {}
+        if visual_scene is not None:
+            for node in visual_scene.findall('.//collada:node', namespace):
+                node_id = node.get('id', 'unknown')
+                matrix = node.find('collada:matrix', namespace)
+                if matrix is not None:
+                    transform = np.array(list(map(float, matrix.text.split())), dtype=np.float32).reshape(4, 4)
+                    self.joint_hierarchy[node_id] = {'transform': transform, 'children': []}
+
+                # Parse child joints
+                for child in node.findall('.//collada:node', namespace):
+                    child_id = child.get('id', 'unknown')
+                    if node_id in self.joint_hierarchy:
+                        self.joint_hierarchy[node_id]['children'].append(child_id)
+
+
+
+
+
+    def _calculate_normals(self):
+        """
+        Calculate normals automatically for OBJ files.
+        """
         self.normals = np.zeros_like(self.vertices, dtype=np.float32)
 
-        # Vectorized normal calculation
         v0 = self.vertices[self.faces[:, 0]]
         v1 = self.vertices[self.faces[:, 1]]
         v2 = self.vertices[self.faces[:, 2]]
@@ -137,6 +276,75 @@ class OBJLoader:
 
         # Normalize vertex normals
         self.normals /= np.linalg.norm(self.normals, axis=1)[:, None]
+
+
+    def _parse_skin(self, skin):
+        joints_source = skin.find(".//source[contains(@id, 'joints')]/Name_array")
+        joint_names = joints_source.text.split()
+        self.joints = {name: {'children': [], 'transform': np.eye(4)} for name in joint_names}
+
+        weights_source = skin.find(".//source[contains(@id, 'weights')]/float_array")
+        weights = np.fromstring(weights_source.text, sep=' ')
+        self.weights = weights
+
+        vcount = list(map(int, skin.find(".//vertex_weights/vcount").text.split()))
+        v = list(map(int, skin.find(".//vertex_weights/v").text.split()))
+
+        vertex_weights = []
+        index = 0
+        for count in vcount:
+            joint_weights = []
+            for _ in range(count):
+                joint_index = v[index]
+                weight_index = v[index + 1]
+                joint_weights.append((joint_index, weights[weight_index]))
+                index += 2
+            vertex_weights.append(joint_weights)
+        self.vertex_weights = vertex_weights
+
+    def _parse_animation(self, animation):
+        anim_id = animation.get('id')
+        times_source = animation.find(".//source[contains(@id, 'input')]/float_array")
+        values_source = animation.find(".//source[contains(@id, 'output')]/float_array")
+
+        if times_source is not None and values_source is not None:
+            keyframes = np.fromstring(times_source.text, sep=' ')
+            values = np.fromstring(values_source.text, sep=' ').reshape((-1, 4, 4))  # Assume matrix transforms
+            self.animations[anim_id] = {'keyframes': keyframes, 'values': values}
+
+    def _parse_joints(self, visual_scene):
+        for node in visual_scene.findall('.//node'):
+            joint_name = node.get('id')
+            if joint_name in self.joints:
+                matrix = node.find('matrix')
+                if matrix is not None:
+                    self.joints[joint_name]['transform'] = np.fromstring(matrix.text, sep=' ').reshape((4, 4))
+
+                for child in node.findall('.//node'):
+                    child_name = child.get('id')
+                    if child_name in self.joints:
+                        self.joints[joint_name]['children'].append(child_name)
+                        
+    def get_vertices(self):
+        return np.array(self.vertices, dtype='float32')
+
+    def get_faces(self):
+        return np.array(self.faces, dtype='int32')
+
+    def get_normals(self):
+        return np.array(self.normals, dtype='float32')
+
+    def get_texcoords(self):
+        return np.array(self.texcoords, dtype='float32')
+
+    def get_joints(self):
+        return self.joints
+
+    def get_weights(self):
+        return self.weights
+
+    def get_animations(self):
+        return self.animations
 
 
     def save_vertices_and_normals(self, filename):
