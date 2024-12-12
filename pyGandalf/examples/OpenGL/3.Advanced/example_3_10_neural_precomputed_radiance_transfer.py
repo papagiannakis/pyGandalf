@@ -21,7 +21,7 @@ from pyGandalf.utilities.opengl_shader_lib import OpenGLShaderLib
 
 from pyGandalf.utilities.definitions import SHADERS_PATH, TEXTURES_PATH, MODELS_PATH, NN_PATH
 from pyGandalf.utilities.logger import logger
-from pyGandalf.utilities.prt_lib import HDRI_frame, NeuralPRT, OBJLoader, Sampler, SphericalHarmonics, SHModel
+from pyGandalf.utilities.prt_lib import HDRI_frame, NeuralPRT, PRTLoader, Sampler, SphericalHarmonics, SHModel
 
 
 """
@@ -185,7 +185,7 @@ def main():
     OpenGLMaterialLib().build('M_UnlitPRT', MaterialData('unlitPRT', []))
 
     # Load model
-    PRT_Model = OBJLoader()
+    PRT_Model = PRTLoader()
 
     PRT_Model.load_model(MODELS_PATH / meshName, True)
     PRT_Vertices = PRT_Model.get_vertices()

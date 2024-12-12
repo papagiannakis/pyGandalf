@@ -7,6 +7,7 @@ import re
 import torch
 import torch.nn as nn
 import xml.etree.ElementTree as ET
+import onnxruntime as ort
 from OpenGL.GL import *
 
 from pyGandalf.utilities.definitions import TEXTURES_PATH
@@ -24,8 +25,10 @@ def compute_colors_numba(predicted_coeffs, light_coeffs):
 
     for i in range(num_vertices):
         for j in range(num_bands):
-            for k in range(3):
-                colors[i, k] += predicted_coeffs[i, j] * light_coeffs[j, k]
+            for k in range(3):               # Loop over color channels (R, G, B)
+                coeff_index = j * 3 + k      # Compute flattened index in predicted_coeffs
+                colors[i, k] += predicted_coeffs[i, coeff_index] * light_coeffs[j, k]
+
 
     return colors / 255
 
@@ -1608,6 +1611,7 @@ class NeuralPRT:
         self.sampler = sampler
         sh.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'probes' / lightprobeName, bands)
         self.bands = bands
+        self.model_type = None
         # Initialize a list to store the SH values
         sh_functions = []
 
@@ -1618,10 +1622,20 @@ class NeuralPRT:
 
         self.sh_functions = np.array(sh_functions)
 
-        # Load the trained model (no need to redefine SHModel if the model is saved)
-        self.model = torch.load(model_name)  # Load the entire model
-        self.model.eval()  # Set the model to evaluation mode
-    
+        _, extension = os.path.splitext(model_name)
+        extension = extension.lower()
+
+        if extension == ".pth":
+            self.model = torch.load(model_name)  # Load the entire model
+            self.model.eval()  # Set the model to evaluation mode
+            self.model_type = "pth"
+        elif extension == ".onnx":
+            self.model = ort.InferenceSession(model_name)
+            self.model_type = "onnx"
+        else:
+            raise ValueError(f"Unsupported model extension: {extension}. Use '.pth' or '.onnx'.")
+
+
     # Function to prepare input as done during training
     def prepare_input(self):
         """
@@ -1645,19 +1659,65 @@ class NeuralPRT:
 
         # Convert to PyTorch tensor
         return torch.tensor(input_features, dtype=torch.float32)
+    
+    def prepare_input_onnx(self):
+        """
+        Prepare input features efficiently on the CPU, formatted for ONNX (4D input).
+        """
+        num_vertices = self.vertices.shape[0]
+
+        # Flatten and broadcast static data
+        light_coeffs = self.sh.lightCoeffs.flatten()  # Shape: (bands * bands,)
+        sh_functions = self.sh_functions.flatten()   # Shape: (bands * bands,)
+
+        # Use broadcasting instead of np.tile
+        light_coeffs_broadcasted = np.broadcast_to(light_coeffs, (num_vertices, len(light_coeffs)))  # Shape: (num_vertices, bands * bands)
+        sh_functions_broadcasted = np.broadcast_to(sh_functions, (num_vertices, len(sh_functions)))  # Shape: (num_vertices, bands * bands)
+
+        # Concatenate features efficiently
+        input_features = np.hstack([self.vertices, self.normals, light_coeffs_broadcasted, sh_functions_broadcasted])  # Shape: (num_vertices, total_features)
+
+        # Add batch dimension for PyTorch compatibility
+        input_features = np.expand_dims(input_features, axis=0)  # Shape: (1, num_vertices, total_features)
+
+        # Add an additional dimension to match ONNX input requirements
+        input_features = np.expand_dims(input_features, axis=1)  # Shape: (1, 1, num_vertices, total_features)
+
+        # Convert to PyTorch tensor
+        return torch.tensor(input_features, dtype=torch.float32)
+
+
 
     def run_model(self):
-        # Prepare the input tensor
-        input_data = self.prepare_input()
 
-        # Make predictions with the model
-        with torch.no_grad():  # No need to track gradients during inference
-            predictions = self.model(input_data)
+        if(self.model_type == "pth"):
+            # Prepare the input tensor
+            input_data = self.prepare_input()
 
-        # Convert predictions to NumPy
-        predicted_coeffs = predictions.numpy()
+            # Make predictions with the model
+            with torch.no_grad():  # No need to track gradients during inference
+                predictions = self.model(input_data)
 
-        colors = compute_colors_numba(predicted_coeffs[0], self.sh.lightCoeffs)
+            # Convert predictions to NumPy
+            predicted_coeffs = predictions.numpy()
+
+            colors = compute_colors_numba(predicted_coeffs[0], self.sh.lightCoeffs)
+        elif(self.model_type == "onnx"):
+            input_data = self.prepare_input_onnx()
+            input_data = input_data.numpy()
+
+            input_name = self.model.get_inputs()[0].name
+            predictions = self.model.run(None, {input_name: input_data})
+
+            predicted_coeffs = predictions[0]
+
+            print(predictions[0].shape)
+
+            colors = compute_colors_numba(predicted_coeffs[0], self.sh.lightCoeffs)
+
+        else:
+            raise RuntimeError("Model is not loaded or has an unsupported type.")
+
         return colors
     
     def set_vertices(self, vertices):
