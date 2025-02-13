@@ -62,7 +62,7 @@ class CameraComponent(Component):
         self.primary = primary
 
 class CameraControllerComponent(Component):
-    def __init__(self, movement_speed = 3.5, mouse_sensitivity = 1.25):
+    def __init__(self, movement_speed = 3.5, mouse_sensitivity = 10.25):
         self.front = glm.vec3(0.0, 0.0, 1.0)
         self.right = glm.vec3(1.0, 0.0, 0.0)
         self.up = glm.vec3(0.0, 1.0, 0.0)

@@ -6,6 +6,6 @@ out vec4 FragColor;
 
 void main()
 {
-    float h = (v_Height + 16)/64.0f;
-    FragColor = vec4(h, h, h, 1.0);
+    float h = (v_Height + 16.0)/64.0;
+    FragColor = vec4(h - 0.25, h - 0.25, h + 0.25, 1.0);
 }
