@@ -25,104 +25,13 @@ from pyGandalf.utilities.prt_lib import HDRI_frame, NeuralPRT, PRTLoader, Sample
 
 
 """
-Showcase of the Precomputed Radiance Transfer (PRT) algorithm.
+Showcase of the Precomputed Radiance Transfer (PRT) algorithm utilizing a neural network.
 """
-NPRT_Model = None
-PRT_Vertices = None
-PRT_Normals = None
-
-def rotate_vertices(vertices, vec3):
-    """
-    Rotate vertices by Euler angles.
-    :param vertices: Nx3 NumPy array of vertices
-    :param vec3: List or array [theta_x, theta_y, theta_z] in radians
-    :return: Rotated Nx3 NumPy array of vertices
-    """
-    theta_x, theta_y, theta_z = vec3
-
-    # Rotation matrix for X-axis
-    R_x = np.array([
-        [1, 0, 0],
-        [0, np.cos(theta_x), -np.sin(theta_x)],
-        [0, np.sin(theta_x), np.cos(theta_x)]
-    ])
-
-    # Rotation matrix for Y-axis
-    R_y = np.array([
-        [np.cos(theta_y), 0, np.sin(theta_y)],
-        [0, 1, 0],
-        [-np.sin(theta_y), 0, np.cos(theta_y)]
-    ])
-
-    # Rotation matrix for Z-axis
-    R_z = np.array([
-        [np.cos(theta_z), -np.sin(theta_z), 0],
-        [np.sin(theta_z), np.cos(theta_z), 0],
-        [0, 0, 1]
-    ])
-
-    # Combined rotation matrix (Z * Y * X)
-    R = R_z @ R_y @ R_x
-
-    # Rotate vertices
-    rotated_vertices = vertices @ R.T  # Transpose R for correct multiplication
-    return rotated_vertices
-
-class RotateAroundComponent(Component):
-    def __init__(self, axis: list, speed: float, meshC: StaticMeshComponent) -> None:
-        self.axis = axis
-        self.speed = speed
-        self.enabled = True
-        self.meshC = meshC
-
-class RotateAroundSystem(System):
-    """
-    The system responsible rotating around entities.
-    """
-
-    def on_create_entity(self, entity: Entity, components: Component | tuple[Component]):
-        pass
-
-    def on_update_entity(self, ts, entity: Entity, components: Component | tuple[Component]):
-        rotate_around, transform = components
-
-        global NPRT_Model
-        global PRT_Vertices
-        global PRT_Normals
-
-        if rotate_around.enabled:
-            if rotate_around.axis[0] == 1:
-                transform.rotation.x += rotate_around.speed * ts
-
-            if rotate_around.axis[1] == 1:
-                transform.rotation.y += rotate_around.speed * ts
-                
-            if rotate_around.axis[2] == 1:
-                transform.rotation.z += rotate_around.speed * ts
-
-            if(NPRT_Model!=None):
-                new_vertices = rotate_vertices(PRT_Vertices, glm.vec3(np.radians(transform.rotation.x),np.radians(transform.rotation.y), np.radians(transform.rotation.z)))
-                new_normals = rotate_vertices(PRT_Normals, glm.vec3(np.radians(transform.rotation.x),np.radians(transform.rotation.y), np.radians(transform.rotation.z)))
-                NPRT_Model.set_vertices(new_vertices)
-                NPRT_Model.set_normals(new_normals)
-                colors = NPRT_Model.run_model()
-
-                OpenGLRenderer().update_colors(colors, 2)
-
 
 def main():
 
-    #meshName = sys.argv[1]
-    #lightprobeName = sys.argv[2]
-    #samples = int(sys.argv[3])
-    #bands = int(sys.argv[4])
-
-    global NPRT_Model
-    global PRT_Vertices
-    global PRT_Normals
-
-    meshName = "monkey_flat.obj"
-    lightprobeName = "campus_probe.hdr"
+    meshName = "buddha.obj"
+    lightprobeName = "solitude_night_2k.hdr"
     samples = 5
     bands = 3
 
@@ -187,7 +96,7 @@ def main():
     # Load model
     PRT_Model = PRTLoader()
 
-    PRT_Model.load_model(MODELS_PATH / meshName, True)
+    PRT_Model.load_model(MODELS_PATH / meshName, False)
     PRT_Vertices = PRT_Model.get_vertices()
     PRT_Indices = PRT_Model.get_faces().flatten()
     PRT_Normals = PRT_Model.get_normals()
@@ -195,16 +104,15 @@ def main():
     sh = SphericalHarmonics(bands)
     ssampler = Sampler(samples)
 
-    NPRT_Model = NeuralPRT(NN_PATH / 'PRTUnshadowed.pth', PRT_Vertices, PRT_Normals, sh, ssampler, lightprobeName, bands)
+    NPRT_Model = NeuralPRT(NN_PATH / 'NeuralGASh_Model.pth', PRT_Vertices, PRT_Normals, sh, ssampler, lightprobeName, bands)
 
     colors = NPRT_Model.run_model()
 
     # Register components to mesh
     scene.add_component(mesh, InfoComponent("mesh"))
-    scene.add_component(mesh, TransformComponent(glm.vec3(0, 0, 5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(mesh, TransformComponent(glm.vec3(0, 0, 5), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
     scene.add_component(mesh, StaticMeshComponent('mesh',[PRT_Vertices, colors], PRT_Indices))
     scene.add_component(mesh, MaterialComponent('M_UnlitPRT'))
-    scene.add_component(mesh, RotateAroundComponent([0, 1, 0], 30.0, scene.get_component(mesh, StaticMeshComponent)))
 
     # Register components to skybox
     scene.add_component(skybox, InfoComponent("skybox"))
@@ -223,8 +131,6 @@ def main():
     scene.register_system(CameraSystem([CameraComponent, TransformComponent]))
     scene.register_system(OpenGLStaticMeshRenderingSystem([StaticMeshComponent, MaterialComponent, TransformComponent]))
     scene.register_system(CameraControllerSystem([CameraControllerComponent, CameraComponent, TransformComponent]))
-
-    scene.register_system(RotateAroundSystem([RotateAroundComponent, TransformComponent]))
 
     # Add scene to manager
     SceneManager().add_scene(scene)

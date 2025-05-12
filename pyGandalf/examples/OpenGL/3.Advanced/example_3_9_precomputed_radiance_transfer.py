@@ -27,20 +27,15 @@ from pyGandalf.utilities.prt_lib import BVHTree, HDRI_frame, PRTLoader, Sampler,
 """
 Showcase of the Precomputed Radiance Transfer (PRT) algorithm.
 """
+        
 
 def main():
-
-    #meshName = sys.argv[1]
-    #lightprobeName = sys.argv[2]
-    #samples = int(sys.argv[3])
-    #bands = int(sys.argv[4])
-
     meshName = "monkey_flat.obj"
-    lightprobeName = "campus_probe.hdr"
+    lightprobeName = "solitude_night_2k.hdr"
     samples = 5
     bands = 3
 
-    shadowed = False # For shadowed version, set this to True
+    shadowed = True # For shadowed version, set this to True
     interreflections = False #For interreflections version, set this to True (also shadowed version must be true)
 
     # Set the logger DEBUG to report all the logs
@@ -108,6 +103,8 @@ def main():
     PRT_Indices = PRT_Model.get_faces().flatten()
     PRT_Normals = PRT_Model.get_normals()
 
+
+    #SH_Rotations = CGA_SH_Rotations()
     sh = SphericalHarmonics(bands)
     ssampler = Sampler(samples)
 
@@ -116,7 +113,7 @@ def main():
             bvh = BVHTree.computeBVHTree(PRT_Vertices, PRT_Indices)
             colors = sh.interreflections(bvh, bands*bands, ssampler, PRT_Vertices, PRT_Normals, PRT_Indices, 2, lightprobeName, meshName)
         else:
-            colors = sh.ProjectShadowed(ssampler, PRT_Vertices, PRT_Normals, bands, PRT_Indices, lightprobeName) 
+            colors = sh.ProjectShadowed(ssampler, PRT_Vertices, PRT_Normals, bands, PRT_Indices, lightprobeName, meshName) 
     else:
         colors = sh.ProjectUnshadowed(ssampler, PRT_Vertices, PRT_Normals, bands, lightprobeName, meshName)
 

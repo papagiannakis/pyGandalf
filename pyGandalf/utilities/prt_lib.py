@@ -1,18 +1,22 @@
 import os
 import random
 import math
+import time
 import imageio
 import numpy as np
 import re
 import torch
 import torch.nn as nn
-import xml.etree.ElementTree as ET
 import onnxruntime as ort
 from OpenGL.GL import *
 
 from pyGandalf.utilities.definitions import TEXTURES_PATH
-from datetime import datetime  # Import the datetime class
 from numba import njit
+from math import sqrt, acos, sin, cos, pi
+from scipy.spatial.transform import Rotation as R
+from pyGandalf.utilities.GA.CGA_Multivector_Processing import build_motor_from_vertex_normal
+
+import numpy as np
 
 
 Data_Collection = False
@@ -22,11 +26,10 @@ def compute_colors_numba(predicted_coeffs, light_coeffs):
     num_vertices = predicted_coeffs.shape[0]
     num_bands = light_coeffs.shape[0]
     colors = np.zeros((num_vertices, 3), dtype=np.float32)
-
     for i in range(num_vertices):
         for j in range(num_bands):
-            for k in range(3):               # Loop over color channels (R, G, B)
-                coeff_index = j * 3 + k      # Compute flattened index in predicted_coeffs
+            for k in range(3):
+                coeff_index = j * 3 + k     
                 colors[i, k] += predicted_coeffs[i, coeff_index] * light_coeffs[j, k]
 
 
@@ -66,7 +69,6 @@ class PRTLoader:
         """
         Load an OBJ file, ensuring it works exactly as in the original OBJLoader.
         """
-        # Precompile regex patterns for better performance
         vertex_re = re.compile(r'^v\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)')
         texcoord_re = re.compile(r'^vt\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)')
         normal_re = re.compile(r'^vn\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)\s+([\d\.\-eE]+)')
@@ -76,12 +78,13 @@ class PRTLoader:
         texcoords = []
         normals = []
         faces = []
+        vertex_normals_map = {}  # Maps vertex index to normal index
 
         with open(filename, 'r') as file:
             for line in file:
                 line = line.strip()
                 if not line or line.startswith('#'):
-                    continue  # Skip empty lines and comments
+                    continue
 
                 # Match vertex positions
                 vertex_match = vertex_re.match(line)
@@ -98,14 +101,13 @@ class PRTLoader:
                                     float(texcoord_match.group(2))])
                     continue
 
-                # Match vertex normals (if not auto-calculating)
-                if not auto_calculate_normals:
-                    normal_match = normal_re.match(line)
-                    if normal_match:
-                        normals.append([float(normal_match.group(1)),
-                                        float(normal_match.group(2)),
-                                        float(normal_match.group(3))])
-                        continue
+                # Match vertex normals
+                normal_match = normal_re.match(line)
+                if normal_match:
+                    normals.append([float(normal_match.group(1)),
+                                    float(normal_match.group(2)),
+                                    float(normal_match.group(3))])
+                    continue
 
                 # Match faces
                 face_match = face_re.match(line)
@@ -116,6 +118,12 @@ class PRTLoader:
                         indices = part.split('/')
                         v_idx = int(indices[0]) - 1  # Convert to 0-based indexing
                         face.append(v_idx)
+
+                        # Store normal index mapping if present
+                        if len(indices) > 2 and indices[2]:  # Normal index exists
+                            n_idx = int(indices[2]) - 1
+                            vertex_normals_map[v_idx] = n_idx
+
                     # Triangulate if needed
                     if len(face) > 3:
                         for i in range(1, len(face) - 1):
@@ -123,14 +131,20 @@ class PRTLoader:
                     else:
                         faces.append(face)
 
-        # Convert lists to NumPy arrays for better performance
+        # Convert lists to NumPy arrays
         self.vertices = np.array(vertices, dtype=np.float32)
         self.texcoords = np.array(texcoords, dtype=np.float32) if texcoords else None
-        self.normals = np.array(normals, dtype=np.float32) if normals else None
         self.faces = np.array(faces, dtype=np.int32)
 
-        # Auto-calculate normals if required
-        if auto_calculate_normals:
+        # Ensure normals match vertices count
+        if len(normals) > 0:
+            self.normals = np.zeros_like(self.vertices, dtype=np.float32)
+            for v_idx, n_idx in vertex_normals_map.items():
+                self.normals[v_idx] = normals[n_idx]  # Assign correct normal
+
+        # If no normals exist or missing normals are found, calculate them
+        if auto_calculate_normals or len(normals) == 0:
+            print(f"Missing normals detected! Recalculating for {len(self.vertices)} vertices.")
             self._calculate_normals()
 
     def _load_dae(self, filename, auto_calculate_normals=False):
@@ -256,9 +270,6 @@ class PRTLoader:
                         self.joint_hierarchy[node_id]['children'].append(child_id)
 
 
-
-
-
     def _calculate_normals(self):
         """
         Calculate normals automatically for OBJ files.
@@ -348,31 +359,6 @@ class PRTLoader:
 
     def get_animations(self):
         return self.animations
-
-
-    def save_vertices_and_normals(self, filename):
-        """
-        Save vertices and normals to separate text files.
-        """
-        # Create a folder to save the data if it doesn't exist
-        output_folder = "/Users/stratosg/Desktop/PRT_Data/MeshData/"
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-
-        # Save vertices to file
-        if(not os.path.exists(os.path.join(output_folder, str(filename).split('/')[-1].replace('.obj', '') + "_vertices.txt"))):
-            vertex_file = os.path.join(output_folder, str(filename).split('/')[-1].replace('.obj', '') + "_vertices.txt")
-            np.savetxt(vertex_file, self.get_vertices(), delimiter=' ')
-            print(f"Saved vertices to {vertex_file}")
-
-            # Save normals to file
-            if len(self.normals) > 0:
-                normal_file = os.path.join(output_folder, str(filename).split('/')[-1].replace('.obj', '')  + "_normals.txt")
-                np.savetxt(normal_file, self.get_normals(), delimiter=' ')
-                print(f"Saved normals to {normal_file}")
-            else:
-                print("No normals to save.")
-
 
 class HDRI_frame:
     """
@@ -722,53 +708,18 @@ class SphericalHarmonics:
         """
         self.lightCoeffs = np.zeros((bands * bands, 3), dtype=np.float32)
 
-        folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
-        folder_name = str(light).split('/')[-1].replace('.hdr', '')
-        filename = folder_structure + folder_name + "/LightCoefficients.txt"
+        self.precompute_sh_functions(sampler, bands)
 
-        if(os.path.exists(filename)):
-            self.lightCoeffs = np.loadtxt(filename, delimiter=' ', dtype=np.float32)
-        
-            filename = folder_structure + folder_name + "/SHFunctions.txt"
+        for i in range(sampler.number_of_samples):
+            direction = sampler.samples[i].cartesian_coord
+            color = self.light_probe_access(light, direction)
+            for j in range(bands * bands):
+                sh_function = sampler.samples[i].sh_functions[j]
+                self.lightCoeffs[j] += color * sh_function
 
-            with open(filename, 'r') as sh_file:
-                for i in range(sampler.number_of_samples):
-                    # Read one row per sample (each row contains the SH functions for one sample)
-                    sh_values = np.loadtxt(sh_file, max_rows=1)
-                    sampler.samples[i].sh_functions = sh_values
-
-        else:
-            self.precompute_sh_functions(sampler, bands)
-
-            for i in range(sampler.number_of_samples):
-                direction = sampler.samples[i].cartesian_coord
-                color = self.light_probe_access(light, direction)
-                for j in range(bands * bands):
-                    sh_function = sampler.samples[i].sh_functions[j]
-                    self.lightCoeffs[j] += color * sh_function
-
-            weight = 4.0 * math.pi
-            scale = weight / sampler.number_of_samples
-            self.lightCoeffs *= scale
-            
-        if(Data_Collection == True):
-            folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
-            folder_name = str(light).split('/')[-1].replace('.hdr', '')
-            if not os.path.exists(folder_structure + folder_name):
-                os.makedirs(folder_structure + folder_name)
-            
-            filename = folder_structure + folder_name + "/LightCoefficients.txt"
-
-            if(not(os.path.exists(filename))):
-                np.savetxt(filename, self.lightCoeffs, delimiter=' ')
-            
-            filename = folder_structure + folder_name + "/SHFunctions.txt"
-
-            if(not(os.path.exists(filename))):
-                with open(filename, 'w') as sh_file:
-                    for i in range(sampler.number_of_samples):
-                        sh_values = sampler.samples[i].sh_functions  # SH functions for the current sample
-                        np.savetxt(sh_file, [sh_values], delimiter=' ')
+        weight = 4.0 * math.pi
+        scale = weight / sampler.number_of_samples
+        self.lightCoeffs *= scale
 
 
     def ProjectUnshadowed(self, sampler, vertices, normals, bands, lightprobeName, meshName):
@@ -787,24 +738,20 @@ class SphericalHarmonics:
 
         self.coeffs = np.zeros((len(vertices), bands * bands, 3), dtype=np.float32)
         
-        folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
-        folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
+        folder_name = os.path.splitext(lightprobeName)[0]
         
-        folder_structure = folder_structure + "/" + folder_name
+        folder_structure = folder_name
         filename = folder_structure + "/VertexCoefficients/" + str(meshName)
         self.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'probes' / lightprobeName, bands)
 
         if(os.path.exists(filename + ".txt")):
             with open(filename + ".txt", 'r') as f:
                 for i in range(len(self.coeffs)):
-                    # Read exactly 27 values for each vertex (9 coefficients * 3 RGB)
                     line = np.loadtxt(f, max_rows=1, delimiter=' ')
                     
-                    # Check if line has the expected number of elements
                     if len(line) != 27:
                         raise ValueError(f"Unexpected data length for vertex {i}: {len(line)}")
                     
-                    # Reshape it back into (9, 3) and assign to self.coeffs[i]
                     self.coeffs[i] = line.reshape(9, 3)
         else:
             progress = 0.00
@@ -833,13 +780,12 @@ class SphericalHarmonics:
         if(Data_Collection == True):
             if(meshName != None):
                 if(lightprobeName != None):
-                    folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
-                    folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
-                    
-                    if not os.path.exists(folder_structure + folder_name):
-                        os.makedirs(folder_structure + folder_name)
+                    folder_name = os.path.splitext(lightprobeName)[0]
 
-                    folder_structure = folder_structure + "/" + folder_name
+                    if not os.path.exists(folder_name):
+                        os.makedirs(folder_name)
+
+                    folder_structure = folder_name
                     folder_name = "/VertexCoefficients"
                     
                     if not os.path.exists(folder_structure + folder_name):
@@ -857,7 +803,7 @@ class SphericalHarmonics:
         
         return colors / 255
 
-    def ProjectShadowed(self, sampler, vertices, normals, bands, indices, lightprobeName):
+    def ProjectShadowed(self, sampler, vertices, normals, bands, indices, lightprobeName, meshName):
         """
         Projects the shadowed irradiance for the given vertices and normals.
 
@@ -874,26 +820,73 @@ class SphericalHarmonics:
         self.coeffs = np.zeros((len(vertices), bands * bands, 3), dtype=np.float32)
         self.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'probes'/lightprobeName, bands)
 
-        for i in range(len(vertices)):
-            for j in range(sampler.number_of_samples):
-                sample = sampler.samples[j]
-                progress = (i/len(vertices)) * 100
-                print(f"Computing coefficients....  {progress:.2f}%", end="\r")
-                if self.Visibility(vertices, i, sample.cartesian_coord, indices):
-                    cosine_term = max(np.dot(normals[i], sample.cartesian_coord), 0.0)
-                    for k in range(bands * bands):
-                        sh_function = sample.sh_functions[k]
-                        self.coeffs[i][k] += 0.2 * sh_function * cosine_term
+        folder_name = lightprobeName
+        
+        folder_structure = folder_name
+        filename = folder_structure + "/VertexCoefficients/" + str(meshName)
 
-        print(f"Computing coefficients....  100.00%", end="\r")
-        weight = 4.0 * math.pi
-        scale = weight / sampler.number_of_samples
-        self.coeffs *= scale
+        if(os.path.exists(filename + ".txt")):
+            with open(filename + ".txt", 'r') as f:
+                for i in range(len(self.coeffs)):
+                    # Read exactly 27 values for each vertex (9 coefficients * 3 RGB)
+                    line = np.loadtxt(f, max_rows=1, delimiter=' ')
+                    
+                    # Check if line has the expected number of elements
+                    if len(line) != 27:
+                        raise ValueError(f"Unexpected data length for vertex {i}: {len(line)}")
+                    
+                    # Reshape it back into (9, 3) and assign to self.coeffs[i]
+                    self.coeffs[i] = line.reshape(9, 3)
+        else:
+            progress = 0.00
+            start_time = time.time()
+            for i in range(len(vertices)):
+                for j in range(sampler.number_of_samples):
+                    sample = sampler.samples[j]
+                    progress = (i/len(vertices)) * 100
+                    print(f"Computing coefficients....  {progress:.2f}%", end="\r")
+                    if self.Visibility(vertices, i, sample.cartesian_coord, indices):
+                        cosine_term = max(np.dot(normals[i], sample.cartesian_coord), 0.0)
+                        for k in range(bands * bands):
+                            sh_function = sample.sh_functions[k]
+                            self.coeffs[i][k] += 0.2 * sh_function * cosine_term
+            end_time = time.time()
+            print(f"Computing coefficients....  100.00%", end="\r")
+            elapsed_time = end_time - start_time
+            print(f"Elapsed time: {elapsed_time:.6f} seconds")
+            weight = 4.0 * math.pi
+            scale = weight / sampler.number_of_samples
+            self.coeffs *= scale
 
         colors = np.zeros((len(vertices), 3), dtype=np.float32)
         for i in range(len(vertices)):
             for j in range(9):
                 colors[i] += self.lightCoeffs[j] * self.coeffs[i][j]
+
+        if(Data_Collection == True):
+            if(meshName != None):
+                if(lightprobeName != None):
+                    folder_name = lightprobeName
+                    
+                    if not os.path.exists(folder_name):
+                        os.makedirs(folder_structure + folder_name)
+
+                    folder_structure = folder_structure + "/" + folder_name
+                    folder_name = "/VertexCoefficients"
+                    
+                    if not os.path.exists(folder_structure + folder_name):
+                        os.makedirs(folder_structure + folder_name)
+                    
+                    filename = folder_structure + "/VertexCoefficients/" + str(meshName)
+
+                    if(not(os.path.exists(filename + ".txt"))):
+                        with open(filename + ".txt", 'w') as f:
+                            for i in range(len(self.coeffs)):
+                                # Flatten the coefficients of each vertex into a single row
+                                coeffs_flat = self.coeffs[i].flatten()
+                                # Save them as a single line of space-separated values
+                                np.savetxt(f, [coeffs_flat], delimiter=' ')
+
 
         return colors / 255
     
@@ -989,6 +982,7 @@ class SphericalHarmonics:
         w = (d00 * d21 - d01 * d20) * inv_denom
         u = 1.0 - v - w
         return u, v, w
+
     
     def interreflections(self, bvh, band2, sampler, vertices, normals, indices, bounces, lightprobeName, meshName):
         """
@@ -1010,9 +1004,8 @@ class SphericalHarmonics:
         
         self.coeffs = np.zeros((len(vertices), band2, 3), dtype=np.float32)
         
-        folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
         folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
-        folder_structure = folder_structure + "/" + folder_name
+        folder_structure = folder_name
         filename = folder_structure + "/VertexCoefficients/" + str(meshName)
 
         if(os.path.exists(filename + ".txt")):
@@ -1027,15 +1020,6 @@ class SphericalHarmonics:
                     
                     # Reshape it back into (9, 3) and assign to self.coeffs[i]
                     self.coeffs[i] = line.reshape(9, 3)
-
-            self.lightCoeffs = np.zeros((band2, 3), dtype=np.float32)
-
-            folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
-            folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
-            filename = folder_structure + folder_name + "/LightCoefficients.txt"
-
-            if(os.path.exists(filename)):
-                self.lightCoeffs = np.loadtxt(filename, delimiter=' ', dtype=np.float32)
         else:
 
             self.ProjectShadowed(sampler, vertices, normals, int(math.sqrt(band2)), indices, lightprobeName)
@@ -1090,13 +1074,12 @@ class SphericalHarmonics:
         if(Data_Collection == True):
             if(meshName != None):
                 if(lightprobeName != None):
-                    folder_structure = "/Users/stratosg/Desktop/PRT_Data/"
                     folder_name = str(lightprobeName).split('/')[-1].replace('.hdr', '')
                     
-                    if not os.path.exists(folder_structure + folder_name):
-                        os.makedirs(folder_structure + folder_name)
+                    if not os.path.exists(folder_name):
+                        os.makedirs(folder_name)
 
-                    folder_structure = folder_structure + "/" + folder_name
+                    folder_structure = folder_name
                     folder_name = "/VertexCoefficients"
                     
                     if not os.path.exists(folder_structure + folder_name):
@@ -1573,34 +1556,74 @@ class SHModel(nn.Module):
     def __init__(self, input_size, output_size):
         super(SHModel, self).__init__()
 
-        # BatchNorm for the input size, which is 258 (or whatever the final number of input features is)
-        self.bn_input = nn.BatchNorm1d(input_size)  # input_size is now 258, not 72027
+        # If batch_size=1 always, BatchNorm can behave oddly. It's still okay,
+        # but you might consider GroupNorm or InstanceNorm. We'll keep it as-is:
+        self.bn_input = nn.BatchNorm1d(input_size)
 
-        # Fully connected layers
-        self.fc1 = nn.Linear(input_size, 512)
-        self.bn1 = nn.BatchNorm1d(512)
-        self.dropout = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(512, 256)
-        self.fc3 = nn.Linear(256, output_size)
-        self.relu = nn.ReLU()
+        self.fc1 = nn.Linear(input_size, 1024)
+        self.bn1 = nn.BatchNorm1d(1024)
+        self.dropout1 = nn.Dropout(0.5)
+
+        self.fc2 = nn.Linear(1024, 512)
+        self.bn2 = nn.BatchNorm1d(512)
+        self.dropout2 = nn.Dropout(0.3)
+
+        self.fc3 = nn.Linear(512, 256)
+        self.bn3 = nn.BatchNorm1d(256)
+        self.dropout3 = nn.Dropout(0.2)
+
+        self.fc4 = nn.Linear(256, 128)
+        self.fc5 = nn.Linear(128, output_size)
+
+        self.activation = nn.SiLU()
 
     def forward(self, x):
-    # Reshape input for BatchNorm: (batch_size * num_vertices, 258)
+        """
+        This forward can handle:
+         - Training shape: [B, V, 6]
+         - Unity Barracuda shape: [1,1,6,V]
+         
+        We'll unify them to [B, V, 6] before flattening.
+        """
+        # If Barracuda feeds us a 4D tensor [1,1,6,numVerts], permute -> [1,1,numVerts,6] -> squeeze -> [1,numVerts,6]
+        if x.ndim == 4:
+            x = x.permute(0, 1, 3, 2)  # => [1,1,numVerts,6]
+            x = x.squeeze(1)          # => [1,numVerts,6]
+
+        # If it’s [B,6] 2D, we make it [B,1,6]
+        if x.ndim == 2:
+            x = x.unsqueeze(1)
+
+        # Now we expect [batch_size, num_vertices, num_features=6]
         batch_size, num_vertices, num_features = x.shape
+
+        # Flatten so linear layers see [B*V, 6]
         x = x.view(batch_size * num_vertices, num_features)
-        
-        # Apply batch normalization
+
+        # Normal feed-forward:
         x = self.bn_input(x)
+        x = self.fc1(x)
+        x = self.activation(x)
+        x = self.bn1(x)
+        x = self.dropout1(x)
 
-        # Pass through fully connected layers
-        x = self.relu(self.bn1(self.fc1(x)))
-        x = self.dropout(x)
-        x = self.relu(self.fc2(x))
+        x = self.fc2(x)
+        x = self.activation(x)
+        x = self.bn2(x)
+        x = self.dropout2(x)
 
-        # Reshape back to (batch_size, num_vertices, output_size)
+        x = self.fc3(x)
+        x = self.activation(x)
+        x = self.bn3(x)
+        x = self.dropout3(x)
+
+        x = self.fc4(x)
+        x = self.activation(x)
+        x = self.fc5(x)
+
+        # Reshape back to [B, V, 27]
         x = x.view(batch_size, num_vertices, -1)
-        
-        return self.fc3(x)
+        return x
 
 
 class NeuralPRT:
@@ -1609,110 +1632,152 @@ class NeuralPRT:
         self.normals = normals
         self.sh = sh
         self.sampler = sampler
-        sh.project_light_function(sampler, TEXTURES_PATH / 'skybox' / 'probes' / lightprobeName, bands)
         self.bands = bands
         self.model_type = None
-        # Initialize a list to store the SH values
-        sh_functions = []
 
-        # Loop through the samples and store the SH functions in the list
-        for i in range(sampler.number_of_samples):
-            sh_values = sampler.samples[i].sh_functions  # SH functions for the current sample
-            sh_functions.append(sh_values)
+        # **Project light function using the provided sampler**
+        sh.project_light_function(
+            sampler, TEXTURES_PATH / 'skybox' / 'probes' / lightprobeName, bands
+        )
 
-        self.sh_functions = np.array(sh_functions)
+        # **Extract SH functions and store them as a NumPy array**
+        self.sh_functions = np.array([
+            sampler.samples[i].sh_functions for i in range(sampler.number_of_samples)
+        ])
 
+        # **Determine model type based on file extension**
         _, extension = os.path.splitext(model_name)
         extension = extension.lower()
 
+        # **Load PyTorch Model (`.pth`)**
         if extension == ".pth":
-            self.model = torch.load(model_name)  # Load the entire model
-            self.model.eval()  # Set the model to evaluation mode
-            self.model_type = "pth"
+            try:
+                # **Register SHModel as a safe global (fix PyTorch 2.6 issue)**
+                torch.serialization.add_safe_globals([SHModel])
+
+                # **Try to load the model**
+                checkpoint = torch.load(model_name, weights_only=False)
+
+                # **Check if it's only state_dict**
+                if isinstance(checkpoint, dict):  
+                    self.model = SHModel(input_size=32, output_size=27)  # Ensure correct input/output sizes
+                    self.model.load_state_dict(checkpoint)  # Load weights into model
+                else:
+                    self.model = checkpoint 
+
+                # **Set model to evaluation mode**
+                self.model.eval()
+                self.model_type = "pth"
+
+                print(f"Successfully loaded PyTorch model: {model_name}")
+
+            except Exception as e:
+                raise RuntimeError(f"❌ Failed to load PyTorch model '{model_name}': {e}")
+
+        # **Load ONNX Model (`.onnx`)**
         elif extension == ".onnx":
-            self.model = ort.InferenceSession(model_name)
-            self.model_type = "onnx"
+            try:
+                self.model = ort.InferenceSession(model_name)
+                self.model_type = "onnx"
+
+                print(f"Successfully loaded ONNX model: {model_name}")
+
+            except Exception as e:
+                raise RuntimeError(f"❌ Failed to load ONNX model '{model_name}': {e}")
+
         else:
-            raise ValueError(f"Unsupported model extension: {extension}. Use '.pth' or '.onnx'.")
+            raise ValueError(f"❌ Unsupported model extension: {extension}. Use '.pth' or '.onnx'.")
+    
 
-
-    # Function to prepare input as done during training
     def prepare_input(self):
         """
-        Prepare input features efficiently on the CPU.
+        Prepares input for the trained neural network model.
+        Now it only includes vertices and normals, ensuring no NaNs and handling missing normals.
         """
-        num_vertices = self.vertices.shape[0]
+        input_features = []
 
-        # Flatten and broadcast static data
-        light_coeffs = self.sh.lightCoeffs.flatten()  # Shape: (bands * bands,)
-        sh_functions = self.sh_functions.flatten()   # Shape: (bands * bands,)
+        for i, (v, n) in enumerate(zip(self.vertices, self.normals)):
+            if np.isnan(n).any():
+                n = np.array([0.0, 0.0, 0.0], dtype=np.float32) 
+            M = build_motor_from_vertex_normal(v, n)                 
+            input_features.append(M)
 
-        # Use broadcasting instead of np.tile
-        light_coeffs_broadcasted = np.broadcast_to(light_coeffs, (num_vertices, len(light_coeffs)))  # Shape: (num_vertices, bands * bands)
-        sh_functions_broadcasted = np.broadcast_to(sh_functions, (num_vertices, len(sh_functions)))  # Shape: (num_vertices, bands * bands)
-
-        # Concatenate features efficiently
-        input_features = np.hstack([self.vertices, self.normals, light_coeffs_broadcasted, sh_functions_broadcasted])  # Shape: (num_vertices, total_features)
-
-        # Add batch dimension for PyTorch compatibility
-        input_features = np.expand_dims(input_features, axis=0)  # Shape: (1, num_vertices, total_features)
+        # Add batch dimension for PyTorch (needed for batch processing)
+        input_features = np.expand_dims(input_features, axis=0) 
 
         # Convert to PyTorch tensor
         return torch.tensor(input_features, dtype=torch.float32)
     
+   
     def prepare_input_onnx(self):
         """
         Prepare input features efficiently on the CPU, formatted for ONNX (4D input).
         """
         num_vertices = self.vertices.shape[0]
 
-        # Flatten and broadcast static data
-        light_coeffs = self.sh.lightCoeffs.flatten()  # Shape: (bands * bands,)
-        sh_functions = self.sh_functions.flatten()   # Shape: (bands * bands,)
-
-        # Use broadcasting instead of np.tile
-        light_coeffs_broadcasted = np.broadcast_to(light_coeffs, (num_vertices, len(light_coeffs)))  # Shape: (num_vertices, bands * bands)
-        sh_functions_broadcasted = np.broadcast_to(sh_functions, (num_vertices, len(sh_functions)))  # Shape: (num_vertices, bands * bands)
-
         # Concatenate features efficiently
-        input_features = np.hstack([self.vertices, self.normals, light_coeffs_broadcasted, sh_functions_broadcasted])  # Shape: (num_vertices, total_features)
+        input_features = []
 
-        # Add batch dimension for PyTorch compatibility
-        input_features = np.expand_dims(input_features, axis=0)  # Shape: (1, num_vertices, total_features)
+        for v, n in zip(self.vertices, self.normals):
+            if np.isnan(n).any():
+                n = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+            M = build_motor_from_vertex_normal(v, n)  # M should be a 32D vector
+            input_features.append(M)
 
-        # Add an additional dimension to match ONNX input requirements
-        input_features = np.expand_dims(input_features, axis=1)  # Shape: (1, 1, num_vertices, total_features)
+        # Convert to NumPy array: shape (V, 32)
+        input_features = np.array(input_features, dtype=np.float32)
+
+        # Add batch dimension: (1, V, 32)
+        input_features = np.expand_dims(input_features, axis=0)
 
         # Convert to PyTorch tensor
-        return torch.tensor(input_features, dtype=torch.float32)
+        input_tensor = torch.tensor(input_features, dtype=torch.float32)
 
-
+        # Convert to PyTorch tensor
+        return torch.tensor(input_tensor, dtype=torch.float32)
 
     def run_model(self):
+        global Data_Collection
 
-        if(self.model_type == "pth"):
-            # Prepare the input tensor
+        if self.model_type == "pth":
+            # **Prepare input and move to GPU if available**
             input_data = self.prepare_input()
 
-            # Make predictions with the model
-            with torch.no_grad():  # No need to track gradients during inference
+            # **Run model inference without tracking gradients**
+            with torch.no_grad():
                 predictions = self.model(input_data)
 
-            # Convert predictions to NumPy
-            predicted_coeffs = predictions.numpy()
+            # **Move back to CPU for further processing**
+            predicted_coeffs = predictions.cpu().numpy()
 
+            # **Check for NaNs before proceeding**
+            if np.isnan(predicted_coeffs).any():
+                print("Warning: NaNs detected in predicted coefficients!")
+
+            # **Compute colors using the predicted coefficients**
             colors = compute_colors_numba(predicted_coeffs[0], self.sh.lightCoeffs)
-        elif(self.model_type == "onnx"):
-            input_data = self.prepare_input_onnx()
-            input_data = input_data.numpy()
 
+        elif self.model_type == "onnx":
+            # **Prepare input for ONNX model**
+            input_data = self.prepare_input_onnx().numpy()  # Convert to NumPy
+            # Fix the input shape before passing it to the model
+            if input_data.ndim == 3:
+                # Assuming current shape is (batch_size, input_size, num_vertices)
+                input_data = np.expand_dims(input_data, axis=1)  # Add a dummy channel dim
+            
+            if input_data.shape[2] != 32:
+                # Assuming shape is (1, 1, num_vertices, 32)
+                input_data = np.transpose(input_data, (0, 1, 3, 2))
+
+            input_data = input_data.astype(np.float32)
+            # **Run ONNX inference**
             input_name = self.model.get_inputs()[0].name
             predictions = self.model.run(None, {input_name: input_data})
 
+            # **Extract ONNX model predictions**
             predicted_coeffs = predictions[0]
 
-            print(predictions[0].shape)
-
+            # **Compute colors using the predicted coefficients**
             colors = compute_colors_numba(predicted_coeffs[0], self.sh.lightCoeffs)
 
         else:
@@ -1802,3 +1867,461 @@ def trimax(a, b, c):
         max_value = trimax(1, 2, 3)  # Result: 3
     """
     return max(a, b, c)  # Return the maximum value among a, b, and c
+
+class CGA_SH_Rotations:
+    def __init__(self):
+        self.pos = None
+        self.val = None
+        self.lines = None
+        self.rotorCGA = None
+        self.lightCoeffs = []
+        self.initialize_rot(3)
+
+    def initialize_rot(self, bands):
+        self.pos = np.zeros((bands * bands, 3))
+        angles_max = np.zeros((bands * bands, 2))
+        max_values = np.zeros(bands * bands)
+        self.val = np.zeros(bands * bands)
+
+        sqrt_samples = 500
+        for i in range(sqrt_samples):
+            for j in range(sqrt_samples):
+                x = (i + 0.0) / sqrt_samples
+                y = (j + 0.0) / sqrt_samples
+
+                theta = 2.0 * acos(sqrt(1.0 - x))
+                phi = 2.0 * pi * y
+
+                X = sin(theta) * cos(phi)
+                Y = sin(theta) * sin(phi)
+                Z = cos(theta)
+
+                for l in range(bands):
+                    for m in range(-l, l + 1):
+                        index = l * (l + 1) + m
+                        coeff = self.compute_sh1(l, m, X, Y, Z)
+                        if coeff > max_values[index]:
+                            max_values[index] = coeff
+                            angles_max[index] = [theta, phi]
+
+        for i in range(bands * bands):
+            theta, phi = angles_max[i]
+            X = sin(theta) * cos(phi)
+            Y = sin(theta) * sin(phi)
+            Z = cos(theta)
+            self.pos[i] = [X, Y, Z]
+
+        for l in range(bands):
+            for m in range(-l, l + 1):
+                index = l * (l + 1) + m
+                self.val[index] = self.compute_sh1(l, m, *self.pos[index])
+
+    def rotate_line(self, rotor, x, y, z):
+        val1 = -rotor[1] * x - rotor[2] * y - rotor[3] * z
+        val2 = rotor[0] * x - rotor[2] * z + rotor[3] * y
+        val3 = rotor[0] * z - rotor[1] * y + rotor[2] * x
+        val4 = rotor[0] * y + rotor[1] * z - rotor[3] * x
+
+        x1 = val1 * -rotor[1] + val2 * rotor[0] - val4 * -rotor[3] + val3 * -rotor[2]
+        y1 = val1 * -rotor[2] + val2 * -rotor[3] + val4 * rotor[0] - val3 * -rotor[1]
+        z1 = val1 * -rotor[3] - val2 * -rotor[2] + val4 * -rotor[1] + val3 * rotor[0]
+
+        return np.array([x1, y1, z1])
+
+    def compute_rotation(self, skybox_rotation):
+        # Convert the single rotation angle to a Vector3 Euler angle
+        g_quat = np.array([0, skybox_rotation, 0])  # Adjust for Python indexing
+
+        # Convert Euler angles to a quaternion
+        quaternion = R.from_euler('xyz', g_quat, degrees=True).as_quat()  # [x, y, z, w] format in SciPy
+        quaternion_wxyz = np.array([quaternion[3], quaternion[0], quaternion[1], quaternion[2]])  # Convert to [w, x, y, z]
+
+        # Create rotorCGA equivalent to vec4(quaternion2.w, -quaternion2.x, quaternion2.y, -quaternion2.z)
+        self.rotorCGA = np.array([quaternion_wxyz[0], -quaternion_wxyz[1], quaternion_wxyz[2], -quaternion_wxyz[3]])
+
+        self.lightCoeffs = self.update_light_coeffs()
+
+        return
+
+    def get_sh_rotation(self, rotor, bands):
+        self.lines = np.zeros((bands * bands, 3))
+        rotated_coeffs = np.zeros(bands * bands)
+
+        rotated_coeffs[0] = 1
+        self.lines[0] = [0, 0, 1]
+
+        for l in range(1, bands):
+            for m in range(-l, l + 1):
+                index = l * (l + 1) + m
+                rot = self.rotate_line(rotor, *self.pos[index])
+                self.lines[index] = rot
+                rotated_coeffs[index] = self.compute_sh1(l, m, *rot) / self.val[index]
+
+        return rotated_coeffs
+
+    def update_light_coeffs(self):
+        bands = 3
+        rotated_coeffs = self.get_sh_rotation(self.rotorCGA, bands)
+        new_coeffs = [rotated_coeffs[i] * self.lightCoeffs[i] for i in range(len(rotated_coeffs))]
+        return new_coeffs
+
+    def print_light_coeffs(self, light_coeffs, bands):
+        for i in range(bands * bands):
+            print(f"{i}: {light_coeffs[i][0]} {light_coeffs[i][1]} {light_coeffs[i][2]}")
+
+    def compute_sh1(self, l, m, x, y, z):
+        if l == 0 and m == 0:
+            return math.sqrt(1 / (4 * math.pi))
+        elif l == 1:
+            if m == -1:
+                return self.compute_sh1_1(x, y, z)
+            elif m == 0:
+                return self.compute_sh10(x, y, z)
+            elif m == 1:
+                return self.compute_sh11(x, y, z)
+        elif l == 2:
+            if m == -2:
+                return self.compute_sh2_2(x, y, z)
+            elif m == -1:
+                return self.compute_sh2_1(x, y, z)
+            elif m == 0:
+                return self.compute_sh20(x, y, z)
+            elif m == 1:
+                return self.compute_sh21(x, y, z)
+            elif m == 2:
+                return self.compute_sh22(x, y, z)
+        elif l == 3:
+            if m == -3:
+                return self.compute_sh3_3(x, y, z)
+            elif m == -2:
+                return self.compute_sh3_2(x, y, z)
+            elif m == -1:
+                return self.compute_sh3_1(x, y, z)
+            elif m == 0:
+                return self.compute_sh30(x, y, z)
+            elif m == 1:
+                return self.compute_sh31(x, y, z)
+            elif m == 2:
+                return self.compute_sh32(x, y, z)
+            elif m == 3:
+                return self.compute_sh33(x, y, z)
+        elif l == 4:
+            if m == -4:
+                return self.compute_sh4_4(x, y, z)
+            elif m == -3:
+                return self.compute_sh4_3(x, y, z)
+            elif m == -2:
+                return self.compute_sh4_2(x, y, z)
+            elif m == -1:
+                return self.compute_sh4_1(x, y, z)
+            elif m == 0:
+                return self.compute_sh40(x, y, z)
+            elif m == 1:
+                return self.compute_sh41(x, y, z)
+            elif m == 2:
+                return self.compute_sh42(x, y, z)
+            elif m == 3:
+                return self.compute_sh43(x, y, z)
+            elif m == 4:
+                return self.compute_sh44(x, y, z)
+        elif l == 5:
+            if m == -5:
+                return self.compute_sh5_5(x, y, z)
+            elif m == -4:
+                return self.compute_sh5_4(x, y, z)
+            elif m == -3:
+                return self.compute_sh5_3(x, y, z)
+            elif m == -2:
+                return self.compute_sh5_2(x, y, z)
+            elif m == -1:
+                return self.compute_sh5_1(x, y, z)
+            elif m == 0:
+                return self.compute_sh50(x, y, z)
+            elif m == 1:
+                return self.compute_sh51(x, y, z)
+            elif m == 2:
+                return self.compute_sh52(x, y, z)
+            elif m == 3:
+                return self.compute_sh53(x, y, z)
+            elif m == 4:
+                return self.compute_sh54(x, y, z)
+            elif m == 5:
+                return self.compute_sh55(x, y, z)
+
+        return 0.0  # Default case if no match
+    
+    def compute_sh10(self, x, y, z):
+        a2 = np.zeros(32)
+        points2 = np.zeros(32)
+
+        line2_6 = z
+        line2_7 = -y
+        line2_10 = x
+
+        if z > 0:
+            points2[16] = line2_6 / 2.0
+            points2[18] = line2_6
+            points2[20] = line2_7
+            points2[23] = line2_10
+
+            val2 = points2[23] ** 2 + points2[20] ** 2 + points2[18] ** 2
+            val1 = math.sqrt(math.sqrt(abs(points2[16] ** 4)))
+
+            a2[1] = val1 * points2[23] / val2 - (-points2[23] * points2[16] / val2)
+            a2[2] = val1 * -points2[20] / val2 - (points2[20] * points2[16] / val2)
+            a2[3] = val1 * points2[18] / val2 - (-points2[18] * points2[16] / val2)
+
+            return math.sqrt(a2[1] ** 2 + a2[2] ** 2 + a2[3] ** 2)
+        else:
+            points2[16] = line2_6 * -0.5
+            points2[18] = line2_6
+            points2[20] = line2_7
+            points2[23] = line2_10
+
+            val2 = points2[23] ** 2 + points2[20] ** 2 + points2[18] ** 2
+            val1 = math.sqrt(math.sqrt(abs(points2[16] ** 4)))
+
+            a2[1] = val1 * points2[23] / val2 - (-points2[23] * points2[16] / val2)
+            a2[2] = val1 * -points2[20] / val2 - (points2[20] * points2[16] / val2)
+            a2[3] = val1 * points2[18] / val2 - (-points2[18] * points2[16] / val2)
+
+            return -math.sqrt(a2[1] ** 2 + a2[2] ** 2 + a2[3] ** 2)
+
+    def compute_sh1_1(self, x, y, z):
+        a1 = np.zeros(32)
+        points1 = np.zeros(32)
+
+        line1_6 = z
+        line1_7 = -y
+        line1_10 = x
+
+        if y < 0:
+            points1[16] = -line1_7 / 2.0
+            points1[18] = line1_6
+            points1[20] = line1_7
+            points1[23] = line1_10
+
+            val1 = points1[23] ** 2 + points1[20] ** 2 + points1[18] ** 2
+            val2 = math.sqrt(math.sqrt(abs(points1[16] ** 4)))
+
+            a1[1] = val2 * points1[23] / val1 - (points1[23] * points1[16] / val1)
+            a1[2] = val2 * -points1[20] / val1 - (-points1[20] * points1[16] / val1)
+            a1[3] = val2 * points1[18] / val1 - (points1[18] * points1[16] / val1)
+
+            return math.sqrt(a1[1] ** 2 + a1[2] ** 2 + a1[3] ** 2)
+        else:
+            points1[16] = -line1_7 * -0.5
+            points1[18] = line1_6
+            points1[20] = line1_7
+            points1[23] = line1_10
+
+            val1 = points1[23] ** 2 + points1[20] ** 2 + points1[18] ** 2
+            val2 = math.sqrt(math.sqrt(abs(points1[16] ** 4)))
+
+            a1[1] = val2 * points1[23] / val1 - (points1[23] * points1[16] / val1)
+            a1[2] = val2 * -points1[20] / val1 - (-points1[20] * points1[16] / val1)
+            a1[3] = val2 * points1[18] / val1 - (points1[18] * points1[16] / val1)
+
+            return -math.sqrt(a1[1] ** 2 + a1[2] ** 2 + a1[3] ** 2)
+
+    def compute_sh11(self, x, y, z):
+        a3 = np.zeros(32)
+        points3 = np.zeros(32)
+
+        line3_6 = z
+        line3_7 = -y
+        line3_10 = x
+
+        if x < 0:
+            points3[16] = line3_10 * -0.5
+            points3[18] = line3_6
+            points3[20] = line3_7
+            points3[23] = line3_10
+
+            val1 = points3[23] ** 2 + points3[20] ** 2 + points3[18] ** 2
+            val2 = math.sqrt(math.sqrt(abs(points3[16] ** 4)))
+
+            a3[1] = val2 * points3[23] / val1 - (-points3[23] * points3[16] / val1)
+            a3[2] = val2 * -points3[20] / val1 - (points3[20] * points3[16] / val1)
+            a3[3] = val2 * points3[18] / val1 - (-points3[18] * points3[16] / val1)
+
+            return math.sqrt(a3[1] ** 2 + a3[2] ** 2 + a3[3] ** 2)
+        else:
+            points3[16] = line3_10 / 2.0
+            points3[18] = line3_6
+            points3[20] = line3_7
+            points3[23] = line3_10
+
+            val1 = points3[23] ** 2 + points3[20] ** 2 + points3[18] ** 2
+            val2 = math.sqrt(math.sqrt(abs(points3[16] ** 4)))
+
+            a3[1] = val2 * points3[23] / val1 - (-points3[23] * points3[16] / val1)
+            a3[2] = val2 * -points3[20] / val1 - (points3[20] * points3[16] / val1)
+            a3[3] = val2 * points3[18] / val1 - (-points3[18] * points3[16] / val1)
+
+            return -math.sqrt(a3[1] ** 2 + a3[2] ** 2 + a3[3] ** 2)
+        
+    def compute_sh2_2(self, x, y, z):
+        return self.compute_sh11(x, y, z) * self.compute_sh1_1(x, y, z)
+
+    def compute_sh2_1(self, x, y, z):
+        return self.compute_sh10(x, y, z) * self.compute_sh1_1(x, y, z)
+
+    def compute_sh20(self, x, y, z):
+        val = self.compute_sh10(x, y, z)
+        return (3.0 * val * val) - 1.0
+
+    def compute_sh21(self, x, y, z):
+        return self.compute_sh11(x, y, z) * self.compute_sh10(x, y, z)
+
+    def compute_sh22(self, x, y, z):
+        val1 = self.compute_sh11(x, y, z)
+        val2 = self.compute_sh1_1(x, y, z)
+        return (val1 * val1 - val2 * val2)
+
+    def compute_sh3_3(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        return (3 * xSH * xSH - ySH * ySH) * ySH
+
+    def compute_sh3_2(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return xSH * ySH * zSH
+
+    def compute_sh3_1(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return ySH * (4 * zSH * zSH - xSH * xSH - ySH * ySH)
+
+    def compute_sh30(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return zSH * (2 * zSH * zSH - 3 * xSH * xSH - 3 * ySH * ySH)
+
+    def compute_sh31(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return xSH * (4 * zSH * zSH - xSH * xSH - self.compute_sh1_1(x, y, z) * self.compute_sh1_1(x, y, z))
+
+    def compute_sh32(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return (xSH * xSH - ySH * ySH) * zSH
+
+    def compute_sh33(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        return (xSH * xSH - 3 * ySH * ySH) * xSH
+
+    def compute_sh4_4(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        return xSH * ySH * (xSH * xSH - ySH * ySH)
+
+    def compute_sh4_3(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return (3 * xSH * xSH - ySH * ySH) * ySH * zSH
+
+    def compute_sh4_2(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return xSH * ySH * (7 * zSH * zSH - 1)
+
+    def compute_sh4_1(self, x, y, z):
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return ySH * zSH * (7 * zSH * zSH - 3)
+
+    def compute_sh40(self, x, y, z):
+        zSH = self.compute_sh10(x, y, z)
+        return 35.0 * zSH * zSH * zSH * zSH - 30 * zSH * zSH + 3
+
+    def compute_sh41(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return xSH * zSH * (7 * zSH * zSH - 3)
+
+    def compute_sh42(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return (xSH * xSH - ySH * ySH) * (7 * zSH * zSH - 1)
+
+    def compute_sh43(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return (xSH * xSH - 3 * ySH * ySH) * xSH * zSH
+
+    def compute_sh44(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        return xSH * xSH * (xSH * xSH - 3 * ySH * ySH) - ySH * ySH * (3 * xSH * xSH - ySH * ySH)
+
+    def compute_sh5_5(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        return ySH * (5 * xSH**4 - 10 * ySH**2 * xSH**2 + ySH**4)
+
+    def compute_sh5_4(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return ySH * xSH * (xSH**2 - ySH**2) * zSH
+
+    def compute_sh5_3(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return ySH * (3 * xSH**2 - ySH**2) * (-1 + 9 * zSH**2)
+
+    def compute_sh5_2(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return ySH * xSH * zSH * (-1 + 3 * zSH**2)
+
+    def compute_sh5_1(self, x, y, z):
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return ySH * (-14 * zSH**2 + 21 * zSH**4 + 1)
+
+    def compute_sh50(self, x, y, z):
+        zSH = self.compute_sh10(x, y, z)
+        return zSH * (63 * zSH**4 - 70 * zSH**2 + 15)
+
+    def compute_sh51(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return xSH * (-14 * zSH**2 + 21 * zSH**4 + 1)
+
+    def compute_sh52(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return (xSH**2 - ySH**2) * zSH * (-1 + 3 * zSH**2)
+
+    def compute_sh53(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return xSH * (xSH**2 - 3 * ySH**2) * (-1 + 9 * zSH**2)
+
+    def compute_sh54(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        zSH = self.compute_sh10(x, y, z)
+        return (xSH**4 - 6 * ySH**2 * xSH**2 + ySH**4) * zSH
+
+    def compute_sh55(self, x, y, z):
+        xSH = self.compute_sh11(x, y, z)
+        ySH = self.compute_sh1_1(x, y, z)
+        return xSH * (xSH**4 - 10 * ySH**2 * xSH**2 + 5 * ySH**4)
