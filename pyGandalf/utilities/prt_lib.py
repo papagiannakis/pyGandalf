@@ -11,7 +11,6 @@ import onnxruntime as ort
 from OpenGL.GL import *
 
 from pyGandalf.utilities.definitions import TEXTURES_PATH
-from numba import njit
 from math import sqrt, acos, sin, cos, pi
 from scipy.spatial.transform import Rotation as R
 from pyGandalf.utilities.GA.CGA_Multivector_Processing import build_motor_from_vertex_normal
@@ -21,8 +20,7 @@ import numpy as np
 
 Data_Collection = False
 
-@njit
-def compute_colors_numba(predicted_coeffs, light_coeffs):
+def compute_colors(predicted_coeffs, light_coeffs):
     num_vertices = predicted_coeffs.shape[0]
     num_bands = light_coeffs.shape[0]
     colors = np.zeros((num_vertices, 3), dtype=np.float32)
@@ -1755,7 +1753,7 @@ class NeuralPRT:
                 print("Warning: NaNs detected in predicted coefficients!")
 
             # **Compute colors using the predicted coefficients**
-            colors = compute_colors_numba(predicted_coeffs[0], self.sh.lightCoeffs)
+            colors = compute_colors(predicted_coeffs[0], self.sh.lightCoeffs)
 
         elif self.model_type == "onnx":
             # **Prepare input for ONNX model**
@@ -1778,7 +1776,7 @@ class NeuralPRT:
             predicted_coeffs = predictions[0]
 
             # **Compute colors using the predicted coefficients**
-            colors = compute_colors_numba(predicted_coeffs[0], self.sh.lightCoeffs)
+            colors = compute_colors(predicted_coeffs[0], self.sh.lightCoeffs)
 
         else:
             raise RuntimeError("Model is not loaded or has an unsupported type.")
