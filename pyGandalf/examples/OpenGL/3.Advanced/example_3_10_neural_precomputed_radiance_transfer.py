@@ -86,7 +86,6 @@ def main():
     OpenGLShaderLib().build('skybox', SHADERS_PATH / 'opengl' / 'skybox.vs', SHADERS_PATH / 'opengl' / 'skybox.fs')
     OpenGLMaterialLib().build('M_Skybox', MaterialData('skybox', ['cube_map']), MaterialDescriptor(cull_face=gl.GL_FRONT, depth_mask=gl.GL_FALSE))
 
-
     # Build shaders 
     OpenGLShaderLib().build('unlitPRT', SHADERS_PATH/'opengl'/'unlit_color.vs', SHADERS_PATH/'opengl'/'unlit_color.fs')
     
@@ -110,7 +109,7 @@ def main():
 
     # Register components to mesh
     scene.add_component(mesh, InfoComponent("mesh"))
-    scene.add_component(mesh, TransformComponent(glm.vec3(0, 0, 5), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(mesh, TransformComponent(glm.vec3(0, 0, 5), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(mesh, StaticMeshComponent('mesh',[PRT_Vertices, colors], PRT_Indices))
     scene.add_component(mesh, MaterialComponent('M_UnlitPRT'))
 
@@ -122,7 +121,7 @@ def main():
 
     # Register components to camera
     scene.add_component(camera, InfoComponent("camera"))
-    scene.add_component(camera, TransformComponent(glm.vec3(0, 0, 0), glm.vec3(0, 180, 0), glm.vec3(1, 1, 1)))
+    scene.add_component(camera, TransformComponent(glm.vec3(0, 0, 10), glm.vec3(0, 0, 0), glm.vec3(1, 1, 1)))
     scene.add_component(camera, CameraComponent(45, 1280/720, 0.01, 1000, 1, CameraComponent.Type.PERSPECTIVE))
     scene.add_component(camera, CameraControllerComponent())
 
