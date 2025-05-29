@@ -30,7 +30,7 @@ Showcase of the Precomputed Radiance Transfer (PRT) algorithm utilizing a neural
 
 def main():
 
-    meshName = "buddha.obj"
+    meshName = "monkey_flat.obj"
     lightprobeName = "solitude_night_2k.hdr"
     samples = 5
     bands = 3
