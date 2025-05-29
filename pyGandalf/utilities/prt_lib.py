@@ -1650,10 +1650,6 @@ class NeuralPRT:
         # **Load PyTorch Model (`.pth`)**
         if extension == ".pth":
             try:
-                # **Register SHModel as a safe global (fix PyTorch 2.6 issue)**
-                torch.serialization.add_safe_globals([SHModel])
-
-                # **Try to load the model**
                 checkpoint = torch.load(model_name, weights_only=False)
 
                 # **Check if it's only state_dict**
@@ -1670,7 +1666,7 @@ class NeuralPRT:
                 print(f"Successfully loaded PyTorch model: {model_name}")
 
             except Exception as e:
-                raise RuntimeError(f"❌ Failed to load PyTorch model '{model_name}': {e}")
+                raise RuntimeError(f"Failed to load PyTorch model '{model_name}': {e}")
 
         # **Load ONNX Model (`.onnx`)**
         elif extension == ".onnx":
@@ -1681,10 +1677,10 @@ class NeuralPRT:
                 print(f"Successfully loaded ONNX model: {model_name}")
 
             except Exception as e:
-                raise RuntimeError(f"❌ Failed to load ONNX model '{model_name}': {e}")
+                raise RuntimeError(f"Failed to load ONNX model '{model_name}': {e}")
 
         else:
-            raise ValueError(f"❌ Unsupported model extension: {extension}. Use '.pth' or '.onnx'.")
+            raise ValueError(f"Unsupported model extension: {extension}. Use '.pth' or '.onnx'.")
     
 
     def prepare_input(self):

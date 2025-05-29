@@ -34,7 +34,3 @@ def build_motor_from_vertex_normal(vertex, normal):
 
     motor = matrix_to_motor(M, method = 'CGA')
     return multivector_to_vector32(motor)
-
-vertex = [1, 2, 3]
-normal = [1, 0.25, 0.75]
-print(build_motor_from_vertex_normal(vertex, normal))
