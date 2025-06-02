@@ -22,7 +22,7 @@ setup(
     package_dir={'pyGandalf':'pyGandalf'},
     packages=find_packages(exclude=["tests"]),
     install_requires=[
-        "numpy>=1.26.4",
+        "numpy>=1.24",
         "glfw>=2.7.0",
         "PyOpenGL>=3.1.7",
         "pillow>=10.2.0",
@@ -38,6 +38,10 @@ setup(
         'jupyter',
         'imageio',
         'opencv-python',
+        'torch',
+        'onnxruntime',
+        'clifford',
+        "numba==0.57.1",
     ],    
 
     classifiers=[
