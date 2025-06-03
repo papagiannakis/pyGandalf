@@ -87,6 +87,14 @@ class OpenGLRenderer(BaseRenderer):
 
         return 0
 
+    def update_colors(cls, new_colors, index_buffer):
+        # Bind the color buffer
+        color_buffer = index_buffer  # Index corresponding to the color buffer
+        gl.glBindBuffer(gl.GL_ARRAY_BUFFER, color_buffer)
+
+        # Update the buffer data
+        gl.glBufferSubData(gl.GL_ARRAY_BUFFER, 0, len(new_colors) * len(new_colors[0]) * 4, new_colors.ctypes.data_as(ctypes.POINTER(gl.GLfloat)))
+
     def begin_frame(cls):
         if cls.instance.use_framebuffer:
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, cls.instance.framebuffer_id)
