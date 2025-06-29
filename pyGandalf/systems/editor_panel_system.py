@@ -848,7 +848,7 @@ class EditorPanelSystem(System):
                 if imgui.is_item_clicked():
                     system.set_state(SystemState.PLAY)
             elif system.state == SystemState.PLAY:
-                """imgui.button('Pause', imgui.ImVec2(60, 20))
+                imgui.button('Pause', imgui.ImVec2(60, 20))
                 if imgui.is_item_clicked():
-                    system.set_state(SystemState.PAUSE)"""
+                    system.set_state(SystemState.PAUSE)
             imgui.separator()

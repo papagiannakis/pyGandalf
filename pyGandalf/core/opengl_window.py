@@ -16,7 +16,7 @@ class OpenGLWindow(BaseWindow):
 
         # Set GLFW window hints
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
-        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 5)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
 
         if platform.system() == "Darwin":
             glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, glfw.TRUE);

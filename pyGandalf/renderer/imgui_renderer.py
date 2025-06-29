@@ -43,7 +43,7 @@ class ImGuiRenderer(BaseRenderer):
         
         if cls.instance.docking_enable:
             imguizmo.im_guizmo.begin_frame()
-            imgui.dock_space_over_viewport(0, imgui.get_main_viewport())
+            imgui.dock_space_over_viewport(imgui.get_main_viewport())
     
     def end_frame(cls):
         imgui.render()
