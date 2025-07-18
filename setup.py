@@ -22,7 +22,7 @@ setup(
     package_dir={'pyGandalf':'pyGandalf'},
     packages=find_packages(exclude=["tests"]),
     install_requires=[
-        "numpy>=1.26.4",
+        "numpy<=1.26.4",
         "glfw>=2.7.0",
         "PyOpenGL>=3.1.7",
         "pillow>=10.2.0",
@@ -30,7 +30,7 @@ setup(
         "PyGLM>=2.7.1",
         "trimesh>=4.2.0",
         "scipy>=1.12.0",
-        "imgui-bundle>=1.3.0",
+        "imgui-bundle<=1.3.0",
         "usd-core>=24.3",
         "jsonpickle>=3.0.4",
         "wgpu==0.14",
