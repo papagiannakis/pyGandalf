@@ -372,7 +372,9 @@ class EditorPanelSystem(System):
                         terrain.loaded = 0
                     load_pressed = imgui.begin_menu('Load')
                     if load_pressed:
-                        for file in glob.glob(str(TEXTURES_PATH/ "**")):
+                        image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp"}
+                        image_paths = [p for p in TEXTURES_PATH.rglob("*") if p.is_file() and p.suffix.lower() in image_extensions]
+                        for file in image_paths:
                             path: Path = Path(file)
                             file_pressed, _ = imgui.menu_item(path.name, '', False)
                             if file_pressed:
@@ -848,7 +850,7 @@ class EditorPanelSystem(System):
                 if imgui.is_item_clicked():
                     system.set_state(SystemState.PLAY)
             elif system.state == SystemState.PLAY:
-                imgui.button('Pause', imgui.ImVec2(60, 20))
+                #imgui.button('Pause', imgui.ImVec2(60, 20))
                 if imgui.is_item_clicked():
                     system.set_state(SystemState.PAUSE)
             imgui.separator()
